@@ -12,7 +12,8 @@
 <meta name="theme-color" content="#1d1d1d">
 <link rel="apple-touch-icon" href="icon-180.png">
 
-<style id="page-style">@page { size: A3 landscape; margin: 7mm; }</style>
+<style id="page-style">@page { size: A3 landscape; margin: 7mm; }.zv-seg{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 2px}.zv-seg button{font-size:12px;padding:4px 9px}.zv-seg button.on{background:#1d1d1f;color:#fff;border-color:#1d1d1f}
+</style>
 <style>
 :root{
   --ink:#1d1d1d; --muted:#4d4d4d; --line:#bfbfbf; --line-strong:#4d4d4d; --bg:#e5e5e5; --card:#fff;
@@ -1128,7 +1129,7 @@ function sigIcon(sg, partei, px = 40, extra = '', nr) {
 
 /* ===================== Lage / Karte ===================== */
 const colLetter = i => String.fromCharCode(65 + i);
-function parseFeld(f) { const m = /^\s*([A-Za-z])\s*(\d{1,2})\s*$/.exec(f || ''); if (!m) return null; const c = m[1].toUpperCase().charCodeAt(0) - 65, r = +m[2] - 1; if (c < 0 || c >= D.meta.rasterCols || r < 0 || r >= D.meta.rasterRows) return null; return { c, r }; }
+function parseFeld(f, F) { const NC = F ? F.cols : D.meta.rasterCols, NR = F ? F.rows : D.meta.rasterRows; const m = /^\s*([A-Za-z])\s*(\d{1,2})\s*$/.exec(f || ''); if (!m) return null; const c = m[1].toUpperCase().charCodeAt(0) - 65, r = +m[2] - 1; if (c < 0 || c >= NC || r < 0 || r >= NR) return null; return { c, r }; }
 const lageCode = l => (P_CODE[l.partei] || '?') + (l.nr || '?');
 function lageFor(level, ctx) {
   const act = D.lage.filter(l => l.aktiv !== false);
@@ -1357,13 +1358,14 @@ function setGeo(ng) {
     const ob = geoBox(old), nb = geoBox(ng), C = D.meta.rasterCols, Rr = D.meta.rasterRows;
     const conv = (fx, fy) => { const E = ob.emin + fx * old.w, N = ob.nmax - fy * old.h; return [+((E - nb.emin) / ng.w).toFixed(5), +((nb.nmax - N) / ng.h).toFixed(5)]; };
     D.lage.forEach(l => {
+      if (l.rahmen) return;
       let fx = l.x, fy = l.y;
       if (fx == null || fy == null) { const p = parseFeld(l.feld); if (!p) return; fx = (p.c + .5) / C; fy = (p.r + .5) / Rr; }
       const [x, y] = conv(fx, fy); l.x = x; l.y = y;
       l.feld = x >= 0 && x < 1 && y >= 0 && y < 1 ? colLetter(Math.floor(x * C)) + (Math.floor(y * Rr) + 1) : '';
       stamp(l);
     });
-    (D.linien || []).forEach(l => { l.pts = (l.pts || []).map(([x, y]) => conv(x, y)); stamp(l); });
+    (D.linien || []).forEach(l => { if (l.rahmen) return; l.pts = (l.pts || []).map(([x, y]) => conv(x, y)); stamp(l); });
   }
   D.geo = ng; D.geoUpd = nowISO(); touch(); render();
 }
@@ -1419,6 +1421,7 @@ function pfeilLivePts(pts, c, W, H) {
   return [pts[0], nf(N), nf(Wp), nf(tail)];
 }
 function mapSVG(items, opt = {}) {
+  items = items.map(l => placeIn(l)).filter(Boolean);
   const { W, H } = mapDims();
   const C = D.meta.rasterCols, R = D.meta.rasterRows, cw = W / C, ch = H / R;
   const V = opt.view || null, k = V ? V.fw : 1, vx = V ? V.fx * W : 0, vy = V ? V.fy * H : 0, vw = V ? V.fw * W : W, vh = V ? V.fh * H : H; // Ausschnitt Zug: Teil des Kp-Rahmens
@@ -1439,7 +1442,7 @@ function mapSVG(items, opt = {}) {
   s += `<g font-family="Arial" font-weight="700" font-size="${fs}" fill="#000">${lb}</g>`;
   if (D.geo) s += scaleSVG(W, H, fs, { x: vx, y: vy, w: vw, h: vh, k });
   if (D.geo) s += `<text x="${vx + vw - fs * .3}" y="${vy + vh - fs * .3}" text-anchor="end" font-family="Arial" font-size="${fs * .6}" fill="#000" stroke="#fff" stroke-width="${fs * .15}" paint-order="stroke">© swisstopo</text>`;
-  if (opt.lines !== false) { (D.linien || []).filter(opt.linF || (() => true)).forEach(l => { s += linieSVG(l, W, H, Math.min(cw, ch) * k, sw, opt.hlLine === l.id); }); }
+  if (opt.lines !== false) { (D.linien || []).filter(opt.linF || (() => true)).map(l => placeLin(l)).filter(Boolean).forEach(l => { s += linieSVG(l, W, H, Math.min(cw, ch) * k, sw, opt.hlLine === l.id); }); }
   if (opt.draft) s += `<g id="draft-live" pointer-events="none">${draftSVG(opt.draft, opt.id === 'lage-map' ? ui.drawCur : null)}</g>`;
   const OFF = [[0, 0], [-0.26, -0.24], [0.26, -0.24], [-0.26, 0.24], [0.26, 0.24], [0, -0.3], [0, 0.3]];
   const count = {};
@@ -1464,7 +1467,7 @@ function lageTable(items, opt = {}) {
   const sorted = items.slice().sort((a, b) => (a.partei === b.partei ? (a.nr || 0) - (b.nr || 0) : PARTEIEN.indexOf(a.partei) - PARTEIEN.indexOf(b.partei)));
   if (!sorted.length) return '<p class="empty">keine Lageeinträge</p>';
   return `<table class="pt"><tr><th>Nr</th><th>Sig</th><th>Feld</th><th class="l">Bezeichnung</th><th>Anz</th><th class="l">Mittel</th><th class="l">Tätigkeit</th>${opt.noTime ? '' : '<th>Zeit</th>'}${opt.noSrc ? '' : '<th>Quelle</th>'}</tr>` +
-    sorted.map(l => `<tr><td style="color:#fff;background:${P_COL[l.partei] || '#555'};font-weight:700">${esc(lageCode(l))}</td><td style="padding:0 .5mm">${sigIcon(l.sig, l.partei, 20, '', l.nr)}</td><td>${esc(l.feld)}</td><td class="wrap">${esc(l.bezeichnung)}</td><td>${esc(l.anzahl)}</td><td class="wrap">${esc(l.mittel)}</td><td class="wrap">${esc(l.taetigkeit)}</td>${opt.noTime ? '' : '<td>' + esc(fmtDT(l.zeit)) + '</td>'}${opt.noSrc ? '' : '<td>' + esc(el(l.quelle).short) + '</td>'}</tr>`).join('') + '</table>';
+    sorted.map(l => `<tr><td style="color:#fff;background:${P_COL[l.partei] || '#555'};font-weight:700">${esc(lageCode(l))}</td><td style="padding:0 .5mm">${sigIcon(l.sig, l.partei, 20, '', l.nr)}</td><td>${esc(feldLbl(l))}</td><td class="wrap">${esc(l.bezeichnung)}</td><td>${esc(l.anzahl)}</td><td class="wrap">${esc(l.mittel)}</td><td class="wrap">${esc(l.taetigkeit)}</td>${opt.noTime ? '' : '<td>' + esc(fmtDT(l.zeit)) + '</td>'}${opt.noSrc ? '' : '<td>' + esc(el(l.quelle).short) + '</td>'}</tr>`).join('') + '</table>';
 }
 function lageSplit(items, opt = {}) {
   const part = p => {
@@ -1473,7 +1476,7 @@ function lageSplit(items, opt = {}) {
     if (!rows.length) return head + '<p class="empty">keine Einträge</p>';
     const w = opt.noSrc ? [7, 7, 9, 28, 9, 25, 15] : [7, 7, 8, 25, 8, 20, 11, 14];
     return head + `<table class="pt" style="table-layout:fixed"><colgroup>${w.map(x => `<col style="width:${x}%">`).join('')}</colgroup><tr><th>Nr</th><th>Sig</th><th>Feld</th><th class="l">Bezeichnung / Mittel</th><th>Anz</th><th class="l">Tätigkeit</th><th>Zeit</th>${opt.noSrc ? '' : '<th>Quelle</th>'}</tr>` +
-      rows.map(l => `<tr><td style="color:#fff;background:${P_COL[l.partei]};font-weight:700">${esc(lageCode(l))}</td><td style="padding:0 .5mm">${sigIcon(l.sig, l.partei, 18, '', l.nr)}</td><td>${esc(l.feld)}</td><td class="wrap">${esc(l.bezeichnung)}${l.mittel ? `<br><small>${esc(l.mittel)}</small>` : ''}</td><td class="wrap">${esc(l.anzahl)}</td><td class="wrap">${esc(l.taetigkeit)}</td><td>${esc(String(l.zeit || '').slice(11, 16))}</td>${opt.noSrc ? '' : '<td>' + esc(el(l.quelle).short) + '</td>'}</tr>`).join('') + '</table>';
+      rows.map(l => `<tr><td style="color:#fff;background:${P_COL[l.partei]};font-weight:700">${esc(lageCode(l))}</td><td style="padding:0 .5mm">${sigIcon(l.sig, l.partei, 18, '', l.nr)}</td><td>${esc(feldLbl(l))}</td><td class="wrap">${esc(l.bezeichnung)}${l.mittel ? `<br><small>${esc(l.mittel)}</small>` : ''}</td><td class="wrap">${esc(l.anzahl)}</td><td class="wrap">${esc(l.taetigkeit)}</td><td>${esc(String(l.zeit || '').slice(11, 16))}</td>${opt.noSrc ? '' : '<td>' + esc(el(l.quelle).short) + '</td>'}</tr>`).join('') + '</table>';
   };
   return `<div class="lage-split${opt.stack ? ' stack' : ''}"><div>${part('Rot')}</div><div>${part('Blau')}</div></div>`;
 }
@@ -1582,14 +1585,14 @@ function pagesZug(z) {
       </div>
     </div></div>`;
   const items = lageFor('zug', { z });
-  const p2 = `<div class="page a4">${pageHead(title, who, 2, 2)}
+  const p2 = inFrame(z, () => `<div class="page a4">${pageHead(title, who, 2, 2)}
     <div class="cols flex1">
       <div class="col" style="width:165mm"><div class="map-frame flex1">${mapSVG(items, { style: 'width:100%;height:100%', view: zugView(z) })}</div></div>
       <div class="col flex1 zfhr-r">
         <div class="sec" style="margin-top:0">Lageliste</div>${lageSplit(items, { stack: true, noSrc: true })}
         <div class="sec">Statusübersicht ${esc(z.name)}</div>${statusBlocksZugKompakt(z)}
       </div>
-    </div></div>`;
+    </div></div>`);
   return p1 + p2;
 }
 function pagesGr(z, g) {
@@ -1620,7 +1623,7 @@ function pagesGr(z, g) {
       </div>
     </div></div>`;
   const items = lageFor('gr', { z, g });
-  const p2 = `<div class="page a4">${pageHead(title, who, 2, 2)}
+  const p2 = inFrame(z, () => `<div class="page a4">${pageHead(title, who, 2, 2)}
     <div class="cols flex1">
       <div class="col" style="width:165mm"><div class="map-frame flex1">${mapSVG(items, { style: 'width:100%;height:100%', view: zugView(z) })}</div></div>
       <div class="col flex1">
@@ -1636,7 +1639,7 @@ function pagesGr(z, g) {
           <div class="fl"><b>Transport Vdt</b> (liegend / sitzend):</div><div class="fl"><b>Transport Gef:</b></div><div class="fl"><b>Transport Gr:</b></div><div class="fl"><b>Nachschub Mun/Mat:</b></div><div class="fl"><b>Verstärkung:</b></div>
         </div>
       </div>
-    </div></div>`;
+    </div></div>`);
   return p1 + p2;
 }
 function pagesWeek() {
@@ -2224,9 +2227,12 @@ function grenzToolbar() {
   return `<div class="grenz-bar"><span style="flex:1"></span><button class="small" id="lb-export" title="Aktuelles Lagebild (Karte, Ausschnitt, Signaturen, Linien) als JSON-Datei speichern">⤓ Lagebild speichern</button><button class="small" id="lb-import" title="Gespeichertes Lagebild laden: ersetzt Signaturen, Linien und Kartenausschnitt"${isKp() ? '' : ' disabled'}>⤒ Lagebild laden</button><input type="file" id="file-lagebild" accept=".json,application/json" hidden><button class="small danger" id="karte-leeren" title="Alle Signaturen und Linien von der Lagekarte löschen">🗑 Karte leeren</button></div>`;
 }
 
-/* Ausschnitt Zug: eigener Kartenausschnitt des Zfhr innerhalb des Kp-Rahmens (Raster und Positionen bleiben die des Kp).
-   swisstopo: z.ausschnitt = { e, n, w } (LV95, Seitenverhältnis wie Kp). Kartendatei: { cx, cy, f } (Anteile). */
+/* Kartendarstellung Zug: z.kmode = 'kp' (Ausschnitt Kp) | 'aus' (Ausschnitt innerhalb Kp, Kp-Raster) | 'eigen' (eigener Rahmen mit eigenem Raster)
+   'aus':   z.ausschnitt = { e, n, w } (swisstopo) bzw. { cx, cy, f } (Kartendatei), Anteile des Kp-Rahmens.
+   'eigen': z.rahmen = { geo: { e, n, w, h, layer }, cols, rows, karte?, karteW?, karteH?, karteGeo? }. Einträge mit l.rahmen = Zug-ID liegen in diesem Rahmen. */
+const kmode = z => z ? (z.kmode || (z.ausschnitt ? 'aus' : 'kp')) : 'kp';
 function zugView(z) {
+  if (kmode(z) !== 'aus') return null;
   const a = z && z.ausschnitt; if (!a) return null;
   if (D.geo) { if (a.e == null) return null; const b = geoBox(D.geo), f = Math.min(1, a.w / D.geo.w), h = D.geo.h * f;
     let fx = (a.e - a.w / 2 - b.emin) / D.geo.w, fy = (b.nmax - (a.n + h / 2)) / D.geo.h; fx = Math.max(0, Math.min(1 - f, fx)); fy = Math.max(0, Math.min(1 - f, fy));
@@ -2235,56 +2241,151 @@ function zugView(z) {
   if (a.cx == null) return null; const f = Math.max(.08, Math.min(1, a.f || .5));
   return { fx: Math.max(0, Math.min(1 - f, a.cx - f / 2)), fy: Math.max(0, Math.min(1 - f, a.cy - f / 2)), fw: f, fh: f };
 }
-const lageViewFor = z => (ui.lageView || 'zug') === 'zug' ? zugView(z) : null; // Bildschirm Zfhr: Umschalter Kp / Zug
-function zvSet(z, fx, fy, f) { // Ausschnitt aus Anteilen setzen (Mitte fx/fy, Grösse f)
+function zvSet(z, fx, fy, f) { // Ausschnitt im Kp-Rahmen aus Anteilen setzen (Mitte fx/fy, Grösse f)
   f = Math.max(.08, Math.min(1, f)); fx = Math.max(f / 2, Math.min(1 - f / 2, fx)); fy = Math.max(f / 2, Math.min(1 - f / 2, fy));
   if (D.geo) { const b = geoBox(D.geo); z.ausschnitt = { e: Math.round(b.emin + fx * D.geo.w), n: Math.round(b.nmax - fy * D.geo.h), w: Math.round(D.geo.w * f) }; }
   else z.ausschnitt = { cx: +fx.toFixed(4), cy: +fy.toFixed(4), f: +f.toFixed(4) };
-  stamp(z); touch(); render();
+  z.kmode = 'aus'; stamp(z); touch(); render();
+}
+/* ---- Rahmen (Kp oder eigenständiger Zug) und Umrechnung der Positionen über die Landeskoordinaten ---- */
+let FR = null, FR_KP = null;
+function kpFrame() { if (FR_KP) return FR_KP; const d = mapDims(); return { id: 'kp', geo: D.geo, cols: D.meta.rasterCols, rows: D.meta.rasterRows, W: d.W, H: d.H }; }
+function zugFrame(zid) { const z = zugOf(zid), r = z && z.rahmen; if (!r) return null; const geo = r.geo || null;
+  return { id: zid, geo, cols: r.cols || 10, rows: r.rows || 10, W: 1000, H: geo ? Math.round(1000 * geo.h / geo.w) : 1000 }; }
+const curFrame = () => FR ? zugFrame(FR) : kpFrame();
+function inFrame(z, fn) { // zeichnet fn() im eigenständigen Rahmen des Zuges (nur Modus «eigen»)
+  if (FR || !z || kmode(z) !== 'eigen' || !z.rahmen) return fn();
+  const r = z.rahmen, keep = [D.geo, D.karte, D.karteW, D.karteH, D.karteGeo, D.meta.rasterCols, D.meta.rasterRows];
+  FR_KP = kpFrame(); FR = z.id;
+  D.geo = r.geo || null; D.karte = r.karte || null; D.karteW = r.karteW || 1000; D.karteH = r.karteH || 1000; D.karteGeo = r.karteGeo || null; D.meta.rasterCols = r.cols || 10; D.meta.rasterRows = r.rows || 10;
+  try { return fn(); }
+  finally { [D.geo, D.karte, D.karteW, D.karteH, D.karteGeo, D.meta.rasterCols, D.meta.rasterRows] = keep; FR = null; FR_KP = null; }
+}
+const frameOfRec = l => l.rahmen ? zugFrame(l.rahmen) : kpFrame();
+function convPt(S, T, fx, fy) {
+  if (S.id === T.id) return [fx, fy]; if (!S.geo || !T.geo) return null;
+  const bs = geoBox(S.geo), bt = geoBox(T.geo), E = bs.emin + fx * S.geo.w, N = bs.nmax - fy * S.geo.h;
+  return [(E - bt.emin) / T.geo.w, (bt.nmax - N) / T.geo.h];
+}
+const feldAt = (F, x, y) => x >= 0 && x < 1 && y >= 0 && y < 1 ? colLetter(Math.floor(x * F.cols)) + (Math.floor(y * F.rows) + 1) : '';
+function placeIn(l, T) {
+  const S = frameOfRec(l); if (!S) return null; T = T || curFrame();
+  if (S.id === T.id) return l;
+  let fx = l.x, fy = l.y; if (fx == null || fy == null) { const p = parseFeld(l.feld, S); if (!p) return null; fx = (p.c + .5) / S.cols; fy = (p.r + .5) / S.rows; }
+  const q = convPt(S, T, fx, fy); if (!q) return null;
+  return Object.assign({}, l, { x: q[0], y: q[1], feld: feldAt(T, q[0], q[1]) });
+}
+function placeLin(l, T) { const S = frameOfRec(l); if (!S) return null; T = T || curFrame(); if (S.id === T.id) return l; if (!S.geo || !T.geo) return null; return Object.assign({}, l, { pts: (l.pts || []).map(([x, y]) => convPt(S, T, x, y)) }); }
+const feldLbl = l => { const q = placeIn(l); return q ? q.feld : (l.feld ? l.feld + '*' : ''); };
+const withRahmen = (r, o) => { if (r) o.rahmen = r; return o; };
+// Eigenen Rahmen ändern: Einträge dieses Rahmens bleiben am selben Ort im Gelände
+function zrSet(z, patch) {
+  const S = zugFrame(z.id), nr = Object.assign({ cols: 10, rows: 10 }, z.rahmen || {}, patch);
+  nr.cols = Math.max(4, Math.min(26, +nr.cols || 10)); nr.rows = Math.max(4, Math.min(40, +nr.rows || 10));
+  if (nr.geo) nr.geo = Object.assign({}, nr.geo, { h: Math.round(nr.geo.w * nr.rows / nr.cols) });
+  z.rahmen = nr; const T = zugFrame(z.id);
+  D.lage.filter(l => l.rahmen === z.id).forEach(l => {
+    let fx = l.x, fy = l.y; if (fx == null || fy == null) { const p = S && parseFeld(l.feld, S); if (!p) return; fx = (p.c + .5) / S.cols; fy = (p.r + .5) / S.rows; }
+    const q = S && S.geo && T.geo ? convPt(S, T, fx, fy) : [fx, fy]; l.x = +q[0].toFixed(5); l.y = +q[1].toFixed(5); l.feld = feldAt(T, l.x, l.y); stamp(l); });
+  if (S && S.geo && T.geo) (D.linien || []).filter(l => l.rahmen === z.id).forEach(l => { l.pts = (l.pts || []).map(([x, y]) => convPt(S, T, x, y).map(v => +v.toFixed(5))); stamp(l); });
+  z.kmode = 'eigen'; stamp(z); touch(); render();
+}
+const ZR_SCALES = [5000, 10000, 15000, 20000, 25000, 50000];
+async function zrSearch(q) {
+  ui.zrResults = null; ui.zrMsg = 'Suche …'; render();
+  try {
+    const r = await fetch('https://api3.geo.admin.ch/rest/services/api/SearchServer?type=locations&sr=2056&limit=8&searchText=' + encodeURIComponent(q));
+    const j = await r.json();
+    ui.zrResults = (j.results || []).map(x => { const a = x.attrs || {}; const v = [a.y, a.x].map(Number); return { label: String(a.label || '').replace(/<[^>]+>/g, ''), E: Math.max(...v), N: Math.min(...v) }; }).filter(x => x.E > 2e6 && x.N > 1e6);
+    ui.zrMsg = ui.zrResults.length ? '' : 'Nichts gefunden.';
+  } catch (e) { ui.zrMsg = 'Suche nicht möglich (offline?). Koordinaten eingeben, z.B. 2674800 / 1245500.'; }
+  render();
+}
+async function zrSaveOffline(z) {
+  const r = z.rahmen, g = r && r.geo; if (!g) return;
+  const { res, tiles } = wmtsTiles(g, 2000); if (!tiles.length) { ui.zrMsg = 'Ausschnitt zu gross.'; render(); return; }
+  const b = geoBox(g), w = Math.round(g.w / res), h = Math.round(g.h / res), k = Math.min(1, 2400 / Math.max(w, h)), cw = Math.round(w * k), ch = Math.round(h * k), px = k / res;
+  ui.zrMsg = `Lade ${tiles.length} Kacheln …`; render();
+  const c = document.createElement('canvas'); c.width = cw; c.height = ch; const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cw, ch);
+  let bad = 0;
+  await Promise.all(tiles.map(tl => new Promise(ok => { const im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = () => { cx.drawImage(im, (tl.e - b.emin) * px, (b.nmax - tl.n) * px, tl.size * px + 1, tl.size * px + 1); ok(); }; im.onerror = () => { bad++; ok(); }; im.src = tl.url; })));
+  if (bad === tiles.length) { ui.zrMsg = 'Keine Kacheln erhalten (offline?).'; render(); return; }
+  try { r.karte = c.toDataURL('image/jpeg', 0.85); } catch (e) { ui.zrMsg = 'Der Browser erlaubt das Speichern nicht.'; render(); return; }
+  r.karteW = cw; r.karteH = ch; r.karteGeo = Object.assign({}, g); ui.zrMsg = 'Offline-Ausschnitt gespeichert.'; stamp(z); touch(); render();
 }
 function zvPanel() {
   const z = roleZug(); if (!z) return '';
-  const v = zugView(z), mode = ui.lageView || 'zug';
-  const sc = v && D.geo ? ' · ' + fmtScale(D.geo.w * v.fw / MAP_PRINT_W_GR) + ' (A4)' : v ? ' · ' + Math.round(1 / v.fw * 10) / 10 + '-fach' : '';
-  return `<div class="ls-h">Kartenausschnitt</div><div class="zv-seg"><button data-zv="kp" class="${mode === 'kp' || !v ? 'on' : ''}">Kp</button><button data-zv="zug" class="${mode === 'zug' && v ? 'on' : ''}">Zug ${esc(z.name)}</button></div>
-    ${!v ? `<p class="hint" style="margin:4px 0">Noch kein eigener Ausschnitt. Der Zug sieht den Ausschnitt des Kp Kdt.</p><button id="zv-new" class="small primary">Eigenen Ausschnitt festlegen</button>`
-      : `<p class="hint" style="margin:4px 0">Ausschnitt Zug${esc(sc)}. Gilt für deinen Ausdruck und die Grfhr. Raster und Rasterfelder bleiben die des Kp.</p>
+  const mode = kmode(z), v = zugView(z);
+  const seg = `<div class="zv-seg">${[['kp', 'Kp'], ['aus', 'Zug im Kp-Raster'], ['eigen', 'Zug eigenständig']].map(([k, l]) => `<button data-zmode="${k}" class="${mode === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+  let body = '';
+  if (mode === 'kp') body = '<p class="hint" style="margin:4px 0">Zug, Druck und Grfhr sehen den Ausschnitt und das Raster des Kp Kdt.</p>';
+  else if (mode === 'aus') { const sc = v && D.geo ? ' · ' + fmtScale(D.geo.w * v.fw / MAP_PRINT_W_GR) + ' (A4)' : v ? ' · ' + Math.round(1 / v.fw * 10) / 10 + '-fach' : '';
+    body = `<p class="hint" style="margin:4px 0">Ausschnitt innerhalb der Kp${esc(sc)}. Das Führungsraster der Kp wird übernommen und vergrössert.</p>
       <div class="sigrow"><span class="hint" style="margin:0">Mitte</span><input id="zv-feld" style="width:58px" placeholder="K7"><button id="zv-feld-go" class="small">setzen</button></div>
       <div class="sigrow"><button class="small" data-zvmove="-1,0" title="nach links">◀</button><button class="small" data-zvmove="0,1" title="nach oben">▲</button><button class="small" data-zvmove="0,-1" title="nach unten">▼</button><button class="small" data-zvmove="1,0" title="nach rechts">▶</button>
-      <span class="hint" style="margin:0 0 0 6px">Zoom</span><button class="small" data-zvzoom="-1" title="näher">＋</button><button class="small" data-zvzoom="1" title="weiter">－</button></div>
-      <button id="zv-del" class="small">Eigenen Ausschnitt löschen</button>`}`;
+      <span class="hint" style="margin:0 0 0 6px">Zoom</span><button class="small" data-zvzoom="-1" title="näher">＋</button><button class="small" data-zvzoom="1" title="weiter">－</button></div>`; }
+  else { const r = z.rahmen || {}, g = r.geo, m = g ? ZR_SCALES.reduce((a, x) => Math.abs(x * MAP_PRINT_W_GR - g.w) < Math.abs(a * MAP_PRINT_W_GR - g.w) ? x : a, 10000) : 10000;
+    const saved = g && r.karte && sameGeo(r.karteGeo, g);
+    body = `<p class="hint" style="margin:4px 0">Eigener Ausschnitt mit eigenem Führungsraster, losgelöst von der Kp. ${D.geo ? 'Einträge der Kp erscheinen am richtigen Ort, soweit sie im Ausschnitt liegen.' : 'Ohne swisstopo-Karte der Kp sind die Einträge der Kp hier nicht sichtbar.'}</p>
+      <div class="sigrow"><input id="zr-q" style="flex:1 1 100%" placeholder="Ort, Flurname oder Koordinaten" value="${esc(ui.zrQ || '')}" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('zr-search').click()}"><button id="zr-search" class="small primary">Suchen</button></div>
+      ${ui.zrMsg ? `<div class="hint" style="margin:2px 0 4px">${esc(ui.zrMsg)}</div>` : ''}
+      ${ui.zrResults && ui.zrResults.length ? `<div class="sigchips">${ui.zrResults.map(x => `<button class="sigchip" data-zrpick="${x.E},${x.N}">${esc(x.label)}</button>`).join('')}</div>` : ''}
+      ${g ? `<p class="hint" style="margin:2px 0 4px">Mitte ${fmtLV(g.e)} / ${fmtLV(g.n)} · ${(g.w / 1000).toLocaleString('de-CH')} × ${(g.h / 1000).toLocaleString('de-CH')} km</p>
+      <div class="ls-2"><label>Massstab (A4)<select id="zr-m">${ZR_SCALES.map(x => `<option value="${x}"${x === m ? ' selected' : ''}>${fmtScale(x)}</option>`).join('')}</select></label><label>Karte<select id="zr-layer">${GEO_LAYERS.map(([k, l]) => `<option value="${k}"${k === (g.layer || GEO_LAYERS[0][0]) ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label></div>
+      <div class="sigrow" style="margin-top:4px"><button class="small" data-zrmove="-1,0">◀</button><button class="small" data-zrmove="0,1">▲</button><button class="small" data-zrmove="0,-1">▼</button><button class="small" data-zrmove="1,0">▶</button></div>
+      <button id="zr-offline" class="small${saved ? '' : ' primary'}">⤓ Ausschnitt offline speichern</button><p class="hint" style="margin:2px 0 4px">${saved ? '✓ Offline gespeichert.' : '⚠ Noch nicht offline gespeichert.'}</p>` : '<p class="hint">Ort suchen, um den Ausschnitt festzulegen.</p>'}
+      <div class="ls-h">Führungsraster Zug</div><div class="ls-2"><label>Spalten (A …)<input id="zr-cols" type="number" min="4" max="26" value="${r.cols || 10}"></label><label>Zeilen (1 …)<input id="zr-rows" type="number" min="4" max="40" value="${r.rows || 10}"></label></div>`; }
+  return `<div class="ls-h">Kartenausschnitt Zug ${esc(z.name)}</div>${seg}${body}`;
 }
 document.addEventListener('click', ev => {
   const b = ev.target.closest('button'); if (!b || GR_MODE) return;
   const z = roleZug(); if (!z) return;
+  if (b.dataset.zmode) { const k = b.dataset.zmode;
+    if (k === 'aus' && !z.ausschnitt) { zvSet(z, .5, .5, .5); return; }
+    if (k === 'eigen' && !z.rahmen) { zrSet(z, D.geo ? { geo: { e: D.geo.e, n: D.geo.n, w: Math.round(10000 * MAP_PRINT_W_GR), layer: D.geo.layer } } : {}); return; }
+    z.kmode = k; stamp(z); touch(); render(); return; }
   const v = zugView(z);
-  if (b.dataset.zv) { ui.lageView = b.dataset.zv; if (b.dataset.zv === 'zug' && !v) { const f = .5; zvSet(z, .5, .5, f); } else render(); return; }
-  if (b.id === 'zv-new') { ui.lageView = 'zug'; zvSet(z, .5, .5, .5); return; }
-  if (b.id === 'zv-del') { if (confirm('Eigenen Ausschnitt löschen? Der Zug sieht dann wieder den Ausschnitt des Kp Kdt.')) { delete z.ausschnitt; stamp(z); touch(); render(); } return; }
-  if (!v) return;
-  const cx = v.fx + v.fw / 2, cy = v.fy + v.fh / 2;
-  if (b.dataset.zvmove) { const [dx, dy] = b.dataset.zvmove.split(',').map(Number); zvSet(z, cx + dx * v.fw * .25, cy - dy * v.fh * .25, v.fw); return; }
-  if (b.dataset.zvzoom) { zvSet(z, cx, cy, v.fw * (+b.dataset.zvzoom > 0 ? 1.33 : .75)); return; }
-  if (b.id === 'zv-feld-go') { const p = parseFeld(($('#zv-feld') || {}).value); if (!p) { alert('Rasterfeld wie «K7» eingeben.'); return; } zvSet(z, (p.c + .5) / D.meta.rasterCols, (p.r + .5) / D.meta.rasterRows, v.fw); return; }
+  if (v) { const cx = v.fx + v.fw / 2, cy = v.fy + v.fh / 2;
+    if (b.dataset.zvmove) { const [dx, dy] = b.dataset.zvmove.split(',').map(Number); zvSet(z, cx + dx * v.fw * .25, cy - dy * v.fh * .25, v.fw); return; }
+    if (b.dataset.zvzoom) { zvSet(z, cx, cy, v.fw * (+b.dataset.zvzoom > 0 ? 1.33 : .75)); return; }
+    if (b.id === 'zv-feld-go') { const p = parseFeld(($('#zv-feld') || {}).value); if (!p) { alert('Rasterfeld wie «K7» eingeben.'); return; } zvSet(z, (p.c + .5) / D.meta.rasterCols, (p.r + .5) / D.meta.rasterRows, v.fw); return; } }
+  if (kmode(z) !== 'eigen') return;
+  const g = z.rahmen && z.rahmen.geo;
+  if (b.id === 'zr-search') { const q = ($('#zr-q') || {}).value || ''; ui.zrQ = q; const c = geoParseCoord(q);
+    if (c) { zrSet(z, { geo: Object.assign({ w: Math.round(10000 * MAP_PRINT_W_GR), layer: GEO_LAYERS[0][0] }, g || {}, { e: Math.round(c[0]), n: Math.round(c[1]) }) }); } else if (q.trim()) zrSearch(q.trim()); return; }
+  if (b.dataset.zrpick) { const [E, N] = b.dataset.zrpick.split(',').map(Number); ui.zrResults = null; zrSet(z, { geo: Object.assign({ w: Math.round(10000 * MAP_PRINT_W_GR), layer: GEO_LAYERS[0][0] }, g || {}, { e: Math.round(E), n: Math.round(N) }) }); return; }
+  if (b.dataset.zrmove && g) { const [dx, dy] = b.dataset.zrmove.split(',').map(Number); zrSet(z, { geo: Object.assign({}, g, { e: Math.round(g.e + dx * g.w * .25), n: Math.round(g.n + dy * g.h * .25) }) }); return; }
+  if (b.id === 'zr-offline') { zrSaveOffline(z); return; }
+});
+document.addEventListener('change', ev => {
+  const t = ev.target; if (GR_MODE || !['zr-m', 'zr-layer', 'zr-cols', 'zr-rows'].includes(t.id)) return;
+  const z = roleZug(); if (!z) return; const g = z.rahmen && z.rahmen.geo;
+  if (t.id === 'zr-m' && g) zrSet(z, { geo: Object.assign({}, g, { w: Math.round(+t.value * MAP_PRINT_W_GR) }) });
+  if (t.id === 'zr-layer' && g) zrSet(z, { geo: Object.assign({}, g, { layer: t.value }) });
+  if (t.id === 'zr-cols') zrSet(z, { cols: +t.value });
+  if (t.id === 'zr-rows') zrSet(z, { rows: +t.value });
 });
 function lageSettings() {
   const m = D.meta, dis = isKp() ? '' : ' disabled';
   const f = (k, l, extra = '') => `<label>${l}<input data-meta="${k}" type="number" value="${esc(m[k])}" ${extra}${dis}></label>`;
   return `<div class="lage-set"><div class="ls-t">Karte und Raster</div>
-    ${isKp() ? '' : zvPanel()}${isKp() ? '' : '<div class="ls-h">Kartengrundlage Kp</div>'}
+    ${isKp() ? '' : zvPanel()}${!isKp() && kmode(roleZug()) === 'eigen' ? '' : `${isKp() ? '' : '<div class="ls-h">Kartengrundlage Kp</div>'}
     ${geoPanel()}
-    <div class="ls-h">Führungsraster</div><p class="hint" style="margin:0 0 4px">Auf allen Stufen identisch: «K7» bezeichnet überall denselben Ort.</p>
-    <div class="ls-2">${f('rasterCols', 'Spalten (A …)', 'min="4" max="26"')}${f('rasterRows', 'Zeilen (1 …)', 'min="4" max="40"')}</div>
+    <div class="ls-h">Führungsraster${isKp() ? '' : ' Kp'}</div><p class="hint" style="margin:0 0 4px">Auf allen Stufen identisch: «K7» bezeichnet überall denselben Ort.</p>
+    <div class="ls-2">${f('rasterCols', 'Spalten (A …)', 'min="4" max="26"')}${f('rasterRows', 'Zeilen (1 …)', 'min="4" max="40"')}</div>`}
     <div class="ls-h">Darstellung</div>${opacCtl()}
     <div ${isKp() ? '' : 'style="display:none"'}><div class="ls-h">Eigene Kartendatei</div><div class="sigrow"><button id="btn-karte" class="small">Karte aus Datei laden …</button><input type="file" id="file-karte" accept="image/*" hidden>
     ${D.karte ? '<button id="btn-karte-del" class="small danger">entfernen</button>' : ''}</div><p class="hint" style="margin:0">${D.geo ? 'Ersetzt die swisstopo-Karte (Datei ohne Georeferenz).' : D.karte ? 'Karte aus Datei (' + D.karteW + ' × ' + D.karteH + ' px)' : 'Keine Karte geladen'}</p></div>
   </div>`;
 }
 function viewLage() {
+  const mz = isKp() ? null : roleZug();
+  const LM = inFrame(mz, () => ({ ar: (mapDims().W / mapDims().H).toFixed(4), svg: mapSVG(D.lage.filter(l => l.aktiv !== false && visLage(l)), { id: 'lage-map', linF: visLin, hl: ui.sigTarget || armedLage, draft: ui.draw, hlLine: ui.hlLine, view: zugView(mz) }) }));
   return `<div class="card"><h2>Lagekarte</h2>
     <p class="hint">Signatur wählen und in die Karte klicken: Es entsteht ein neuer Eintrag im angeklickten Rasterfeld. Bei einem bestehenden Eintrag öffnet «Sig» die Signatur zum Bearbeiten. «Betrifft» steuert, welche Stufen den Eintrag sehen (Kp = alle).</p>
     ${armedLage ? '<div class="toolbar"><span class="ovf-note">Position setzen: in die Karte klicken</span> <button class="small" id="lage-disarm">abbrechen</button></div>' : ''}
-    <div class="lage-layout three"><div class="lage-setcol">${lageSettings()}</div><div class="lage-mapcol"><div class="mapbox${ui.draw ? ' drawing' : ''}" style="--ar:${(mapDims().W / mapDims().H).toFixed(4)}">${mapSVG(D.lage.filter(l => l.aktiv !== false && visLage(l)), { id: 'lage-map', linF: visLin, hl: ui.sigTarget || armedLage, draft: ui.draw, hlLine: ui.hlLine, view: isKp() ? null : lageViewFor(roleZug()) })}</div>${grenzToolbar()}</div><div>${sigPalette()}</div></div>
+    <div class="lage-layout three"><div class="lage-setcol">${lageSettings()}</div><div class="lage-mapcol"><div class="mapbox${ui.draw ? ' drawing' : ''}" style="--ar:${LM.ar}">${LM.svg}</div>${grenzToolbar()}</div><div>${sigPalette()}</div></div>
     <div style="margin-top:14px">
     <div>${editTable('lage', D.lage.filter(visLage), [
       { key: 'sigcol', label: 'Sig', type: 'html', html: r => `<button class="small sigedit${ui.sigTarget === r.id ? ' on' : ''}" data-sigtarget="${esc(r.id)}" title="${esc(sigName(r.sig))} – Signatur bearbeiten">${sigIcon(r.sig, r.partei, 28, '', r.nr)}</button>` },
@@ -2315,11 +2416,11 @@ function bindLageMap() {
   const svg = $('#lage-map'); if (!svg) return;
   const live = ev => { const g = document.getElementById('draft-live'); if (!g || !ui.draw) return;
     if (!ev) { ui.drawCur = null; g.innerHTML = draftSVG(ui.draw, null); return; }
-    const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; const q = pt.matrixTransform(svg.getScreenCTM().inverse()), { W, H } = mapDims();
+    const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY; const q = pt.matrixTransform(svg.getScreenCTM().inverse()), { W, H } = inFrame(isKp() ? null : roleZug(), () => mapDims());
     ui.drawCur = [q.x / W, q.y / H]; g.innerHTML = draftSVG(ui.draw, ui.drawCur); };
   svg.addEventListener('mousemove', ev => { if (ui.draw && ui.draw.typ === 'pfeil') live(ev); });
   svg.addEventListener('mouseleave', () => live(null));
-  svg.addEventListener('click', ev => {
+  svg.addEventListener('click', ev => inFrame(isKp() ? null : roleZug(), () => {
     const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
     const p = pt.matrixTransform(svg.getScreenCTM().inverse());
     const { W, H } = mapDims();
@@ -2329,17 +2430,18 @@ function bindLageMap() {
     if (ui.draw) {
       const P0 = ui.draw.pts[0], px = svg.getScreenCTM().a || 1; // magnetisch schliessen: Klick nahe beim ersten Punkt
       if (P0 && ui.draw.typ !== 'pfeil' && ui.draw.pts.length >= 2 && Math.hypot(P0[0] * W - p.x, P0[1] * H - p.y) * px < 18) { ui.draw.pts.push([P0[0], P0[1]]); ui.draw.closed = true; render(); const b2 = $('#grenz-ok'); if (b2) b2.click(); return; }
+      if (!ui.draw.pts.length) ui.draw.rahmen = FR || null;
       ui.draw.pts.push([+(p.x / W).toFixed(5), +(p.y / H).toFixed(5)]); render(); return;
     }
     if (armedLage || ui.sigTarget) {
       const l = D.lage.find(x => x.id === (armedLage || ui.sigTarget));
-      if (l && canEdit('lage', l)) { l.x = p.x / W; l.y = p.y / H; l.feld = feld; stamp(l); }
+      if (l && canEdit('lage', l)) { l.x = p.x / W; l.y = p.y / H; l.feld = feld; if (FR) l.rahmen = FR; else delete l.rahmen; stamp(l); }
       armedLage = null;
     } else {
-      D.lage.push(NEW({ id: 'l' + uid(), partei: newLagePartei, nr: nextNr(newLagePartei), feld, bezeichnung: '', anzahl: '', mittel: '', taetigkeit: '', zeit: nowLocal(), quelle: myEl(), betrifft: isKp() ? 'kp' : ROLE, aktiv: true, x: p.x / W, y: p.y / H, sig: normSig(ui.sigTpl) }));
+      D.lage.push(withRahmen(FR, NEW({ id: 'l' + uid(), partei: newLagePartei, nr: nextNr(newLagePartei), feld, bezeichnung: '', anzahl: '', mittel: '', taetigkeit: '', zeit: nowLocal(), quelle: myEl(), betrifft: isKp() ? 'kp' : ROLE, aktiv: true, x: p.x / W, y: p.y / H, sig: normSig(ui.sigTpl) })));
     }
     touch(); render();
-  });
+  }));
 }
 
 /* ---- Anträge ---- */
@@ -2507,7 +2609,7 @@ document.addEventListener('click', ev => {
       D.lage = D.lage.filter(r => !ids.has(r.id)); D.linien = (D.linien || []).filter(r => !ids.has(r.id));
       ui.sigTarget = null; armedLage = null; ui.hlLine = null; touch(); render(); break;
     }
-    case 'grenz-ok': if (ui.draw && ui.draw.pts.length >= linMin(ui.draw.typ)) { if (!D.linien) D.linien = []; D.linien.push(NEW(ui.draw.typ === 'grenze' ? { id: 'g' + uid(), typ: 'grenze', ebene: ui.draw.ebene, pts: ui.draw.pts, links: '', rechts: '', quelle: myEl() } : ui.draw.typ === 'pfeil' ? { id: 'g' + uid(), typ: 'pfeil', v: 2, pm: ui.draw.pm, partei: ui.draw.partei, name: ui.draw.name, pts: ui.draw.pts, quelle: myEl() } : { id: 'g' + uid(), typ: ui.draw.typ, name: ui.draw.name, pts: ui.draw.pts, quelle: myEl() })); ui.draw = { typ: ui.draw.typ, ebene: ui.draw.ebene, pm: ui.draw.pm, partei: ui.draw.partei, name: '', pts: [] }; touch(); } render(); break;
+    case 'grenz-ok': if (ui.draw && ui.draw.pts.length >= linMin(ui.draw.typ)) { if (!D.linien) D.linien = []; D.linien.push(withRahmen(ui.draw.rahmen, NEW(ui.draw.typ === 'grenze' ? { id: 'g' + uid(), typ: 'grenze', ebene: ui.draw.ebene, pts: ui.draw.pts, links: '', rechts: '', quelle: myEl() } : ui.draw.typ === 'pfeil' ? { id: 'g' + uid(), typ: 'pfeil', v: 2, pm: ui.draw.pm, partei: ui.draw.partei, name: ui.draw.name, pts: ui.draw.pts, quelle: myEl() } : { id: 'g' + uid(), typ: ui.draw.typ, name: ui.draw.name, pts: ui.draw.pts, quelle: myEl() }))); ui.draw = { typ: ui.draw.typ, ebene: ui.draw.ebene, pm: ui.draw.pm, partei: ui.draw.partei, name: '', pts: [] }; touch(); } render(); break;
     case 'add-antrag': D.antraege.push(NEW({ id: 'r' + uid(), zeit: nowLocal(), von: myEl(), an: 'kp', typ: 'Nachschub Mun/Mat', text: '', status: 'offen' })); touch(); render(); break;
     case 'add-aenderung': D.antraege.push(NEW({ id: 'r' + uid(), zeit: nowLocal(), von: myEl(), an: '', typ: 'Änderung', text: '', status: 'erledigt' })); touch(); render(); break;
     case 'btn-print': doPrint(b.dataset.fmt); break;
@@ -2990,7 +3092,7 @@ function buildGrPkg(gid, withMap) {
   pers.forEach(p => { const s = STOFF_INF.map(o => { const v = ausbGet(p.id, String(o.nr)); return v === 'ok' ? '1' : v === 'np' ? '2' : '0'; }).join('').replace(/0+$/, ''); if (s) ausb[p.id] = s; });
   const o = { t: 'fs-gp', v: 1, dsid: D.meta.dsid, zid: z.id, gid: g.id, ts: nowISO(), von: roleName(),
     meta: { verband: D.meta.verband, tag: D.meta.tag, rasterCols: D.meta.rasterCols, rasterRows: D.meta.rasterRows, karteOpac: D.meta.karteOpac, systemTypen: D.meta.systemTypen, gelb: D.meta.gelb, rot: D.meta.rot, kw: D.karteW, kh: D.karteH },
-    zug: { id: z.id, name: z.name, fuehrer: z.fuehrer || '', ausschnitt: z.ausschnitt || null, gruppen: z.gruppen.map(x => ({ id: x.id, name: x.name, fuehrer: x.fuehrer || '' })) },
+    zug: { id: z.id, name: z.name, fuehrer: z.fuehrer || '', ausschnitt: z.ausschnitt || null, kmode: kmode(z), rahmen: z.rahmen ? omit(z.rahmen, withMap ? [] : ['karte']) : null, gruppen: z.gruppen.map(x => ({ id: x.id, name: x.name, fuehrer: x.fuehrer || '' })) },
     termine: D.termine.filter(t => tSet.has(t.element) && t.datum >= from && t.datum <= to).map(t => omit(t, ['upd', 'by', 'inBearb', 'ortPendOff', 'akPendOff'])),
     lage: lageFor('gr', { z, g }).map(l => omit(l, ['upd', 'by'])),
     linien: (D.linien || []).filter(l => scope.has(l.quelle || 'kp')).map(l => omit(l, ['upd', 'by'])),
@@ -3058,6 +3160,7 @@ function applyGrPkg(p) {
   if (p.karte && p.karte.bild) { nd.karte = p.karte.bild; nd.karteW = p.karte.w; nd.karteH = p.karte.h; nd.karteGeo = p.karte.geo || null; }
   else if (old.karte && (p.geo ? sameGeo(old.karteGeo, p.geo) : (old.karteW === kw && old.karteH === kh))) { nd.karte = old.karte; nd.karteW = old.karteW; nd.karteH = old.karteH; nd.karteGeo = old.karteGeo; }
   else { nd.karteW = kw || 1000; nd.karteH = kh || 1000; }
+  { const r = nd.zuege[0].rahmen, oz = (old.zuege || [])[0], orr = oz && oz.rahmen; if (r && !r.karte && orr && orr.karte && r.geo && sameGeo(orr.karteGeo, r.geo)) Object.assign(r, { karte: orr.karte, karteW: orr.karteW, karteH: orr.karteH, karteGeo: orr.karteGeo }); }
   let kept = 0;
   nd.personen = (p.personen || []).map(pp => { const lo = same && old.personen.find(x => x.id === pp.id); if (lo && lo.grd && !eqP(lo, pp)) { kept++; return lo; } return omit(pp, ['grd']); });
   const ls = same && old.systeme[p.gid];
@@ -3145,11 +3248,12 @@ function grStatusV() {
     <input data-grs="bem" value="${esc(sys.bem || '')}" placeholder="Bemerkung Systeme"></div>`;
   return head + '<h3 class="gh">Personal</h3>' + pers + sy;
 }
-function grLage() {
+function grLage() { return inFrame(D.zuege[0], grLage0); }
+function grLage0() {
   const z = D.zuege[0], g = z.gruppen.find(x => x.id === grGid()) || { id: grGid() };
   const items = lageFor('gr', { z, g }), zf = ui.grMapZ || 1;
   const card = l => `<div class="gcard gl-it"><div class="gl-s">${sigIcon(l.sig, l.partei, 38, '', l.nr)}</div><div><b><span class="gl-c" style="background:${P_COL[l.partei] || '#555'}">${esc(lageCode(l))}</span> ${esc(l.bezeichnung || sigName(l.sig))}</b>
-    <div class="gz-m">${[l.feld && 'Feld ' + l.feld, l.anzahl && 'Anz ' + l.anzahl, l.mittel, l.zeit && fmtDT(l.zeit)].filter(Boolean).map(esc).join(' · ')}</div>${l.taetigkeit ? `<div>${esc(l.taetigkeit)}</div>` : ''}</div></div>`;
+    <div class="gz-m">${[feldLbl(l) && 'Feld ' + feldLbl(l), l.anzahl && 'Anz ' + l.anzahl, l.mittel, l.zeit && fmtDT(l.zeit)].filter(Boolean).map(esc).join(' · ')}</div>${l.taetigkeit ? `<div>${esc(l.taetigkeit)}</div>` : ''}</div></div>`;
   const part = p => { const rows = items.filter(l => l.partei === p).sort((a, b) => (a.nr || 0) - (b.nr || 0)); return `<h3 class="gh" style="color:${P_COL[p]}">${P_LABEL[p]} (${rows.length})</h3>` + (rows.map(card).join('') || '<p class="empty">keine Einträge</p>'); };
   return `<div class="gl-tools"><span class="hint" style="margin:0">${D.karte ? 'Karte gespeichert' : D.geo ? 'swisstopo-Karte nur mit Internet' : 'ohne Kartenbild'}</span><span class="grow"></span><button data-gmz="-1">－</button><span>${zf * 100}%</span><button data-gmz="1">＋</button></div>
     <div class="gl-map"><div style="width:${zf * 100}%">${mapSVG(items, { style: 'width:100%;height:auto;display:block', sigScale: zf > 1 ? .75 : .95, view: zugView(z) })}</div></div>${part('Rot')}${part('Blau')}`;
