@@ -14,6 +14,7 @@
 
 <style id="page-style">@page { size: A3 landscape; margin: 7mm; }.zv-seg{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 2px}.zv-seg button{font-size:12px;padding:4px 9px}.zv-seg button.on{background:#1d1d1f;color:#fff;border-color:#1d1d1f}
 #lage-map{touch-action:pinch-zoom}#lage-map.panning{cursor:grabbing;opacity:.9}.lage-mapcol .mapbox{overflow:hidden}
+.help-pop details{margin:2px 0;border-top:1px solid var(--line);padding:4px 0}.help-pop details summary{cursor:pointer;font-weight:600;font-size:13px}.help-pop details .hint{margin:4px 0}
 </style>
 <style>
 :root{
@@ -92,6 +93,7 @@ table.ed tr.armed td{background:#fff6d8}
 .zug-cols .gr-h input{flex:1 1 80px;min-width:0;width:auto!important}
 .zug-cols .gm-h,.zug-cols .gm-r{grid-template-columns:44px 1fr 86px 24px}
 .zug-cols .zh input{flex:1 1 120px;min-width:0}
+.zh label.zl{display:flex!important;flex-direction:row!important;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex:1 1 100%;margin:0}.zh label.zl>span{width:30px;flex:none}.zh label.zl>input{flex:1 1 auto;width:auto!important;min-width:0;order:0}
 .zug-cols .gr-list{flex-direction:column;flex-wrap:nowrap}
 .zug-cols .gr-item{width:auto}
 .gr-item{display:flex;flex-direction:column;gap:6px;border:1px solid #e3e7ec;border-radius:6px;padding:6px 8px;background:#fafbfc;width:340px;max-width:100%}
@@ -512,6 +514,22 @@ body.grmode select,body.grmode input{padding:7px 8px;font-size:15px}
 <body>
 <header class="app-head noprint">
   <img class="wappen" alt="Wappen Inf DD RS 14" src="data:image/png;base64,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"><div class="titleblock"><h1>Führungssystem</h1><div class="unit hdr-meta" id="hdr-unit"><input data-meta="verband" id="hm-verband" oninput="this.style.width=Math.max(4,this.value.length+1)+'ch'" title="Verband" placeholder="Verband"></div></div><div id="help-pop" class="help-pop" hidden><div class="help-h"><b>So funktioniert es</b><button class="small" id="help-close" title="Schliessen">✕</button></div>
+    <details data-help="pend"><summary>Pendenzen</summary><p class="hint">Offene Punkte mit Verantwortlichem und Termin. Überfällige Pendenzen sind rot markiert. Abhaken = erledigt: die Pendenz wird gelöscht.</p>
+      <p class="hint"><b>Auftrag:</b> Von → An. Erscheint beim Absender als «Aufträge an …» und beim Empfänger als «Erhaltener Auftrag». <b>Absicht:</b> Von = wessen Absicht (erscheint eine und zwei Stufen tiefer). <b>Besondere Anordnung:</b> An leer = alle Unterstellten. Ohne Datum gilt ein Eintrag jeden Tag.</p>
+      <p class="hint">Anträge der Gruppen und Züge erscheinen beim Empfänger. Typ «Änderung» erscheint im Änderungsjournal des Tages auf allen betroffenen Druckansichten. Offene Anträge bleiben sichtbar, bis sie erledigt sind.</p></details>
+    <details data-help="verband"><summary>Einsatzgliederung</summary><p class="hint">Namen des Kommandos, der Züge (mit Zfhr und Stv) und der Gruppen erscheinen in allen Druckansichten. Die Züge stehen nebeneinander, die Gruppen untereinander. Besatzer werden nicht in die Ausbildungskontrolle aufgenommen.</p></details>
+    <details data-help="systeme"><summary>Statusübersicht</summary><p class="hint">Systeme: ok = einsatzbereit, eingeschränkt = gelb, ausgefallen = rot, n/a = nicht vorhanden. Mit ▸ klappst du eine Gruppe auf und bearbeitest Status, Mittel, Mat und Mun pro Soldat. Mitglieder erfasst du in der Einsatzgliederung oder hier mit «+ Soldat». Der Zug zeigt automatisch den schlechtesten Wert seiner Gruppen. Die Ampelgrenzen stellst du unter «Einstellungen Statusübersicht» ein.</p></details>
+    <details data-help="termine"><summary>Synchromatrix</summary><p class="hint">Aufbau wie im Ausdruck: Zeit von links nach rechts, pro Tag eine Zeile je Verband. In einer leeren Zeile ziehen = neuer Termin. Termin ziehen = verschieben, mit gedrückter Ctrl-Taste ziehen = kopieren, auch in einen anderen Zug oder Tag. Rechten Rand ziehen = Dauer ändern. Klick auf einen Termin = Angaben ergänzen. Klick auf den Tag = Tag für die Druckansichten. Raster 15 Minuten. Änderungen werden sofort gespeichert und erscheinen in allen Druckansichten.</p></details>
+    <details data-help="lage"><summary>Lagekarte</summary>
+      <p class="hint"><b>swisstopo-Karte:</b> Ort, Flurname oder Koordinaten (z.B. 2674800 / 1245500) suchen, dann wird die swisstopo-Karte die Grundlage. Massstab und Kartentyp wählen. Online werden die Kacheln bei swisstopo geladen, dabei wird der Kartenausschnitt übermittelt. Vor dem Einsatz ohne Internet «Ausschnitt offline speichern»: Dann erscheint der Ausschnitt auch offline mit denselben Positionen.</p>
+      <p class="hint"><b>Ausschnitt verschieben:</b> Karte mit gedrückter Maus ziehen, oder mit den Pfeilen. Ein kurzer Klick setzt weiterhin eine Signatur. Beim Verschieben oder Zoomen bleiben Signaturen und Linien am selben Ort im Gelände, ihre Rasterfelder ändern sich.</p>
+      <p class="hint"><b>Führungsraster:</b> Auf allen Stufen identisch: «K7» bezeichnet überall denselben Ort. Ausnahme: ein Zug mit eigenständigem Ausschnitt.</p>
+      <p class="hint"><b>Kartenausschnitt Zug:</b> «Kp» = Zug, Druck und Grfhr sehen Ausschnitt und Raster des Kp Kdt. «Zug im Kp-Raster» = kleinerer Ausschnitt innerhalb der Kp, das Raster der Kp wird übernommen und vergrössert. «Zug eigenständig» = eigener Ausschnitt mit eigenem Raster, losgelöst von der Kp. Einträge der Kp erscheinen dort am richtigen Ort, soweit sie im Ausschnitt liegen; das geht nur, wenn Kp und Zug beide eine swisstopo-Karte haben.</p>
+      <p class="hint"><b>Eigene Kartendatei:</b> Ersetzt die swisstopo-Karte (Bild ohne Georeferenz).</p>
+      <p class="hint"><b>Signaturen:</b> Signatur wählen und in die Karte klicken: Es entsteht ein neuer Eintrag im angeklickten Rasterfeld. Bei einem bestehenden Eintrag öffnet «Sig» die Signatur zum Bearbeiten. «Betrifft» steuert, welche Stufen den Eintrag sehen (Kp = alle). Linien (Abschnittsgrenzen, Phasenlinien, Pfeile) unter der Karte wählen, «Linie einzeichnen» klicken und die Punkte setzen.</p></details>
+    <details data-help="ausbildung"><summary>Ausbildungskontrolle</summary><p class="hint">Grundlage: Stoffplan Infanterist. Pro Soldat und Kompetenz den Stand festhalten. Klick auf ein Feld schaltet weiter: – hat die Kompetenz nicht › ✓ erfüllt › schwarz = nicht pflichtig. Nicht pflichtige Kompetenzen zählen in den Summen nicht mit. Grfhr und Besatzer erscheinen nicht.</p></details>
+    <div style="border-top:1px solid var(--line);margin:2px 0 8px"></div>
+
     <ol>
       <li><b>Einmalig:</b> Kopfdaten (direkt unter dem Titel), Kp Kdo, Züge, Gruppen und Personal (Einsatzgliederung) erfassen. Karte und Raster im Register Lagekarte einstellen.</li>
       <li><b>Täglich:</b> oben den Tag wählen. Termine (Synchromatrix) und Lage (Lagekarte) je <b>einmal</b> erfassen und dem richtigen Element zuordnen (Kp, Zug oder Gruppe).</li>
@@ -626,14 +644,16 @@ function blankData() {
   };
 }
 /* Gruppenführer: nicht in der Ausbildungskontrolle (Stoffplan Infanterist gilt für die AdA) */
+const noAusb = p => isGrfhr(p) || /^besatzer/i.test(String(p.funktion || '').trim()); // Grfhr und Besatzer: nicht in der Ausbildungskontrolle
 const isGrfhr = p => /^(gfhr|grfhr|gr fhr|gruppenf)/i.test(String(p.funktion || '').trim());
 const GR_FUNKTIONEN = ['Gfhr','Breacher 1','LMg 1','SMW 1','Trp C','Breacher 2','LMg 2','SMW 2'];
 function defaultStructure(d) {
   const mk = (name, grs) => ({ id: 'z' + uid(), name, fuehrer: '', gruppen: grs.map(g => ({ id: 'g' + uid(), name: g, fuehrer: '' })) });
   d.zuege = [mk('Servizio', ['Kdo Gr','Log Gr','Si Gr']), mk('Ambos', ['Uno','Due','Tre','Quattro']), mk('Bivio', ['Uno','Due','Tre','Quattro']), mk('Canale', ['Uno','Due','Tre','Quattro'])];
   d.zuege.forEach(z => z.gruppen.forEach(g => {
-    const fn = (z.name === 'Servizio' && g.name !== 'Si Gr') ? ['Gfhr','AdA 1','AdA 2','AdA 3','AdA 4','AdA 5','AdA 6','AdA 7'] : GR_FUNKTIONEN;
-    fn.forEach(f => d.personen.push({ id: 'p' + uid(), gruppeId: g.id, funktion: f, grad: '', name: '', mittel: '', status: 'einsatzfähig', mat: 'ok', mun: 'ok', bem: '' }));
+    const fn = (z.name === 'Servizio' && g.name !== 'Si Gr') ? ['Gfhr','AdA 1','AdA 2','AdA 3','AdA 4','AdA 5','AdA 6','AdA 7'] : [...GR_FUNKTIONEN];
+    if (['Ambos', 'Bivio', 'Canale'].includes(z.name)) fn.push(g.name === 'Quattro' ? 'Besatzer 1 (Uof)' : 'Besatzer 1', 'Besatzer 2');
+    fn.forEach(f => d.personen.push({ id: 'p' + uid(), gruppeId: g.id, funktion: f, grad: f.endsWith('(Uof)') ? 'Uof' : '', name: '', mittel: '', status: 'einsatzfähig', mat: 'ok', mun: 'ok', bem: '' }));
     const sys = {}; d.meta.systemTypen.forEach(t => sys[t] = 'ok');
     if (z.name === 'Servizio' && g.name !== 'Si Gr') ['VBR','LMg','Breacher','SMW'].forEach(t => sys[t] = 'n/a');
     sys.bem = ''; d.systeme[g.id] = sys;
@@ -648,6 +668,7 @@ function demoData() {
   const G = (zn, gn) => Z(zn).gruppen.find(g => g.name === gn).id;
   const S = Z('Servizio').id, A = Z('Ambos').id, B = Z('Bivio').id, C = Z('Canale').id;
   Z('Ambos').fuehrer = 'Lt Muster'; Z('Bivio').fuehrer = 'Lt Beispiel'; Z('Canale').fuehrer = 'Lt Vorlage'; Z('Servizio').fuehrer = 'Hptfw Probe';
+  Z('Ambos').stv = 'Wm Muster'; Z('Bivio').stv = 'Wm Beispiel'; Z('Canale').stv = 'Wm Vorlage'; Z('Servizio').stv = 'Fw Probe';
   const T = (datum, von, bis, element, kategorie, taetigkeit, ort = '', abhaengig = '') => d.termine.push({ id: 't' + uid(), datum, von, bis, element, kategorie, taetigkeit, ort, abhaengig });
   const day = '2026-10-19', day2 = '2026-10-20';
   T(day,'06:00','06:15','kp','Ausbildung','Hauptverlesen','F7');
@@ -1509,7 +1530,7 @@ function statusTableKp() {
   const nums = s => `<td>${s.best}</td><td>${s.ef}</td><td>${s.abw || ''}</td><td>${s.verl || ''}</td><td${s.mat ? ' class="m-bad"' : ''}>${s.mat || ''}</td><td${s.mun ? ' class="m-bad"' : ''}>${s.mun || ''}</td>`;
   D.zuege.forEach(z => {
     const zs = zugStatus(z); all.push(zs);
-    h += `<tr class="zug"><td class="l">${esc(z.name)}</td>${nums(zs)}${zs.sys.map(sysCell).join('')}<td>${ampDot(zs.amp)}</td><td class="wrap">${esc(z.fuehrer)}</td></tr>`;
+    h += `<tr class="zug"><td class="l">${esc(z.name)}</td>${nums(zs)}${zs.sys.map(sysCell).join('')}<td>${ampDot(zs.amp)}</td><td class="wrap">${esc(z.fuehrer)}${z.stv ? '<br><small>Stv ' + esc(z.stv) + '</small>' : ''}</td></tr>`;
     z.gruppen.forEach(g => {
       const s = grStatus(g.id);
       h += `<tr><td class="l">&nbsp;&nbsp;${esc(g.name)}</td>${nums(s)}${s.sys.map(sysCell).join('')}<td>${ampDot(s.amp)}</td><td class="wrap">${esc(s.bem)}</td></tr>`;
@@ -1572,7 +1593,7 @@ function pagesZug(z) {
   const day = D.meta.tag;
   const ids = new Set(z.gruppen.map(g => g.id));
   const bes = auf(a => a.art === 'Besondere Anordnung' && ((a.von === 'kp' && (!a.an || a.an === z.id)) || a.von === z.id));
-  const title = 'Führungsdokument Zfhr ' + z.name, who = esc(z.fuehrer || 'Zfhr');
+  const title = 'Führungsdokument Zfhr ' + z.name, who = esc(z.fuehrer || 'Zfhr') + (z.stv ? ' · Stv ' + esc(z.stv) : '');
   const antr = D.antraege.filter(a => a.typ !== 'Änderung' && (ids.has(a.von) || a.von === z.id || a.an === z.id) && (a.status === 'offen' || onDay(a))).sort(sortZeit);
   const aend = D.antraege.filter(a => a.typ === 'Änderung' && onDay(a) && (a.von === 'kp' || a.von === z.id || ids.has(a.von))).sort(sortZeit);
   const p1 = `<div class="page a4">${pageHead(title, who, 1, 2)}
@@ -1748,7 +1769,7 @@ const TABLES = { pend: () => D.pend, termine: () => D.termine, auftraege: () => 
 function geoPanel() {
   const g = D.geo, kd = isKp() ? '' : ' disabled';
   const saved = g && D.karte && sameGeo(D.karteGeo, g);
-  const info = g ? `Mitte ${fmtLV(g.e)} / ${fmtLV(g.n)} · ${(g.w / 1000).toLocaleString('de-CH')} × ${(g.h / 1000).toLocaleString('de-CH')} km · Rasterfeld ${Math.round(g.w / D.meta.rasterCols)} m` : 'Nicht aktiv. Ort suchen oder Koordinaten eingeben, dann wird die swisstopo-Karte die Grundlage.';
+  const info = g ? `Mitte ${fmtLV(g.e)} / ${fmtLV(g.n)} · ${(g.w / 1000).toLocaleString('de-CH')} × ${(g.h / 1000).toLocaleString('de-CH')} km · Rasterfeld ${Math.round(g.w / D.meta.rasterCols)} m` : 'Nicht aktiv.';
   return `<div class="geo-panel">
     <div class="sigrow"><b style="font-size:13px">swisstopo-Karte</b> <span class="hint" style="margin:0">${esc(info)}</span></div>
     ${isKp() ? `<div class="sigrow"><input id="geo-q" style="width:220px" placeholder="Ort, Flurname oder Koordinaten" value="${esc(ui.geoQ || '')}" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('geo-search').click()}"><button class="small primary" id="geo-search">Suchen</button>
@@ -1759,7 +1780,7 @@ function geoPanel() {
     ${g ? `<div class="sigrow"><span class="hint" style="margin:0">Verschieben</span><button class="small" data-geomove="-1,0" title="nach Westen">◀</button><button class="small" data-geomove="0,1" title="nach Norden">▲</button><button class="small" data-geomove="0,-1" title="nach Süden">▼</button><button class="small" data-geomove="1,0" title="nach Osten">▶</button>
       <span class="hint" style="margin:0 0 0 8px">Zoom</span><button class="small" data-geozoom="-1" title="kleinerer Ausschnitt">＋</button><button class="small" data-geozoom="1" title="grösserer Ausschnitt">－</button>
       <span style="flex:1"></span><button class="small primary" id="geo-offline">⤓ Ausschnitt offline speichern</button><button class="small" id="geo-off">swisstopo aus</button></div>
-      <p class="hint" style="margin:2px 0 6px">${saved ? '✓ Offline-Ausschnitt gespeichert: Ohne Internet erscheint dieser Ausschnitt mit denselben Positionen.' : '⚠ Kein Offline-Ausschnitt für diesen Rahmen gespeichert. Vor dem Einsatz ohne Internet «Ausschnitt offline speichern».'} Den Ausschnitt verschiebt man auch, indem man die Karte mit gedrückter Maus zieht. Beim Verschieben oder Zoomen bleiben Signaturen und Linien am selben Ort im Gelände, ihre Rasterfelder ändern sich. Online werden die Kacheln bei swisstopo geladen (dabei wird der Kartenausschnitt übermittelt).</p>
+      <p class="hint" style="margin:2px 0 6px">${saved ? '✓ Offline gespeichert.' : '⚠ Noch nicht offline gespeichert.'}</p>
       ${currentTab === 'lage' ? '' : `<div class="geo-prev">${mapSVG(D.lage.filter(l => l.aktiv !== false), { id: 'geo-map' })}</div>`}` : ''}` : ''}
   </div>`;
 }
@@ -1781,7 +1802,7 @@ function viewVerband() {
   const allGr = []; D.zuege.filter(z => inZug(z.id)).forEach(z => z.gruppen.forEach(g => allGr.push([g.id, z.name + ' ' + g.name])));
   const kd = isKp() ? '' : ' disabled';
   if (!ui.persGr || !grOf(ui.persGr)) ui.persGr = allGr.length ? allGr[0][0] : null;
-  const zc = D.zuege.filter(z => inZug(z.id)).map(z => `<div class="zug-card"><div class="zh"><b>Zug</b><input data-zug="${z.id}" data-k="name" value="${esc(z.name)}" style="width:130px"${kd}><input data-zug="${z.id}" data-k="fuehrer" value="${esc(z.fuehrer)}" placeholder="Zfhr (Grad Name)" style="width:180px">
+  const zc = D.zuege.filter(z => inZug(z.id)).map(z => `<div class="zug-card"><div class="zh"><b>Zug</b><input data-zug="${z.id}" data-k="name" value="${esc(z.name)}" style="width:130px"${kd}><label class="zl"><span>Zfhr</span><input data-zug="${z.id}" data-k="fuehrer" value="${esc(z.fuehrer)}" placeholder="Grad Name" style="width:180px"></label><label class="zl"><span>Stv</span><input data-zug="${z.id}" data-k="stv" value="${esc(z.stv || '')}" placeholder="Grad Name" style="width:180px"></label>
       ${isKp() ? `<button class="small" data-addgr="${z.id}">+ Gruppe</button><button class="small danger" data-delzug="${z.id}">Zug löschen</button>` : ''}</div>
       <div class="gr-list">${z.gruppen.map(g => { const mem = D.personen.filter(p => p.gruppeId === g.id); const ed = inZug(g.id); const ro = ed ? '' : ' disabled';
         return `<div class="gr-item"><div class="gr-h"><input data-gr="${g.id}" data-k="name" value="${esc(g.name)}"${kd}><input data-gr="${g.id}" data-k="fuehrer" value="${esc(g.fuehrer)}" placeholder="Grfhr" style="width:150px">${isKp() ? `<button class="small danger" data-delgr="${g.id}" title="Gruppe löschen">✕</button>` : ''}</div>
@@ -1790,7 +1811,7 @@ function viewVerband() {
   const ps = D.personen.filter(p => p.gruppeId === ui.persGr);
   const s = ui.persGr ? grStatus(ui.persGr) : null;
   const kdo = `<div class="zug-card"><div class="zh"><b>Kp Kdo</b></div><div class="zh"><label class="hint" style="margin:0">Kp Kdt <input data-meta="kdt" value="${esc(D.meta.kdt || '')}" placeholder="Kp Kdt (Grad Name)" style="width:220px"${kd}></label><label class="hint" style="margin:0">Kp Kdt Stv <input data-meta="kdtStv" value="${esc(D.meta.kdtStv || '')}" placeholder="Kp Kdt Stv (Grad Name)" style="width:220px"${kd}></label></div></div>`;
-  return `<div class="card"><h2>Einsatzgliederung</h2><p class="hint">Namen des Kommandos, der Züge und Gruppen erscheinen in allen Druckansichten.</p>${isKp() ? kdo : ''}<div class="zug-cols">${zc}</div>${isKp() ? '<div class="row-actions"><button data-addzug="1">+ Zug</button></div>' : ''}</div>`;
+  return `<div class="card"><h2>Einsatzgliederung</h2>${isKp() ? kdo : ''}<div class="zug-cols">${zc}</div>${isKp() ? '<div class="row-actions"><button data-addzug="1">+ Zug</button></div>' : ''}</div>`;
 }
 
 /* ---- Ausbildungskontrolle: Soldat × Ausbildungsthema ---- */
@@ -1812,7 +1833,7 @@ function viewAusbildung() {
   else if (!ui.ausbZug || (ui.ausbZug !== 'all' && !zugOf(ui.ausbZug))) ui.ausbZug = (D.zuege[0] || {}).id || 'all';
   const zf = ui.ausbZug, gf = ui.ausbGr || 'all', kf = ui.ausbKat || 'all';
   const st = kf === 'all' ? all : all.filter(o => o.kat === kf), key = o => String(o.nr);
-  const grs = []; D.zuege.filter(z => zf === 'all' || z.id === zf).forEach(z => z.gruppen.forEach(g => { if (gf === 'all' || g.id === gf) grs.push({ z, g, mem: D.personen.filter(p => p.gruppeId === g.id && !isGrfhr(p)) }); }));
+  const grs = []; D.zuege.filter(z => zf === 'all' || z.id === zf).forEach(z => z.gruppen.forEach(g => { if (gf === 'all' || g.id === gf) grs.push({ z, g, mem: D.personen.filter(p => p.gruppeId === g.id && !noAusb(p)) }); }));
   const sol = grs.flatMap(x => x.mem.map(p => ({ p, ed: inZug(x.g.id) }))), N = sol.length;
   const selS = ui.ausbSel || (ui.ausbSel = new Set()); [...selS].forEach(id => { if (!sol.some(x => x.p.id === id && x.ed)) selS.delete(id); }); const nSel = selS.size;
   const okN = (p, list) => list.filter(o => ausbGet(p.id, key(o)) === 'ok').length;
@@ -1821,7 +1842,7 @@ function viewAusbildung() {
     return `<td class="ak-c ak-${t || 'leer'}">${s.ed ? `<button data-ausb="${esc(s.p.id)}" data-ausbth="${esc(key(o))}" title="${esc(tip)} (klicken = umschalten)">${m[1]}</button>` : `<span title="${esc(tip)}">${m[1]}</span>`}</td>`; };
   const gOpts = [['all', 'alle Gruppen'], ...D.zuege.filter(z => zf === 'all' || z.id === zf).flatMap(z => z.gruppen.map(g => [g.id, (zf === 'all' ? z.name + ' ' : '') + g.name]))];
   let h = `<div class="card"><h2>Ausbildungskontrolle</h2>
-    <p class="hint">Grundlage: Stoffplan Infanterist (${all.length} Kompetenzen). Pro Soldat und Kompetenz den Stand festhalten. Klick auf ein Feld schaltet weiter: – hat die Kompetenz nicht › ✓ erfüllt › schwarz = nicht pflichtig. Nicht pflichtige Kompetenzen zählen in den Summen nicht mit.</p>
+    
     <div class="toolbar">${isKp() ? `<label>Zug ${sel(zf, [['all', 'alle Züge'], ...D.zuege.map(z => [z.id, z.name])], 'id="ausb-zug"')}</label>` : `<b>Zug ${esc(roleZug() ? roleZug().name : '')}</b>`}<label>Gruppe ${sel(gf, gOpts, 'id="ausb-gr"')}</label><label>Bereich ${sel(kf, [['all', 'alle Bereiche'], ...kats.map(k => [k, k])], 'id="ausb-kat"')}</label>
     <span class="hint" style="margin:0">${AUSB_ST.map(m => `<span class="ak-leg ak-${m[0] || 'leer'}">${m[1]}</span> ${m[2]}`).join(' · ')}</span></div>`;
   if (!N) return h + `<p class="hint">Keine Soldaten in dieser Auswahl (Einsatzgliederung).</p></div>`;
@@ -1850,7 +1871,7 @@ function viewSysteme() {
   const st = D.meta.systemTypen, open = ui.statOpen || (ui.statOpen = {});
   const ncol = st.length + 5;
   const allIds = D.zuege.flatMap(z => z.gruppen.map(g => g.id));
-  let h = setPanel('status', 'Einstellungen Statusübersicht', `Ampel gelb < ${D.meta.gelb} %, rot < ${D.meta.rot} % · ${st.length} Systemtypen`, metaF('gelb', 'Ampel gelb unter % einsatzfähig', 'number', 'min="0" max="100"') + metaF('rot', 'Ampel rot unter % einsatzfähig', 'number', 'min="0" max="100"') + metaL('systemTypen', 'Systemtypen (mit Komma getrennt)')) + `<div class="card"><h2>Statusübersicht pro Gruppe</h2><p class="hint">Systeme: ok = einsatzbereit, eingeschränkt = gelb, ausgefallen = rot, n/a = nicht vorhanden. Mit ▸ klappst du eine Gruppe auf und bearbeitest Status, Mittel, Mat und Mun pro Soldat. Mitglieder erfasst du in der Einsatzgliederung oder hier mit «+ Soldat». Der Zug zeigt automatisch den schlechtesten Wert seiner Gruppen.</p>
+  let h = setPanel('status', 'Einstellungen Statusübersicht', `Ampel gelb < ${D.meta.gelb} %, rot < ${D.meta.rot} % · ${st.length} Systemtypen`, metaF('gelb', 'Ampel gelb unter % einsatzfähig', 'number', 'min="0" max="100"') + metaF('rot', 'Ampel rot unter % einsatzfähig', 'number', 'min="0" max="100"') + metaL('systemTypen', 'Systemtypen (mit Komma getrennt)')) + `<div class="card"><h2>Statusübersicht pro Gruppe</h2>
     <div class="toolbar"><button class="small" id="stat-open-all">▾ alle aufklappen</button><button class="small" id="stat-close-all">▸ alle zuklappen</button><span style="flex:1"></span>${isKp() ? '<button class="small danger" id="btn-reset-status" title="Alle Personen einsatzfähig, alle Systeme ok">Status zurücksetzen</button>' : ''}</div>
     <div class="tbl-wrap"><table class="ed stat"><tr><th style="width:34px"></th><th>Gruppe</th><th>Personal</th>${st.map(t => `<th>${esc(t)}</th>`).join('')}<th>Bemerkung</th><th>Ampel</th></tr>`;
   D.zuege.filter(z => inZug(z.id)).forEach(z => {
@@ -1949,7 +1970,7 @@ function viewKalender(seg) {
   const panel = t ? calPanel(t) : '';
   const all = calDays(), mo = all[0], so = all[6];
   return setPanel('sync', 'Einstellungen Synchromatrix', `Zeitraster ${String(D.meta.startH).padStart(2, '0')}–${String(D.meta.endH).padStart(2, '0')} Uhr · Betreuung ${(D.meta.betreuer || []).join(', ')}`, metaF('startH', 'Zeitraster von (Stunde)', 'number', 'min="0" max="23"') + metaF('endH', 'Zeitraster bis (Stunde, max. 30 = 06:00 Folgetag)', 'number', 'min="1" max="30"') + metaL('betreuer', 'Betreuung: Kürzel (mit Komma getrennt)')) + `<div class="card"><h2>Synchromatrix: Woche ${fmtDayShort(mo)}–${fmtDayShort(so)}${so.slice(0, 4)}</h2>
-    <p class="hint">Aufbau wie im Ausdruck: Zeit von links nach rechts, pro Tag eine Zeile je Verband. In einer leeren Zeile ziehen = neuer Termin. Termin ziehen = verschieben, mit gedrückter Ctrl-Taste ziehen = kopieren, auch in einen anderen Zug oder Tag. Rechten Rand ziehen = Dauer ändern. Klick auf einen Termin = Angaben ergänzen. Klick auf den Tag = Tag für die Druckansichten. Raster ${SNAP} Minuten.</p>
+    
     <div class="toolbar">${seg}<button id="cal-prev" class="small">◂ Woche</button><button id="cal-next" class="small">Woche ▸</button>
       <label>Tage ${sel(ui.calDays || 7, [[7, 'Mo–So'], [5, 'Mo–Fr'], [1, 'nur gewählter Tag']], 'id="cal-days"')}</label>
       <label>Züge ${sel(ui.calFilter || 'all', fOpts, 'id="cal-filter"')}</label>
@@ -2128,7 +2149,7 @@ function syncAutoPend() {
     const nrs = tm.kategorie === 'Ausbildung' ? parseKomp(tm.kompetenzen) : [];
     if (tm.akPendOff && tm.datum !== today) { tm.akPendOff = false; stamp(tm); ch = true; }
     const ended = tm.datum === today && (tm.bis || tm.von || '99:99') <= nowHM;
-    const pids = nrs.length && ended ? elMembers(tm.element).filter(p => !isGrfhr(p)).map(p => p.id) : [];
+    const pids = nrs.length && ended ? elMembers(tm.element).filter(p => !noAusb(p)).map(p => p.id) : [];
     const req = pids.filter(pid => nrs.some(n => ausbGet(pid, n) !== 'np'));
     const noAk = req.length > 0 && !req.some(pid => nrs.some(n => ausbGet(pid, n) === 'ok'));
     ch = autoPend('pdak|' + tm.id, tm, noAk, 'Ausbildungskontrolle nachführen: ' + tmLabel(tm) + ' – Nr ' + nrs.join(', ')) || ch; });
@@ -2147,7 +2168,7 @@ function viewPend() {
     .sort((a, b) => ((a.bis || '9999') < (b.bis || '9999') ? -1 : (a.bis || '9999') > (b.bis || '9999') ? 1 : 0) || (pr[a.prio] ?? 1) - (pr[b.prio] ?? 1));
   const nOpen = vis.filter(r => !r.erledigt).length, nLate = vis.filter(r => !r.erledigt && r.bis && r.bis < today).length;
   return `<div class="card"><h2>Pendenzen</h2>
-    <p class="hint">Offene Punkte mit Verantwortlichem und Termin. Überfällige Pendenzen sind rot markiert. Abhaken = erledigt: die Pendenz wird gelöscht.</p>
+    
     <div class="toolbar"><button id="add-pend" class="primary">+ Pendenz</button>
       <span class="hint" style="margin:0">${nOpen} offen${nLate ? ` · <b style="color:#c62828">${nLate} überfällig</b>` : ''}</span></div>
     ${rows.length ? editTable('pend', rows, [
@@ -2162,7 +2183,7 @@ function viewPend() {
 }
 function viewAuftraege() {
   return `<div class="card"><h2>Befehl: Aufträge, Absicht, Besondere Anordnungen</h2>
-    <p class="hint"><b>Auftrag:</b> Von → An. Erscheint beim Absender als «Aufträge an …» und beim Empfänger als «Erhaltener Auftrag». <b>Absicht:</b> Von = wessen Absicht (erscheint eine und zwei Stufen tiefer). <b>Besondere Anordnung:</b> An leer = alle Unterstellten. Ohne Datum gilt ein Eintrag jeden Tag.</p>
+    
     ${editTable('auftraege', D.auftraege, [
       { key: 'datum', label: 'Gültig am', type: 'date', w: '135px' }, { key: 'art', label: 'Art', type: 'select', options: ART, w: '160px' },
       { key: 'von', label: 'Von', type: 'select', elem: true, options: () => elementOptions({ bat: true }), w: '160px' }, { key: 'an', label: 'An', type: 'select', elem: true, options: () => elementOptions({ alle: true }), w: '160px' },
@@ -2327,19 +2348,19 @@ function zvPanel() {
   const mode = kmode(z), v = zugView(z);
   const seg = `<div class="zv-seg">${[['kp', 'Kp'], ['aus', 'Zug im Kp-Raster'], ['eigen', 'Zug eigenständig']].map(([k, l]) => `<button data-zmode="${k}" class="${mode === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
   let body = '';
-  if (mode === 'kp') body = '<p class="hint" style="margin:4px 0">Zug, Druck und Grfhr sehen den Ausschnitt und das Raster des Kp Kdt.</p>';
+  if (mode === 'kp') body = '';
   else if (mode === 'aus') { const sc = v && D.geo ? ' · ' + fmtScale(D.geo.w * v.fw / MAP_PRINT_W_GR) + ' (A4)' : v ? ' · ' + Math.round(1 / v.fw * 10) / 10 + '-fach' : '';
-    body = `<p class="hint" style="margin:4px 0">Ausschnitt innerhalb der Kp${esc(sc)}. Das Führungsraster der Kp wird übernommen und vergrössert. Karte mit gedrückter Maus ziehen, um den Ausschnitt zu verschieben.</p>
+    body = `${sc ? `<p class="hint" style="margin:4px 0">${esc(sc.replace(/^ · /, ''))}</p>` : ''}
       <div class="sigrow"><span class="hint" style="margin:0">Mitte</span><input id="zv-feld" style="width:58px" placeholder="K7"><button id="zv-feld-go" class="small">setzen</button></div>
       <div class="sigrow"><button class="small" data-zvmove="-1,0" title="nach links">◀</button><button class="small" data-zvmove="0,1" title="nach oben">▲</button><button class="small" data-zvmove="0,-1" title="nach unten">▼</button><button class="small" data-zvmove="1,0" title="nach rechts">▶</button>
       <span class="hint" style="margin:0 0 0 6px">Zoom</span><button class="small" data-zvzoom="-1" title="näher">＋</button><button class="small" data-zvzoom="1" title="weiter">－</button></div>`; }
   else { const r = z.rahmen || {}, g = r.geo, m = g ? ZR_SCALES.reduce((a, x) => Math.abs(x * MAP_PRINT_W_GR - g.w) < Math.abs(a * MAP_PRINT_W_GR - g.w) ? x : a, 10000) : 10000;
     const saved = g && r.karte && sameGeo(r.karteGeo, g);
-    body = `<p class="hint" style="margin:4px 0">Eigener Ausschnitt mit eigenem Führungsraster, losgelöst von der Kp. ${D.geo ? 'Einträge der Kp erscheinen am richtigen Ort, soweit sie im Ausschnitt liegen.' : 'Ohne swisstopo-Karte der Kp sind die Einträge der Kp hier nicht sichtbar.'}</p>
+    body = `${D.geo ? '' : '<p class="hint" style="margin:4px 0">Ohne swisstopo-Karte der Kp sind Einträge der Kp hier nicht sichtbar.</p>'}
       <div class="sigrow"><input id="zr-q" style="flex:1 1 100%" placeholder="Ort, Flurname oder Koordinaten" value="${esc(ui.zrQ || '')}" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('zr-search').click()}"><button id="zr-search" class="small primary">Suchen</button></div>
       ${ui.zrMsg ? `<div class="hint" style="margin:2px 0 4px">${esc(ui.zrMsg)}</div>` : ''}
       ${ui.zrResults && ui.zrResults.length ? `<div class="sigchips">${ui.zrResults.map(x => `<button class="sigchip" data-zrpick="${x.E},${x.N}">${esc(x.label)}</button>`).join('')}</div>` : ''}
-      ${g ? `<p class="hint" style="margin:2px 0 4px">Mitte ${fmtLV(g.e)} / ${fmtLV(g.n)} · ${(g.w / 1000).toLocaleString('de-CH')} × ${(g.h / 1000).toLocaleString('de-CH')} km · Karte mit der Maus ziehen zum Verschieben</p>
+      ${g ? `<p class="hint" style="margin:2px 0 4px">Mitte ${fmtLV(g.e)} / ${fmtLV(g.n)} · ${(g.w / 1000).toLocaleString('de-CH')} × ${(g.h / 1000).toLocaleString('de-CH')} km</p>
       <div class="ls-2"><label>Massstab (A4)<select id="zr-m">${ZR_SCALES.map(x => `<option value="${x}"${x === m ? ' selected' : ''}>${fmtScale(x)}</option>`).join('')}</select></label><label>Karte<select id="zr-layer">${GEO_LAYERS.map(([k, l]) => `<option value="${k}"${k === (g.layer || GEO_LAYERS[0][0]) ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label></div>
       <div class="sigrow" style="margin-top:4px"><button class="small" data-zrmove="-1,0">◀</button><button class="small" data-zrmove="0,1">▲</button><button class="small" data-zrmove="0,-1">▼</button><button class="small" data-zrmove="1,0">▶</button></div>
       <button id="zr-offline" class="small${saved ? '' : ' primary'}">⤓ Ausschnitt offline speichern</button><p class="hint" style="margin:2px 0 4px">${saved ? '✓ Offline gespeichert.' : '⚠ Noch nicht offline gespeichert.'}</p>` : '<p class="hint">Ort suchen, um den Ausschnitt festzulegen.</p>'}
@@ -2380,18 +2401,18 @@ function lageSettings() {
   return `<div class="lage-set"><div class="ls-t">Karte und Raster</div>
     ${isKp() ? '' : zvPanel()}${!isKp() && kmode(roleZug()) === 'eigen' ? '' : `${isKp() ? '' : '<div class="ls-h">Kartengrundlage Kp</div>'}
     ${geoPanel()}
-    <div class="ls-h">Führungsraster${isKp() ? '' : ' Kp'}</div><p class="hint" style="margin:0 0 4px">Auf allen Stufen identisch: «K7» bezeichnet überall denselben Ort.</p>
+    <div class="ls-h">Führungsraster${isKp() ? '' : ' Kp'}</div>
     <div class="ls-2">${f('rasterCols', 'Spalten (A …)', 'min="4" max="26"')}${f('rasterRows', 'Zeilen (1 …)', 'min="4" max="40"')}</div>`}
     <div class="ls-h">Darstellung</div>${opacCtl()}
     <div ${isKp() ? '' : 'style="display:none"'}><div class="ls-h">Eigene Kartendatei</div><div class="sigrow"><button id="btn-karte" class="small">Karte aus Datei laden …</button><input type="file" id="file-karte" accept="image/*" hidden>
-    ${D.karte ? '<button id="btn-karte-del" class="small danger">entfernen</button>' : ''}</div><p class="hint" style="margin:0">${D.geo ? 'Ersetzt die swisstopo-Karte (Datei ohne Georeferenz).' : D.karte ? 'Karte aus Datei (' + D.karteW + ' × ' + D.karteH + ' px)' : 'Keine Karte geladen'}</p></div>
+    ${D.karte ? '<button id="btn-karte-del" class="small danger">entfernen</button>' : ''}</div><p class="hint" style="margin:0">${D.geo ? '' : D.karte ? 'Karte aus Datei (' + D.karteW + ' × ' + D.karteH + ' px)' : 'Keine Karte geladen'}</p></div>
   </div>`;
 }
 function viewLage() {
   const mz = isKp() ? null : roleZug();
   const LM = inFrame(mz, () => ({ ar: (mapDims().W / mapDims().H).toFixed(4), svg: mapSVG(D.lage.filter(l => l.aktiv !== false && visLage(l)), { id: 'lage-map', linF: visLin, hl: ui.sigTarget || armedLage, draft: ui.draw, hlLine: ui.hlLine, view: zugView(mz) }) }));
   return `<div class="card"><h2>Lagekarte</h2>
-    <p class="hint">Signatur wählen und in die Karte klicken: Es entsteht ein neuer Eintrag im angeklickten Rasterfeld. Bei einem bestehenden Eintrag öffnet «Sig» die Signatur zum Bearbeiten. «Betrifft» steuert, welche Stufen den Eintrag sehen (Kp = alle).</p>
+    
     ${armedLage ? '<div class="toolbar"><span class="ovf-note">Position setzen: in die Karte klicken</span> <button class="small" id="lage-disarm">abbrechen</button></div>' : ''}
     <div class="lage-layout three"><div class="lage-setcol">${lageSettings()}</div><div class="lage-mapcol"><div class="mapbox${ui.draw ? ' drawing' : ''}" style="--ar:${LM.ar}">${LM.svg}</div>${grenzToolbar()}</div><div>${sigPalette()}</div></div>
     <div style="margin-top:14px">
@@ -2492,7 +2513,7 @@ function bindLageMap() {
 /* ---- Anträge ---- */
 function viewAntraege() {
   return `<div class="card"><h2>Anträge und Änderungen</h2>
-    <p class="hint">Anträge der Gruppen und Züge erscheinen beim Empfänger. Typ «Änderung» erscheint im Änderungsjournal des Tages auf allen betroffenen Druckansichten. Offene Anträge bleiben sichtbar, bis sie erledigt sind.</p>
+    
     ${editTable('antraege', D.antraege.slice().sort(sortZeit), [
       { key: 'zeit', label: 'Zeit', type: 'datetime-local', w: '175px' }, { key: 'von', label: 'Von', type: 'select', elem: true, options: () => elementOptions(), w: '160px' }, { key: 'an', label: 'An', type: 'select', elem: true, options: () => elementOptions({ alle: true, kp: true }), w: '160px' },
       { key: 'typ', label: 'Typ', type: 'select', options: ANTRAG_TYP, w: '170px' }, { key: 'text', label: 'Inhalt' }, { key: 'status', label: 'Status', type: 'select', options: ['offen', 'in Arbeit', 'erledigt', 'abgelehnt'], w: '110px' }
@@ -2581,7 +2602,7 @@ document.addEventListener('click', ev => {
   if (b.dataset.geozoom && D.geo) { const g = D.geo, ws = GEO_WIDTHS.map(x => x[0]); let i = ws.findIndex(v => v >= g.w); if (i < 0) i = ws.length - 1; i = Math.max(0, Math.min(ws.length - 1, i + +b.dataset.geozoom)); const w = ws[i]; setGeo(Object.assign({}, g, { w, h: Math.round(g.h * w / g.w) })); return; }
   if (b.dataset.druckview) { $('#druck-menu').hidden = true; currentTab = b.dataset.druckview; armedLage = null; ui.editTermin = null; ui.sigTarget = null; ui.draw = null; render(); window.scrollTo(0, 0); return; }
   if (b.dataset.ausbcol) { ausbSetMany([...(ui.ausbSel || [])], b.dataset.ausbcol); return; }
-  if (b.dataset.ausbgrp) { ausbSetMany(D.personen.filter(p => p.gruppeId === b.dataset.ausbgrp && !isGrfhr(p)).map(p => p.id), b.dataset.ausbth); return; }
+  if (b.dataset.ausbgrp) { ausbSetMany(D.personen.filter(p => p.gruppeId === b.dataset.ausbgrp && !noAusb(p)).map(p => p.id), b.dataset.ausbth); return; }
   if (b.dataset.ausb) { const pid = b.dataset.ausb, t = b.dataset.ausbth, id = ausbId(pid, t); let r = D.ausb.find(x => x.id === id);
     if (!r) { r = NEW({ id, pid, thema: t, st: '' }); D.ausb.push(r); } if (!canEdit('ausb', r)) return;
     r.st = r.st === 'ok' ? 'np' : r.st === 'np' ? '' : 'ok'; stamp(r); touch(); render(); return; }
@@ -2612,7 +2633,7 @@ document.addEventListener('click', ev => {
   }
   switch (b.id) {
     case 'btn-druckmenu': { if (!isKp()) { $('#druck-menu').hidden = true; currentTab = 'p-zfhr'; armedLage = null; ui.editTermin = null; ui.sigTarget = null; ui.draw = null; render(); window.scrollTo(0, 0); break; } const m = $('#druck-menu'); m.hidden = !m.hidden; break; }
-    case 'help-btn': { const h = $('#help-pop'); h.hidden = !h.hidden; break; }
+    case 'help-btn': { const h = $('#help-pop'); h.hidden = !h.hidden; if (!h.hidden) h.querySelectorAll('details[data-help]').forEach(d => d.open = d.dataset.help === currentTab); break; }
     case 'help-close': $('#help-pop').hidden = true; break;
     case 'btn-export': exportData(); break;
     case 'geo-search': { const q = ($('#geo-q') || {}).value || ''; ui.geoQ = q; const c = geoParseCoord(q); if (c) { const w = D.geo ? D.geo.w : (ui.geoW || GEO_DEF_W); setGeo({ e: Math.round(c[0]), n: Math.round(c[1]), w, h: Math.round(w * D.meta.rasterRows / D.meta.rasterCols), layer: D.geo ? D.geo.layer : (ui.geoLayer || GEO_LAYERS[0][0]) }); } else if (q.trim()) geoSearch(q.trim()); break; }
@@ -2671,7 +2692,7 @@ function onField(ev) {
   const t = ev.target;
   if ((t.dataset.ausbsel || t.dataset.ausbselgr) && ev.type === 'change') {
     const S = ui.ausbSel || (ui.ausbSel = new Set());
-    const ids = t.dataset.ausbsel ? [t.dataset.ausbsel] : D.personen.filter(p => p.gruppeId === t.dataset.ausbselgr && !isGrfhr(p)).map(p => p.id);
+    const ids = t.dataset.ausbsel ? [t.dataset.ausbsel] : D.personen.filter(p => p.gruppeId === t.dataset.ausbselgr && !noAusb(p)).map(p => p.id);
     ids.forEach(id => t.checked ? S.add(id) : S.delete(id)); render(); return;
   }
   if (t.dataset.tbl) {
@@ -2701,8 +2722,8 @@ function onField(ev) {
     if (k === 'systemTypen') Object.values(D.systeme).forEach(s => D.meta.systemTypen.forEach(x => { if (!s[x]) s[x] = 'ok'; }));
     touch(); render(); return;
   }
-  if (t.dataset.zug) { if (!inZug(t.dataset.zug) || (!isKp() && t.dataset.k !== 'fuehrer')) return; const z = zugOf(t.dataset.zug); z[t.dataset.k] = t.value; stamp(z); touch(); return; }
-  if (t.dataset.gr) { if (!inZug(t.dataset.gr) || (!isKp() && t.dataset.k !== 'fuehrer')) return; const r = grOf(t.dataset.gr); r.g[t.dataset.k] = t.value; stamp(r.z); touch(); return; }
+  if (t.dataset.zug) { if (!inZug(t.dataset.zug) || (!isKp() && t.dataset.k !== 'fuehrer' && t.dataset.k !== 'stv')) return; const z = zugOf(t.dataset.zug); z[t.dataset.k] = t.value; stamp(z); touch(); return; }
+  if (t.dataset.gr) { if (!inZug(t.dataset.gr) || (!isKp() && t.dataset.k !== 'fuehrer' && t.dataset.k !== 'stv')) return; const r = grOf(t.dataset.gr); r.g[t.dataset.k] = t.value; stamp(r.z); touch(); return; }
   if (t.dataset.sys) { if (!inZug(t.dataset.sys)) return; const so = (D.systeme[t.dataset.sys] = D.systeme[t.dataset.sys] || {}); so[t.dataset.t] = t.value; stamp(so); touch(); if (ev.type === 'change' && t.tagName === 'SELECT') render(); return; }
   if (ev.type !== 'change') return;
   switch (t.id) {
@@ -3137,7 +3158,7 @@ function buildGrPkg(gid, withMap) {
   pers.forEach(p => { const s = STOFF_INF.map(o => { const v = ausbGet(p.id, String(o.nr)); return v === 'ok' ? '1' : v === 'np' ? '2' : '0'; }).join('').replace(/0+$/, ''); if (s) ausb[p.id] = s; });
   const o = { t: 'fs-gp', v: 1, dsid: D.meta.dsid, zid: z.id, gid: g.id, ts: nowISO(), von: roleName(),
     meta: { verband: D.meta.verband, tag: D.meta.tag, rasterCols: D.meta.rasterCols, rasterRows: D.meta.rasterRows, karteOpac: D.meta.karteOpac, systemTypen: D.meta.systemTypen, gelb: D.meta.gelb, rot: D.meta.rot, kw: D.karteW, kh: D.karteH },
-    zug: { id: z.id, name: z.name, fuehrer: z.fuehrer || '', ausschnitt: z.ausschnitt || null, kmode: kmode(z), rahmen: z.rahmen ? omit(z.rahmen, withMap ? [] : ['karte']) : null, gruppen: z.gruppen.map(x => ({ id: x.id, name: x.name, fuehrer: x.fuehrer || '' })) },
+    zug: { id: z.id, name: z.name, fuehrer: z.fuehrer || '', stv: z.stv || '', ausschnitt: z.ausschnitt || null, kmode: kmode(z), rahmen: z.rahmen ? omit(z.rahmen, withMap ? [] : ['karte']) : null, gruppen: z.gruppen.map(x => ({ id: x.id, name: x.name, fuehrer: x.fuehrer || '' })) },
     termine: D.termine.filter(t => tSet.has(t.element) && t.datum >= from && t.datum <= to).map(t => omit(t, ['upd', 'by', 'inBearb', 'ortPendOff', 'akPendOff'])),
     lage: lageFor('gr', { z, g }).map(l => omit(l, ['upd', 'by'])),
     linien: (D.linien || []).filter(l => scope.has(l.quelle || 'kp')).map(l => omit(l, ['upd', 'by'])),
@@ -3248,7 +3269,7 @@ function grDemo() {
   ms.forEach((p, i) => { if (names[i]) { p.grad = names[i][0]; p.name = names[i][1]; } });
   if (ms[3]) { ms[3].status = 'verletzt (selbständig)'; ms[3].bem = 'Knöchel, Sanität 07:45'; }
   if (ms[6]) ms[6].mun = 'Mangel';
-  const ada = ms.filter(p => !isGrfhr(p));
+  const ada = ms.filter(p => !noAusb(p));
   ada.forEach((p, i) => { ['1', '2', '3', '4', '5', '10', '11', '20', '21', '45'].forEach(th => D.ausb.push({ id: ausbId(p.id, th), pid: p.id, thema: th, st: (th === '45' && i > 4) ? '' : 'ok' })); });
   if (ada[2]) D.ausb.push({ id: ausbId(ada[2].id, '49'), pid: ada[2].id, thema: '49', st: 'np' });
   const pkg = buildGrPkg(g.id, true); pkg.von = 'Zfhr Bivio (Beispiel)';
@@ -3304,7 +3325,7 @@ function grLage0() {
     <div class="gl-map"><div style="width:${zf * 100}%">${mapSVG(items, { style: 'width:100%;height:auto;display:block', sigScale: zf > 1 ? 1 : 1.3, view: zugView(z) })}</div></div>${part('Rot')}${part('Blau')}`;
 }
 function grAusb() {
-  const ms = grMembers().filter(p => !isGrfhr(p)), gid = grGid(), z = D.zuege[0], sc = new Set(['kp', z.id, gid]);
+  const ms = grMembers().filter(p => !noAusb(p)), gid = grGid(), z = D.zuege[0], sc = new Set(['kp', z.id, gid]);
   const seqs = D.termine.filter(t => t.kategorie === 'Ausbildung' && t.kompetenzen && parseKomp(t.kompetenzen).length && sc.has(t.element)).sort((a, b) => (a.datum + a.von).localeCompare(b.datum + b.von));
   const now = isoDay(new Date()) + pad(new Date().getHours()) + ':' + pad(new Date().getMinutes());
   if (!ui.grSeq || (ui.grSeq !== 'frei' && !seqs.some(t => t.id === ui.grSeq))) { const past = seqs.filter(t => t.datum + t.von <= now); ui.grSeq = (past.slice(-1)[0] || seqs[0] || {}).id || 'frei'; }
@@ -3455,7 +3476,7 @@ window.addEventListener('click', async ev => {
   if (d.gmz) { stop(); ui.grMapZ = Math.max(1, Math.min(4, (ui.grMapZ || 1) + +d.gmz)); render(); return; }
   if (d.grpt) { stop(); const p = D.personen.find(x => x.id === d.grpt); if (!p) return; p[d.f] = p[d.f] === 'Mangel' ? 'ok' : 'Mangel'; stamp(p); p.grd = 1; touch(); render(); return; }
   if (d.gset) { stop(); const [pid, th, st] = d.gset.split('|'); if (grSetAusb(pid, th, st)) { touch(); render(); } return; }
-  if (d.gall) { stop(); const th = d.gall, req = grMembers().filter(p => !isGrfhr(p) && ausbGet(p.id, th) !== 'np'), all = req.length && req.every(p => ausbGet(p.id, th) === 'ok');
+  if (d.gall) { stop(); const th = d.gall, req = grMembers().filter(p => !noAusb(p) && ausbGet(p.id, th) !== 'np'), all = req.length && req.every(p => ausbGet(p.id, th) === 'ok');
     req.forEach(p => grSetAusb(p.id, th, all ? '' : 'ok')); touch(); render(); return; }
 }, true);
 window.addEventListener('change', ev => {
