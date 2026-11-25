@@ -15,6 +15,7 @@
 <style id="page-style">@page { size: A3 landscape; margin: 7mm; }.zv-seg{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 2px}.zv-seg button{font-size:12px;padding:4px 9px}.zv-seg button.on{background:#1d1d1f;color:#fff;border-color:#1d1d1f}
 #lage-map{touch-action:pinch-zoom}#lage-map.panning{cursor:grabbing;opacity:.9}.lage-mapcol .mapbox{overflow:hidden}
 .help-pop details{margin:2px 0;border-top:1px solid var(--line);padding:4px 0}.help-pop details summary{cursor:pointer;font-weight:600;font-size:13px}.help-pop details .hint{margin:4px 0}
+.ak-bulk:empty{display:none}
 </style>
 <style>
 :root{
@@ -527,7 +528,7 @@ body.grmode select,body.grmode input{padding:7px 8px;font-size:15px}
       <p class="hint"><b>Kartenausschnitt Zug:</b> «Kp» = Zug, Druck und Grfhr sehen Ausschnitt und Raster des Kp Kdt. «Zug im Kp-Raster» = kleinerer Ausschnitt innerhalb der Kp, das Raster der Kp wird übernommen und vergrössert. «Zug eigenständig» = eigener Ausschnitt mit eigenem Raster, losgelöst von der Kp. Einträge der Kp erscheinen dort am richtigen Ort, soweit sie im Ausschnitt liegen; das geht nur, wenn Kp und Zug beide eine swisstopo-Karte haben.</p>
       <p class="hint"><b>Eigene Kartendatei:</b> Ersetzt die swisstopo-Karte (Bild ohne Georeferenz).</p>
       <p class="hint"><b>Signaturen:</b> Signatur wählen und in die Karte klicken: Es entsteht ein neuer Eintrag im angeklickten Rasterfeld. Bei einem bestehenden Eintrag öffnet «Sig» die Signatur zum Bearbeiten. «Betrifft» steuert, welche Stufen den Eintrag sehen (Kp = alle). Linien (Abschnittsgrenzen, Phasenlinien, Pfeile) unter der Karte wählen, «Linie einzeichnen» klicken und die Punkte setzen.</p></details>
-    <details data-help="ausbildung"><summary>Ausbildungskontrolle</summary><p class="hint">Grundlage: Stoffplan Infanterist. Pro Soldat und Kompetenz den Stand festhalten. Klick auf ein Feld schaltet weiter: – hat die Kompetenz nicht › ✓ erfüllt › schwarz = nicht pflichtig. Nicht pflichtige Kompetenzen zählen in den Summen nicht mit. Grfhr und Besatzer erscheinen nicht.</p></details>
+    <details data-help="ausbildung"><summary>Ausbildungskontrolle</summary><p class="hint">Grundlage: Stoffplan Infanterist. Pro Soldat und Kompetenz den Stand festhalten. Klick auf ein Feld schaltet weiter: – hat die Kompetenz nicht › ✓ erfüllt › schwarz = nicht pflichtig. Nicht pflichtige Kompetenzen zählen in den Summen nicht mit. Grfhr und Besatzer erscheinen nicht; die Soldaten stehen mit «Nachname, Vorname». Mehrere AdA gleichzeitig: links die Kästchen der AdA (oder der ganzen Gruppe) anwählen und dann oben die Kompetenz anklicken. Ein Klick in der grauen Gruppenzeile gibt der ganzen Gruppe «erfüllt».</p></details>
     <div style="border-top:1px solid var(--line);margin:2px 0 8px"></div>
 
     <ol>
@@ -645,6 +646,8 @@ function blankData() {
 }
 /* Gruppenführer: nicht in der Ausbildungskontrolle (Stoffplan Infanterist gilt für die AdA) */
 const noAusb = p => isGrfhr(p) || /^besatzer/i.test(String(p.funktion || '').trim()); // Grfhr und Besatzer: nicht in der Ausbildungskontrolle
+// «Nachname, Vorname» aus dem Feld Name («Nachname Vorname»)
+const nameNV = p => { const t = String(p.name || '').trim().split(/\s+/).filter(Boolean); return t.length > 1 ? t[0] + ', ' + t.slice(1).join(' ') : (t[0] || ''); };
 const isGrfhr = p => /^(gfhr|grfhr|gr fhr|gruppenf)/i.test(String(p.funktion || '').trim());
 const GR_FUNKTIONEN = ['Gfhr','Breacher 1','LMg 1','SMW 1','Trp C','Breacher 2','LMg 2','SMW 2'];
 function defaultStructure(d) {
@@ -737,6 +740,11 @@ function demoData() {
   d.antraege.push({ id: 'r' + uid(), zeit: day + 'T05:45', von: 'kp', an: '', typ: 'Änderung', text: 'Zfhr-Rapport neu 18:00 statt 17:30', status: 'erledigt' });
   d.meta.stand = new Date().toISOString();
   d.meta.fresh = true;
+  { // Beispielnamen «Nachname Vorname»
+    const NN = ['Muster','Keller','Meier','Brunner','Frei','Gerber','Huber','Steiner','Baumann','Fischer','Weber','Schmid','Graf','Wyss','Roth','Suter','Moser','Bühler','Zürcher','Hofer','Lüthi','Kunz','Marti','Bachmann'];
+    const VN = ['Hans','Marco','Luca','Jan','Nico','Simon','Lars','Tim','Noah','Elias','Jonas','David','Fabian','Kevin','Raphael','Samuel','Joel','Dominik','Florian','Pascal','Lukas'];
+    d.personen.forEach((p, i) => { if (!p.name) { p.name = NN[(i * 7) % NN.length] + ' ' + VN[(i * 5) % VN.length]; if (!p.grad) p.grad = isGrfhr(p) ? 'Kpl' : 'Sdt'; } });
+  }
   return d;
 }
 
@@ -1846,7 +1854,7 @@ function viewAusbildung() {
     <div class="toolbar">${isKp() ? `<label>Zug ${sel(zf, [['all', 'alle Züge'], ...D.zuege.map(z => [z.id, z.name])], 'id="ausb-zug"')}</label>` : `<b>Zug ${esc(roleZug() ? roleZug().name : '')}</b>`}<label>Gruppe ${sel(gf, gOpts, 'id="ausb-gr"')}</label><label>Bereich ${sel(kf, [['all', 'alle Bereiche'], ...kats.map(k => [k, k])], 'id="ausb-kat"')}</label>
     <span class="hint" style="margin:0">${AUSB_ST.map(m => `<span class="ak-leg ak-${m[0] || 'leer'}">${m[1]}</span> ${m[2]}`).join(' · ')}</span></div>`;
   if (!N) return h + `<p class="hint">Keine Soldaten in dieser Auswahl (Einsatzgliederung).</p></div>`;
-  h += `<div class="ak-bulk${nSel ? ' on' : ''}">${nSel ? `<b>${nSel} AdA ausgewählt.</b> Kompetenz oben anklicken = allen ausgewählten «erfüllt» geben (nochmals = zurücknehmen). <button class="small" id="ausb-sel-clear">Auswahl aufheben</button>` : `Mehrere AdA gleichzeitig: links die Kästchen der AdA (oder der ganzen Gruppe) anwählen und dann oben die Kompetenz anklicken. Ein Klick in der grauen Gruppenzeile gibt der ganzen Gruppe «erfüllt».`}</div>`;
+  h += `<div class="ak-bulk${nSel ? ' on' : ''}">${nSel ? `<b>${nSel} AdA ausgewählt.</b> Kompetenz oben anklicken = allen ausgewählten «erfüllt» geben (nochmals = zurücknehmen). <button class="small" id="ausb-sel-clear">Auswahl aufheben</button>` : ''}</div>`;
   const kl = (kf === 'all' ? kats : [kf]).map(k => [k, st.filter(o => o.kat === k)]).filter(x => x[1].length), C = st.length + 2;
   h += `<div class="ak-wrap"><table class="ak ak-st"><thead><tr><th class="ak-n" rowspan="2">Soldat</th>${kl.map(([k, L]) => `<th class="ak-gh" colspan="${L.length}" title="${esc(k)}">${esc(k)}</th>`).join('')}<th rowspan="2" title="erfüllte Kompetenzen">✓</th></tr>
     <tr>${kl.map(([k, L]) => L.map((o, i) => `<th class="ak-t${i === 0 ? ' ak-kb' : ''}" title="${esc(o.nr + ' ' + o.titel)}">${nSel ? `<button class="ak-colbtn" data-ausbcol="${esc(key(o))}" title="${esc(o.nr + ' ' + o.titel)}: allen ${nSel} ausgewählten AdA «erfüllt» geben">` : ''}<span><b>${esc(o.nr)}</b> ${esc(o.titel.length > 38 ? o.titel.slice(0, 36) + '…' : o.titel)}</span>${nSel ? '</button>' : ''}</th>`).join('')).join('')}</tr></thead><tbody>`;
@@ -1858,7 +1866,7 @@ function viewAusbildung() {
     const allSel = x.mem.every(p => selS.has(p.id));
     h += `<tr class="ak-g"><td class="ak-n">${ed ? `<input type="checkbox" class="ak-sel" data-ausbselgr="${esc(x.g.id)}" title="ganze Gruppe auswählen"${allSel ? ' checked' : ''}>` : ''}${esc(x.g.name)}${x.g.fuehrer ? ' · ' + esc(x.g.fuehrer) : ''}</td>${cells((o, kb) => { const n = x.mem.filter(p => ausbGet(p.id, key(o)) === 'ok').length, M = x.mem.filter(p => ausbGet(p.id, key(o)) !== 'np').length; return `<td class="ak-sum${n === M ? ' full' : ''}${kb ? ' ak-kb' : ''}" title="${esc(o.nr + ' ' + o.titel)}: ${n} von ${M} erfüllt${ed ? ' (klicken = ganze Gruppe erfüllt / zurücknehmen)' : ''}">${ed ? `<button data-ausbgrp="${esc(x.g.id)}" data-ausbth="${esc(key(o))}">${n}/${M}</button>` : `${n}/${M}`}</td>`; })}<td></td></tr>`;
     x.mem.forEach(p => { const s = { p, ed }, n = okN(p, st), R = reqN(p, st);
-      h += `<tr class="${selS.has(p.id) ? 'ak-selrow' : ''}"><td class="ak-n">${ed ? `<input type="checkbox" class="ak-sel" data-ausbsel="${esc(p.id)}"${selS.has(p.id) ? ' checked' : ''}>` : ''}${esc([p.grad, p.name].filter(Boolean).join(' ') || p.funktion || '–')}${(p.grad || p.name) && p.funktion ? `<small>${esc(p.funktion)}</small>` : ''}</td>${cells((o, kb) => cell(s, o).replace('class="ak-c', kb ? 'class="ak-kb ak-c' : 'class="ak-c'))}<td class="ak-sum${n === R ? ' full' : ''}" title="${n} von ${R} pflichtigen erfüllt">${R ? Math.round(100 * n / R) + '%' : '–'}</td></tr>`; }); });
+      h += `<tr class="${selS.has(p.id) ? 'ak-selrow' : ''}"><td class="ak-n">${ed ? `<input type="checkbox" class="ak-sel" data-ausbsel="${esc(p.id)}"${selS.has(p.id) ? ' checked' : ''}>` : ''}${nameNV(p) ? esc(nameNV(p)) : `<span style="color:var(--muted)">Name fehlt${p.funktion ? ' (' + esc(p.funktion) + ')' : ''}</span>`}</td>${cells((o, kb) => cell(s, o).replace('class="ak-c', kb ? 'class="ak-kb ak-c' : 'class="ak-c'))}<td class="ak-sum${n === R ? ' full' : ''}" title="${n} von ${R} pflichtigen erfüllt">${R ? Math.round(100 * n / R) + '%' : '–'}</td></tr>`; }); });
   h += `</tbody><tfoot><tr><td class="ak-n"><b>Total erfüllt</b></td>${cells((o, kb) => { const n = sol.filter(x => ausbGet(x.p.id, key(o)) === 'ok').length, R = sol.filter(x => ausbGet(x.p.id, key(o)) !== 'np').length; return `<td class="ak-sum${n === R ? ' full' : ''}${kb ? ' ak-kb' : ''}">${n}/${R}</td>`; })}<td></td></tr></tfoot></table></div></div>`;
   return h;
 }
@@ -3265,7 +3273,7 @@ function grDemo() {
   const T = (t, k) => { const x = D.termine.find(y => y.taetigkeit === t); if (x) x.kompetenzen = k; };
   T('Schiessausbildung SMW', '45, 49-50'); T('Feuerunterstützung Lettenmatt', '51, 53');
   const ms = D.personen.filter(p => p.gruppeId === g.id);
-  const names = [['Wm', 'Muster'], ['Gfr', 'Keller'], ['Sdt', 'Meier'], ['Sdt', 'Brunner'], ['Sdt', 'Frei'], ['Sdt', 'Gerber'], ['Sdt', 'Huber'], ['Sdt', 'Steiner']];
+  const names = [['Wm', 'Muster Hans'], ['Gfr', 'Keller Marco'], ['Sdt', 'Meier Luca'], ['Sdt', 'Brunner Jan'], ['Sdt', 'Frei Nico'], ['Sdt', 'Gerber Simon'], ['Sdt', 'Huber Lars'], ['Sdt', 'Steiner Tim'], ['Sdt', 'Baumann Noah'], ['Sdt', 'Fischer Elias']];
   ms.forEach((p, i) => { if (names[i]) { p.grad = names[i][0]; p.name = names[i][1]; } });
   if (ms[3]) { ms[3].status = 'verletzt (selbständig)'; ms[3].bem = 'Knöchel, Sanität 07:45'; }
   if (ms[6]) ms[6].mun = 'Mangel';
@@ -3338,7 +3346,7 @@ function grAusb() {
     return `<div class="seg3${r && r.grd ? ' dirty' : ''}">${[['', '–'], ['ok', '✓'], ['np', 'n.p.']].map(([s, l]) => `<button data-gset="${esc(p.id)}|${th}|${s}" class="s-${s || 'no'}${v === s ? ' on' : ''}">${l}</button>`).join('')}</div>`; };
   const body = comps.map(o => { const th = String(o.nr), req = ms.filter(p => ausbGet(p.id, th) !== 'np'), ok = req.filter(p => ausbGet(p.id, th) === 'ok').length;
     return `<div class="gcard ga-k"><div class="ga-h"><div><b>${o.nr}</b> ${esc(o.titel)}<small>${esc(o.kat)}</small></div><div class="ga-n"><b>${ok}/${req.length}</b><button data-gall="${th}">${req.length && ok === req.length ? 'alle –' : 'alle ✓'}</button></div></div>
-      ${ms.map(p => `<div class="ga-r"><span>${esc(p.funktion || '')}<small>${esc([p.grad, p.name].filter(Boolean).join(' '))}</small></span>${seg(p, th)}</div>`).join('')}</div>`; }).join('');
+      ${ms.map(p => `<div class="ga-r"><span>${nameNV(p) ? esc(nameNV(p)) : `<small>Name fehlt${p.funktion ? ' (' + esc(p.funktion) + ')' : ''}</small>`}</span>${seg(p, th)}</div>`).join('')}</div>`; }).join('');
   return `<div class="gcard ga-sel">${selS}${selK}${t ? `<div class="gz-m">${esc(fmtDay(t.datum))} ${esc(t.von || '')}–${esc(t.bis || '')}${t.ort ? ' · ' + esc(t.ort) : ''}</div>` : ''}<p class="hint" style="margin:4px 0 0">Tippen: – hat die Kompetenz nicht, ✓ erfüllt, n.p. nicht pflichtig. Danach mit «⇧ Senden» an den Zfhr.</p></div>` + (ms.length ? body : '<p class="empty">Keine Angehörigen in der Gruppe.</p>');
 }
 function grSetAusb(pid, th, st) {
