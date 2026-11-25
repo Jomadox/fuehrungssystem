@@ -13,6 +13,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 
 <style id="page-style">@page { size: A3 landscape; margin: 7mm; }.zv-seg{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 2px}.zv-seg button{font-size:12px;padding:4px 9px}.zv-seg button.on{background:#1d1d1f;color:#fff;border-color:#1d1d1f}
+#lage-map{touch-action:pinch-zoom}#lage-map.panning{cursor:grabbing;opacity:.9}.lage-mapcol .mapbox{overflow:hidden}
 </style>
 <style>
 :root{
@@ -1751,7 +1752,7 @@ function geoPanel() {
     ${g ? `<div class="sigrow"><span class="hint" style="margin:0">Verschieben</span><button class="small" data-geomove="-1,0" title="nach Westen">◀</button><button class="small" data-geomove="0,1" title="nach Norden">▲</button><button class="small" data-geomove="0,-1" title="nach Süden">▼</button><button class="small" data-geomove="1,0" title="nach Osten">▶</button>
       <span class="hint" style="margin:0 0 0 8px">Zoom</span><button class="small" data-geozoom="-1" title="kleinerer Ausschnitt">＋</button><button class="small" data-geozoom="1" title="grösserer Ausschnitt">－</button>
       <span style="flex:1"></span><button class="small primary" id="geo-offline">⤓ Ausschnitt offline speichern</button><button class="small" id="geo-off">swisstopo aus</button></div>
-      <p class="hint" style="margin:2px 0 6px">${saved ? '✓ Offline-Ausschnitt gespeichert: Ohne Internet erscheint dieser Ausschnitt mit denselben Positionen.' : '⚠ Kein Offline-Ausschnitt für diesen Rahmen gespeichert. Vor dem Einsatz ohne Internet «Ausschnitt offline speichern».'} Beim Verschieben oder Zoomen bleiben Signaturen und Linien am selben Ort im Gelände, ihre Rasterfelder ändern sich. Online werden die Kacheln bei swisstopo geladen (dabei wird der Kartenausschnitt übermittelt).</p>
+      <p class="hint" style="margin:2px 0 6px">${saved ? '✓ Offline-Ausschnitt gespeichert: Ohne Internet erscheint dieser Ausschnitt mit denselben Positionen.' : '⚠ Kein Offline-Ausschnitt für diesen Rahmen gespeichert. Vor dem Einsatz ohne Internet «Ausschnitt offline speichern».'} Den Ausschnitt verschiebt man auch, indem man die Karte mit gedrückter Maus zieht. Beim Verschieben oder Zoomen bleiben Signaturen und Linien am selben Ort im Gelände, ihre Rasterfelder ändern sich. Online werden die Kacheln bei swisstopo geladen (dabei wird der Kartenausschnitt übermittelt).</p>
       ${currentTab === 'lage' ? '' : `<div class="geo-prev">${mapSVG(D.lage.filter(l => l.aktiv !== false), { id: 'geo-map' })}</div>`}` : ''}` : ''}
   </div>`;
 }
@@ -2321,7 +2322,7 @@ function zvPanel() {
   let body = '';
   if (mode === 'kp') body = '<p class="hint" style="margin:4px 0">Zug, Druck und Grfhr sehen den Ausschnitt und das Raster des Kp Kdt.</p>';
   else if (mode === 'aus') { const sc = v && D.geo ? ' · ' + fmtScale(D.geo.w * v.fw / MAP_PRINT_W_GR) + ' (A4)' : v ? ' · ' + Math.round(1 / v.fw * 10) / 10 + '-fach' : '';
-    body = `<p class="hint" style="margin:4px 0">Ausschnitt innerhalb der Kp${esc(sc)}. Das Führungsraster der Kp wird übernommen und vergrössert.</p>
+    body = `<p class="hint" style="margin:4px 0">Ausschnitt innerhalb der Kp${esc(sc)}. Das Führungsraster der Kp wird übernommen und vergrössert. Karte mit gedrückter Maus ziehen, um den Ausschnitt zu verschieben.</p>
       <div class="sigrow"><span class="hint" style="margin:0">Mitte</span><input id="zv-feld" style="width:58px" placeholder="K7"><button id="zv-feld-go" class="small">setzen</button></div>
       <div class="sigrow"><button class="small" data-zvmove="-1,0" title="nach links">◀</button><button class="small" data-zvmove="0,1" title="nach oben">▲</button><button class="small" data-zvmove="0,-1" title="nach unten">▼</button><button class="small" data-zvmove="1,0" title="nach rechts">▶</button>
       <span class="hint" style="margin:0 0 0 6px">Zoom</span><button class="small" data-zvzoom="-1" title="näher">＋</button><button class="small" data-zvzoom="1" title="weiter">－</button></div>`; }
@@ -2331,7 +2332,7 @@ function zvPanel() {
       <div class="sigrow"><input id="zr-q" style="flex:1 1 100%" placeholder="Ort, Flurname oder Koordinaten" value="${esc(ui.zrQ || '')}" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('zr-search').click()}"><button id="zr-search" class="small primary">Suchen</button></div>
       ${ui.zrMsg ? `<div class="hint" style="margin:2px 0 4px">${esc(ui.zrMsg)}</div>` : ''}
       ${ui.zrResults && ui.zrResults.length ? `<div class="sigchips">${ui.zrResults.map(x => `<button class="sigchip" data-zrpick="${x.E},${x.N}">${esc(x.label)}</button>`).join('')}</div>` : ''}
-      ${g ? `<p class="hint" style="margin:2px 0 4px">Mitte ${fmtLV(g.e)} / ${fmtLV(g.n)} · ${(g.w / 1000).toLocaleString('de-CH')} × ${(g.h / 1000).toLocaleString('de-CH')} km</p>
+      ${g ? `<p class="hint" style="margin:2px 0 4px">Mitte ${fmtLV(g.e)} / ${fmtLV(g.n)} · ${(g.w / 1000).toLocaleString('de-CH')} × ${(g.h / 1000).toLocaleString('de-CH')} km · Karte mit der Maus ziehen zum Verschieben</p>
       <div class="ls-2"><label>Massstab (A4)<select id="zr-m">${ZR_SCALES.map(x => `<option value="${x}"${x === m ? ' selected' : ''}>${fmtScale(x)}</option>`).join('')}</select></label><label>Karte<select id="zr-layer">${GEO_LAYERS.map(([k, l]) => `<option value="${k}"${k === (g.layer || GEO_LAYERS[0][0]) ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label></div>
       <div class="sigrow" style="margin-top:4px"><button class="small" data-zrmove="-1,0">◀</button><button class="small" data-zrmove="0,1">▲</button><button class="small" data-zrmove="0,-1">▼</button><button class="small" data-zrmove="1,0">▶</button></div>
       <button id="zr-offline" class="small${saved ? '' : ' primary'}">⤓ Ausschnitt offline speichern</button><p class="hint" style="margin:2px 0 4px">${saved ? '✓ Offline gespeichert.' : '⚠ Noch nicht offline gespeichert.'}</p>` : '<p class="hint">Ort suchen, um den Ausschnitt festzulegen.</p>'}
@@ -2412,6 +2413,42 @@ function viewLage() {
 }
 function nextNr(partei) { return D.lage.filter(l => l.partei === partei).reduce((m, l) => Math.max(m, +l.nr || 0), 0) + 1; }
 function nowLocal() { const d = new Date(); return D.meta.tag + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+/* Ausschnitt mit der Maus ziehen: kurzer Klick setzt weiterhin Signaturen */
+function panTarget() {
+  if (isKp()) return D.geo ? 'kp' : null;
+  const z = roleZug(), m = kmode(z);
+  if (m === 'aus') return 'aus';
+  if (m === 'eigen' && z.rahmen && z.rahmen.geo) return 'eigen';
+  return null;
+}
+function bindMapPan(svg) {
+  let st = null, panned = false;
+  svg.addEventListener('click', ev => { if (panned) { panned = false; ev.stopImmediatePropagation(); ev.preventDefault(); } }, true);
+  svg.addEventListener('pointerdown', ev => {
+    if (ev.button !== 0 || ui.draw || !panTarget()) return;
+    st = { x: ev.clientX, y: ev.clientY, on: false, id: ev.pointerId }; panned = false;
+  });
+  svg.addEventListener('pointermove', ev => {
+    if (!st || ev.pointerId !== st.id) return; const dx = ev.clientX - st.x, dy = ev.clientY - st.y;
+    if (!st.on && Math.hypot(dx, dy) > 6) { st.on = true; try { svg.setPointerCapture(st.id); } catch (e) {} svg.classList.add('panning'); }
+    if (st.on) svg.style.transform = `translate(${dx}px,${dy}px)`;
+  });
+  const end = ev => {
+    if (!st || ev.pointerId !== st.id) return; const s0 = st; st = null;
+    if (!s0.on) return;
+    panned = true; svg.classList.remove('panning');
+    const vb = svg.viewBox.baseVal, k = vb.width / svg.getBoundingClientRect().width;
+    const du = (ev.clientX - s0.x) * k, dv = (ev.clientY - s0.y) * k, t = panTarget();
+    if (t === 'kp') { const { W, H } = mapDims(), g = D.geo; setGeo(Object.assign({}, g, { e: Math.round(g.e - du / W * g.w), n: Math.round(g.n + dv / H * g.h) })); }
+    else if (t === 'aus') { const z = roleZug(), v = zugView(z), { W, H } = mapDims();
+      if (v) zvSet(z, v.fx + v.fw / 2 - du / W, v.fy + v.fh / 2 - dv / H, v.fw); else render(); }
+    else if (t === 'eigen') { const z = roleZug(), g = z.rahmen.geo, F = zugFrame(z.id);
+      zrSet(z, { geo: Object.assign({}, g, { e: Math.round(g.e - du / F.W * g.w), n: Math.round(g.n + dv / F.H * g.h) }) }); }
+    else render();
+    setTimeout(() => { panned = false; }, 50);
+  };
+  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
+}
 function bindLageMap() {
   const svg = $('#lage-map'); if (!svg) return;
   const live = ev => { const g = document.getElementById('draft-live'); if (!g || !ui.draw) return;
@@ -2420,6 +2457,7 @@ function bindLageMap() {
     ui.drawCur = [q.x / W, q.y / H]; g.innerHTML = draftSVG(ui.draw, ui.drawCur); };
   svg.addEventListener('mousemove', ev => { if (ui.draw && ui.draw.typ === 'pfeil') live(ev); });
   svg.addEventListener('mouseleave', () => live(null));
+  bindMapPan(svg);
   svg.addEventListener('click', ev => inFrame(isKp() ? null : roleZug(), () => {
     const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
     const p = pt.matrixTransform(svg.getScreenCTM().inverse());
