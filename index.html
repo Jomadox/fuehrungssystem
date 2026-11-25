@@ -470,6 +470,19 @@ body.grmode select,body.grmode input{padding:7px 8px;font-size:15px}
 .gm-text{white-space:pre-wrap;font-family:inherit;font-size:13.5px;background:#f6f6f6;border-radius:6px;padding:8px;margin:0}
 .gm-li{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px dashed #e3e3e3}.gm-li small{display:block;color:var(--muted)}
 
+
+/* Lagekarte am Bildschirm: Karte maximal, Signaturauswahl kompakt */
+.lage-layout{grid-template-columns:minmax(0,1fr) 280px;gap:10px}
+.lage-layout .lage-mapcol{position:sticky;top:calc(var(--tabsH,52px) + 6px)}
+.lage-layout .mapbox{width:min(100%, calc((100vh - var(--tabsH,52px) - 120px) * var(--ar,1)));margin:0 auto}
+.lage-layout .sigpal{padding:7px}.lage-layout .sigpal-head{font-size:12.5px;margin-bottom:5px;gap:5px}.lage-layout .sigpal .hint{font-size:11px}
+.lage-layout .sigrow{gap:4px;margin-bottom:5px}.lage-layout .siglbl{width:44px;font-size:11px}.lage-layout .siglbl2{margin:4px 0 2px;font-size:11px}
+.lage-layout .sigpart{font-size:11.5px;padding:2px 6px}
+.lage-layout .sigchips{gap:3px;margin-bottom:4px}.lage-layout .sigchip{font-size:11px;padding:2px 7px}
+.lage-layout .siggrps{gap:6px 10px;margin-top:4px}.lage-layout .siggrp-t{font-size:9.5px;margin-bottom:2px}
+.lage-layout .siggrp .siggrid{gap:3px}.lage-layout .siggrp .sigbtn{width:62px;min-height:46px;font-size:9.5px;padding:3px 2px;line-height:1.1}
+.lage-layout .sigprev svg{width:40px;height:40px}
+@media (max-width:900px){.lage-layout{grid-template-columns:1fr}.lage-layout .lage-mapcol{position:static}.lage-layout .mapbox{width:100%}}
 </style>
 </head>
 <body>
@@ -582,7 +595,7 @@ const myEl = () => isKp() ? 'kp' : ROLE;
 function blankData() {
   return {
     meta: { verband: 'Inf DD RS Kp 14-1/1', kdt: 'Hptm Dossenbach | Einh BO', beilage: '', tag: isoDay(new Date()), version: 1, stand: null,
-      startH: 5, endH: 24, rasterCols: 20, rasterRows: 20, gelb: 85, rot: 70,
+      startH: 5, endH: 24, rasterCols: 20, rasterRows: 20, gelb: 85, rot: 70, karteOpac: 60,
       systemTypen: ['Führung','Fz','VBR','LMg','Breacher','SMW','Funk','Mun','Betr.Stoff'], betreuer: ['DOJ','HUJ','PUR','STM','CAM','SNJ'], ausbThemen: [], ausbStoff: JSON.parse(JSON.stringify(STOFF_INF)), dsid: 'ds' + uid() + uid(), fresh: true },
     zuege: [], personen: [], systeme: {}, termine: [], auftraege: [], lage: [], antraege: [], linien: [], ausb: [], pend: [],
     karte: null, karteW: 1000, karteH: 1000, karteGeo: null, geo: null, geoUpd: '', tomb: {}
@@ -1394,7 +1407,7 @@ function mapSVG(items, opt = {}) {
   const C = D.meta.rasterCols, R = D.meta.rasterRows, cw = W / C, ch = H / R;
   const sw = Math.max(W, H) / 900;
   let s = `<svg class="map" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" ${opt.id ? 'id="' + opt.id + '"' : ''} style="${opt.style || ''}">`;
-  const op = Math.max(.1, Math.min(1, (D.meta.karteOpac ?? 100) / 100));
+  const op = Math.max(.1, Math.min(1, (D.meta.karteOpac ?? 60) / 100));
   if (D.geo) s += `<g class="map-bg" opacity="${op}">${geoBackground(W, H)}</g>`;
   else if (D.karte) s += `<image class="map-bg" opacity="${op}" href="${D.karte}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none"/>`;
   else s += `<rect x="0" y="0" width="${W}" height="${H}" fill="#fff"/><text x="${W / 2}" y="${H / 2}" text-anchor="middle" font-size="${W / 30}" fill="#999">Keine Karte geladen (Lagekarte › Karte und Raster einstellen)</text>`;
@@ -2136,9 +2149,9 @@ function sigPalette() {
   const tgt = ui.sigTarget && D.lage.find(l => l.id === ui.sigTarget);
   const cur = tgt ? { partei: tgt.partei, sig: normSig(tgt.sig) } : { partei: newLagePartei, sig: normSig(ui.sigTpl) };
   const isPt = !!SIG_POINT_MAP[cur.sig.fn];
-  const btn = (fn, label, sg, on) => `<button class="sigbtn${(on ?? cur.sig.fn === fn) ? ' on' : ''}" data-sigfn="${fn}" title="${esc(label)}">${sigIcon(sg || { fn }, cur.partei, 38, '', tgt ? tgt.nr : 8)}<span>${esc(label)}</span></button>`;
-  const linBtn0 = `<button class="sigbtn${ui.draw ? ' on' : ''}" data-siglin="1" title="Linien und Flächen"><svg width="38" height="38" viewBox="-50 -50 100 100"><path d="M-44 22C-20 -24 14 -24 44 6" fill="none" stroke="#000" stroke-width="7" stroke-linecap="round"/><text x="10" y="36" font-family="Arial" font-weight="700" font-size="26" text-anchor="middle">PhL</text></svg><span>Linie</span></button>`;
-  const pfBtn = `<button class="sigbtn${ui.draw && ui.draw.typ === 'pfeil' ? ' on' : ''}" data-sigpfeil="1" title="Angriffspfeil"><svg width="38" height="38" viewBox="-50 -50 100 100"><path d="M-40 40V0Q-40 -18 -22 -18H8V-34L40 -8L8 18V2H-24V40Z" fill="#1565c0" fill-opacity=".12" stroke="#1565c0" stroke-width="5" stroke-linejoin="miter"/></svg><span>Angriffspfeil</span></button>`;
+  const btn = (fn, label, sg, on) => `<button class="sigbtn${(on ?? cur.sig.fn === fn) ? ' on' : ''}" data-sigfn="${fn}" title="${esc(label)}">${sigIcon(sg || { fn }, cur.partei, 26, '', tgt ? tgt.nr : 8)}<span>${esc(label)}</span></button>`;
+  const linBtn0 = `<button class="sigbtn${ui.draw ? ' on' : ''}" data-siglin="1" title="Linien und Flächen"><svg width="26" height="26" viewBox="-50 -50 100 100"><path d="M-44 22C-20 -24 14 -24 44 6" fill="none" stroke="#000" stroke-width="7" stroke-linecap="round"/><text x="10" y="36" font-family="Arial" font-weight="700" font-size="26" text-anchor="middle">PhL</text></svg><span>Linie</span></button>`;
+  const pfBtn = `<button class="sigbtn${ui.draw && ui.draw.typ === 'pfeil' ? ' on' : ''}" data-sigpfeil="1" title="Angriffspfeil"><svg width="26" height="26" viewBox="-50 -50 100 100"><path d="M-40 40V0Q-40 -18 -22 -18H8V-34L40 -8L8 18V2H-24V40Z" fill="#1565c0" fill-opacity=".12" stroke="#1565c0" stroke-width="5" stroke-linejoin="miter"/></svg><span>Angriffspfeil</span></button>`;
   const linBtn = linBtn0.replace('sigbtn on', ui.draw && ui.draw.typ === 'pfeil' ? 'sigbtn' : 'sigbtn on');
   const pb = fn => { const u = SIG_POINT_MAP[fn]; return u ? btn(fn, u[1], null, !ui.draw && cur.sig.fn === fn) : ''; };
   const grp = (t, inner) => inner ? `<div class="siggrp"><div class="siggrp-t">${t}</div><div class="siggrid">${inner}</div></div>` : '';
@@ -2186,7 +2199,7 @@ function linPreview(dr) {
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="background:#fff;border:1px solid var(--line);border-radius:4px">${linieSVG({ typ, ebene: dr.ebene, name: dr.name, links: '', rechts: '', pts }, W, H, 30, .8, false, false)}</svg>`;
 }
 const linMin = typ => typ === 'pfeil' ? 4 : LIN_AREA[typ] ? 3 : 2;
-const opacCtl = () => `<label class="hint opac" style="margin:0" title="Deckkraft der hinterlegten Karte (auch im Druck)">Karte <input type="range" id="karte-opac" min="10" max="100" step="5" value="${D.meta.karteOpac ?? 100}"${isKp() ? '' : ' disabled'}> <span id="karte-opac-v">${D.meta.karteOpac ?? 100} %</span></label>`;
+const opacCtl = () => `<label class="hint opac" style="margin:0" title="Deckkraft der hinterlegten Karte (auch im Druck)">Karte <input type="range" id="karte-opac" min="10" max="100" step="5" value="${D.meta.karteOpac ?? 60}"${isKp() ? '' : ' disabled'}> <span id="karte-opac-v">${D.meta.karteOpac ?? 60} %</span></label>`;
 function grenzToolbar() {
   const dr = ui.draw;
   if (dr) return `<div class="grenz-bar drawing"><b>${esc((LINIEN_TYP.find(e => e[0] === dr.typ) || ['', ''])[1])}:</b> <span>${dr.typ === 'pfeil' ? ['Pfeilspitze klicken.', 'Ende der Pfeilspitze klicken (Länge der Spitze).', 'Rand des Pfeils klicken (Breite).', 'Verlauf bis zum Pfeilende klicken.'][Math.min(dr.pts.length, 3)] + (dr.pts.length > 3 ? ` (${dr.pts.length - 3} Punkte Verlauf)` : '') : `Punkte in die Karte klicken (${dr.pts.length} gesetzt). Klick auf den ersten Punkt schliesst die Linie.`}</span>
@@ -2209,7 +2222,7 @@ function viewLage() {
   return `${kartePanel()}<div class="card"><h2>Lagekarte</h2>
     <p class="hint">Signatur wählen und in die Karte klicken: Es entsteht ein neuer Eintrag im angeklickten Rasterfeld. Bei einem bestehenden Eintrag öffnet «Sig» die Signatur zum Bearbeiten. «Betrifft» steuert, welche Stufen den Eintrag sehen (Kp = alle).</p>
     ${armedLage ? '<div class="toolbar"><span class="ovf-note">Position setzen: in die Karte klicken</span> <button class="small" id="lage-disarm">abbrechen</button></div>' : ''}
-    <div class="lage-layout"><div><div class="mapbox${ui.draw ? ' drawing' : ''}">${mapSVG(D.lage.filter(l => l.aktiv !== false && visLage(l)), { id: 'lage-map', linF: visLin, hl: ui.sigTarget || armedLage, draft: ui.draw, hlLine: ui.hlLine })}</div>${grenzToolbar()}</div><div>${sigPalette()}</div></div>
+    <div class="lage-layout"><div class="lage-mapcol"><div class="mapbox${ui.draw ? ' drawing' : ''}" style="--ar:${(mapDims().W / mapDims().H).toFixed(4)}">${mapSVG(D.lage.filter(l => l.aktiv !== false && visLage(l)), { id: 'lage-map', linF: visLin, hl: ui.sigTarget || armedLage, draft: ui.draw, hlLine: ui.hlLine })}</div>${grenzToolbar()}</div><div>${sigPalette()}</div></div>
     <div style="margin-top:14px">
     <div>${editTable('lage', D.lage.filter(visLage), [
       { key: 'sigcol', label: 'Sig', type: 'html', html: r => `<button class="small sigedit${ui.sigTarget === r.id ? ' on' : ''}" data-sigtarget="${esc(r.id)}" title="${esc(sigName(r.sig))} – Signatur bearbeiten">${sigIcon(r.sig, r.partei, 28, '', r.nr)}</button>` },
