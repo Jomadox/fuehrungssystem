@@ -87,6 +87,13 @@ table.ed tr.armed td{background:#fff6d8}
 .zug-card{border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:10px}
 .zug-card .zh{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
 .gr-list{display:flex;flex-wrap:wrap;gap:8px}
+.zug-cols{display:flex;gap:10px;align-items:flex-start;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
+.zug-cols>.zug-card{flex:1 1 0;min-width:270px;margin-bottom:0}
+.zug-cols .gr-h input{flex:1 1 80px;min-width:0;width:auto!important}
+.zug-cols .gm-h,.zug-cols .gm-r{grid-template-columns:44px 1fr 86px 24px}
+.zug-cols .zh input{flex:1 1 120px;min-width:0}
+.zug-cols .gr-list{flex-direction:column;flex-wrap:nowrap}
+.zug-cols .gr-item{width:auto}
 .gr-item{display:flex;flex-direction:column;gap:6px;border:1px solid #e3e7ec;border-radius:6px;padding:6px 8px;background:#fafbfc;width:340px;max-width:100%}
 .gr-h{display:flex;gap:4px;align-items:center}
 .gr-h input{width:110px}
@@ -1777,13 +1784,13 @@ function viewVerband() {
   const zc = D.zuege.filter(z => inZug(z.id)).map(z => `<div class="zug-card"><div class="zh"><b>Zug</b><input data-zug="${z.id}" data-k="name" value="${esc(z.name)}" style="width:130px"${kd}><input data-zug="${z.id}" data-k="fuehrer" value="${esc(z.fuehrer)}" placeholder="Zfhr (Grad Name)" style="width:180px">
       ${isKp() ? `<button class="small" data-addgr="${z.id}">+ Gruppe</button><button class="small danger" data-delzug="${z.id}">Zug löschen</button>` : ''}</div>
       <div class="gr-list">${z.gruppen.map(g => { const mem = D.personen.filter(p => p.gruppeId === g.id); const ed = inZug(g.id); const ro = ed ? '' : ' disabled';
-        return `<div class="gr-item"><div class="gr-h"><input data-gr="${g.id}" data-k="name" value="${esc(g.name)}"${kd}><input data-gr="${g.id}" data-k="fuehrer" value="${esc(g.fuehrer)}" placeholder="Grfhr (Grad Name)" style="width:150px">${isKp() ? `<button class="small danger" data-delgr="${g.id}" title="Gruppe löschen">✕</button>` : ''}</div>
+        return `<div class="gr-item"><div class="gr-h"><input data-gr="${g.id}" data-k="name" value="${esc(g.name)}"${kd}><input data-gr="${g.id}" data-k="fuehrer" value="${esc(g.fuehrer)}" placeholder="Grfhr" style="width:150px">${isKp() ? `<button class="small danger" data-delgr="${g.id}" title="Gruppe löschen">✕</button>` : ''}</div>
         <div class="gr-mem"><div class="gm-h"><span>Grad</span><span>Name</span><span>Funktion</span><span></span></div>${mem.map(m => `<div class="gm-r"><input data-tbl="personen" data-id="${esc(m.id)}" data-key="grad" value="${esc(m.grad)}" placeholder="Sdt"${ro}><input data-tbl="personen" data-id="${esc(m.id)}" data-key="name" value="${esc(m.name)}" placeholder="Name Vorname"${ro}><input data-tbl="personen" data-id="${esc(m.id)}" data-key="funktion" value="${esc(m.funktion)}" placeholder="Funktion"${ro}>${ed ? `<button class="small danger" data-del="personen" data-id="${esc(m.id)}" title="Mitglied entfernen">✕</button>` : '<span></span>'}</div>`).join('')}
         ${ed ? `<button class="small" data-addmember="${g.id}">+ Mitglied</button>` : ''} <span class="hint" style="margin:0">${mem.length} Mitglieder</span></div></div>`; }).join('')}</div></div>`).join('');
   const ps = D.personen.filter(p => p.gruppeId === ui.persGr);
   const s = ui.persGr ? grStatus(ui.persGr) : null;
   const kdo = `<div class="zug-card"><div class="zh"><b>Kp Kdo</b></div><div class="zh"><label class="hint" style="margin:0">Kp Kdt <input data-meta="kdt" value="${esc(D.meta.kdt || '')}" placeholder="Kp Kdt (Grad Name)" style="width:220px"${kd}></label><label class="hint" style="margin:0">Kp Kdt Stv <input data-meta="kdtStv" value="${esc(D.meta.kdtStv || '')}" placeholder="Kp Kdt Stv (Grad Name)" style="width:220px"${kd}></label></div></div>`;
-  return `<div class="card"><h2>Einsatzgliederung</h2><p class="hint">Namen des Kommandos, der Züge und Gruppen erscheinen in allen Druckansichten.</p>${isKp() ? kdo : ''}${zc}${isKp() ? '<div class="row-actions"><button data-addzug="1">+ Zug</button></div>' : ''}</div>`;
+  return `<div class="card"><h2>Einsatzgliederung</h2><p class="hint">Namen des Kommandos, der Züge und Gruppen erscheinen in allen Druckansichten.</p>${isKp() ? kdo : ''}<div class="zug-cols">${zc}</div>${isKp() ? '<div class="row-actions"><button data-addzug="1">+ Zug</button></div>' : ''}</div>`;
 }
 
 /* ---- Ausbildungskontrolle: Soldat × Ausbildungsthema ---- */
