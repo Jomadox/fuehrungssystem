@@ -1443,11 +1443,11 @@ function mapSVG(items, opt = {}) {
   s += `<g font-family="Arial" font-weight="700" font-size="${fs}" fill="#000">${lb}</g>`;
   if (D.geo) s += scaleSVG(W, H, fs, { x: vx, y: vy, w: vw, h: vh, k });
   if (D.geo) s += `<text x="${vx + vw - fs * .3}" y="${vy + vh - fs * .3}" text-anchor="end" font-family="Arial" font-size="${fs * .6}" fill="#000" stroke="#fff" stroke-width="${fs * .15}" paint-order="stroke">© swisstopo</text>`;
-  if (opt.lines !== false) { (D.linien || []).filter(opt.linF || (() => true)).map(l => placeLin(l)).filter(Boolean).forEach(l => { s += linieSVG(l, W, H, Math.min(cw, ch) * k, sw, opt.hlLine === l.id); }); }
+  if (opt.lines !== false) { (D.linien || []).filter(opt.linF || (() => true)).map(l => placeLin(l)).filter(Boolean).forEach(l => { s += linieSVG(l, W, H, Math.min(vw, vh) / 20, sw, opt.hlLine === l.id); }); }
   if (opt.draft) s += `<g id="draft-live" pointer-events="none">${draftSVG(opt.draft, opt.id === 'lage-map' ? ui.drawCur : null)}</g>`;
   const OFF = [[0, 0], [-0.26, -0.24], [0.26, -0.24], [-0.26, 0.24], [0.26, 0.24], [0, -0.3], [0, 0.3]];
   const count = {};
-  const m = Math.min(cw, ch) * 0.34 * k;
+  const SG = Math.min(vw, vh) * 0.045 * (opt.sigScale || 0.75), m = SG * 0.45; // Signaturgrösse
   items.forEach(l => {
     let x, y;
     if (l.x != null && l.y != null) { x = l.x * W; y = l.y * H; }
@@ -1459,7 +1459,7 @@ function mapSVG(items, opt = {}) {
     }
     const code = lageCode(l);
     const hl = opt.hl === l.id ? `<circle cx="${x}" cy="${y}" r="${m * 1.25}" fill="none" stroke="#f0a400" stroke-width="${sw * 4}"/>` : '';
-    s += `<g data-lage="${esc(l.id)}">${hl}${sigAt(l, x, y, Math.min(cw, ch) * (opt.sigScale || 0.75) * k)}<title>${esc(code + ' ' + sigName(l.sig) + ' ' + (l.bezeichnung || ''))}</title></g>`;
+    s += `<g data-lage="${esc(l.id)}">${hl}<g opacity=".8">${sigAt(l, x, y, SG)}</g><title>${esc(code + ' ' + sigName(l.sig) + ' ' + (l.bezeichnung || ''))}</title></g>`;
   });
   s += '</svg>';
   return s;
@@ -3294,7 +3294,7 @@ function grLage0() {
     <div class="gz-m">${[feldLbl(l) && 'Feld ' + feldLbl(l), l.anzahl && 'Anz ' + l.anzahl, l.mittel, l.zeit && fmtDT(l.zeit)].filter(Boolean).map(esc).join(' · ')}</div>${l.taetigkeit ? `<div>${esc(l.taetigkeit)}</div>` : ''}</div></div>`;
   const part = p => { const rows = items.filter(l => l.partei === p).sort((a, b) => (a.nr || 0) - (b.nr || 0)); return `<h3 class="gh" style="color:${P_COL[p]}">${P_LABEL[p]} (${rows.length})</h3>` + (rows.map(card).join('') || '<p class="empty">keine Einträge</p>'); };
   return `<div class="gl-tools"><span class="hint" style="margin:0">${D.karte ? 'Karte gespeichert' : D.geo ? 'swisstopo-Karte nur mit Internet' : 'ohne Kartenbild'}</span><span class="grow"></span><button data-gmz="-1">－</button><span>${zf * 100}%</span><button data-gmz="1">＋</button></div>
-    <div class="gl-map"><div style="width:${zf * 100}%">${mapSVG(items, { style: 'width:100%;height:auto;display:block', sigScale: zf > 1 ? .75 : .95, view: zugView(z) })}</div></div>${part('Rot')}${part('Blau')}`;
+    <div class="gl-map"><div style="width:${zf * 100}%">${mapSVG(items, { style: 'width:100%;height:auto;display:block', sigScale: zf > 1 ? 1 : 1.3, view: zugView(z) })}</div></div>${part('Rot')}${part('Blau')}`;
 }
 function grAusb() {
   const ms = grMembers().filter(p => !isGrfhr(p)), gid = grGid(), z = D.zuege[0], sc = new Set(['kp', z.id, gid]);
