@@ -39,6 +39,14 @@ select.lb-v4{background:#c8e6c9} select.lb-v3{background:#e8f5e9} select.lb-v2{b
 .lek-e label{display:block;margin:4px 0}
 .lek-e input,.lek-e textarea{width:100%;box-sizing:border-box}
 @media (max-width:760px){table.lb,table.lb tbody,table.lb tr,table.lb td{display:block;width:auto!important}table.lb thead{display:none}table.lb tr{border-bottom:1px solid #ccc;padding:4px 0}table.lb td{border:0}}
+
+table.lb td.lb-note{min-width:120px}
+table.lb .lb-av{font-size:12px;color:#555}
+table.lb .lb-nt{display:inline-block;padding:1px 8px;border-radius:6px;margin:2px 0;font-size:13px}
+table.lb .lb-nt.lb-v4{background:#c8e6c9} table.lb .lb-nt.lb-v3{background:#e8f5e9} table.lb .lb-nt.lb-v2{background:#fff3c4} table.lb .lb-nt.lb-v1{background:#ffcdd2}
+select.lb-rd{display:block;margin-top:2px;max-width:150px}
+select.lb-sk{min-width:110px!important}
+table.lb td.lb-bem{width:26%}
 </style>
 <style>
 :root{
@@ -572,6 +580,7 @@ body.grmode select,body.grmode input{padding:7px 8px;font-size:15px}
   table.lb td.lb-n small{display:inline;margin-left:6px}
   table.lb td.lb-bem{width:auto}
   table.lb select.lb-sk{width:100%}
+  table.lb select.lb-rd{width:100%;max-width:none}
 }
 </style>
 </head>
@@ -591,7 +600,7 @@ body.grmode select,body.grmode input{padding:7px 8px;font-size:15px}
       <p class="hint"><b>Eigene Kartendatei:</b> Ersetzt die swisstopo-Karte (Bild ohne Georeferenz).</p>
       <p class="hint"><b>Signaturen:</b> Signatur wählen und in die Karte klicken: Es entsteht ein neuer Eintrag im angeklickten Rasterfeld. Bei einem bestehenden Eintrag öffnet «Sig» die Signatur zum Bearbeiten. «Betrifft» steuert, welche Stufen den Eintrag sehen (Kp = alle). Linien (Abschnittsgrenzen, Phasenlinien, Pfeile) unter der Karte wählen, «Linie einzeichnen» klicken und die Punkte setzen.</p></details>
     <details data-help="systeme"><summary>Statusübersicht</summary><p class="hint">Systeme: ok = einsatzbereit, eingeschränkt = gelb, ausgefallen = rot, n/a = nicht vorhanden. Mit ▸ klappst du eine Gruppe auf und bearbeitest Status, Mittel, Mat und Mun pro Soldat. Mitglieder erfasst du in der Einsatzgliederung oder hier mit «+ Soldat». Der Zug zeigt automatisch den schlechtesten Wert seiner Gruppen. Die Ampelgrenzen stellst du unter «Einstellungen Statusübersicht» ein.</p></details>
-    <details data-help="lektionen"><summary>Lektionen</summary><p class="hint">Alle Lektionen, die die Anw halten, mit Ausbildungsziel, Stufe/Dauer, Grundlagen und Ausbildungsplatz. Pro Anw beurteilt das Berufspersonal die Lektion nach <b>fachlicher Richtigkeit</b> und <b>methodischer Effektivität</b> (4 übertroffen · 3 erfüllt · 2 teilweise erfüllt · 1 nicht erfüllt) und hält Bemerkungen fest. «Hält» = verantwortlich, «Ass» = Assistent (in der Ausbildungsplanung mit (x) bezeichnet). Lektionen ohne Anw: unten «+ Anw zuweisen». Ansicht «pro Anw» zeigt alle Lektionen und Durchschnitte eines Anw. Mit den Filtern lassen sich Tag, Gruppe, Anw und offene Beurteilungen auswählen.</p></details>
+    <details data-help="lektionen"><summary>Lektionen</summary><p class="hint">Alle Lektionen, die die Anw halten, mit Ausbildungsziel, Stufe/Dauer, Grundlagen und Ausbildungsplatz. Pro Anw beurteilt das Berufspersonal vier Kriterien: <b>Zielsetzung bekannt</b>, <b>Methodischer Aufbau korrekt</b>, <b>Fachlich korrekt</b> und <b>Zielsetzung überprüft</b>, je mit Fehlt (1), Mängel (2), Erfüllt (3) oder Übertroffen (4). Der Schnitt wird automatisch berechnet und zur Note gerundet. Liegt der Schnitt zwischen zwei Noten, kann man bewusst auf- oder abrunden; die Begründung gehört in die Bemerkung. «Hält» = verantwortlich, «Ass» = Assistent (in der Ausbildungsplanung mit (x) bezeichnet). Ansicht «pro Anw» zeigt alle Lektionen und die Durchschnittsnote eines Anw.</p></details>
     <details data-help="ausbildung"><summary>Ausbildungskontrolle</summary><p class="hint">Grundlage: Stoffplan Infanterist. Pro Soldat und Kompetenz den Stand festhalten. Klick auf ein Feld schaltet weiter: – hat die Kompetenz nicht › ✓ erfüllt › schwarz = nicht pflichtig. Nicht pflichtige Kompetenzen zählen in den Summen nicht mit. Grfhr und Besatzer erscheinen nicht; die Soldaten stehen mit «Nachname, Vorname». Mehrere AdA gleichzeitig: links die Kästchen der AdA (oder der ganzen Gruppe) anwählen und dann oben die Kompetenz anklicken. Ein Klick in der grauen Gruppenzeile gibt der ganzen Gruppe «erfüllt».</p></details>
     <div style="border-top:1px solid var(--line);margin:2px 0 8px"></div>
 
@@ -1943,11 +1952,17 @@ function viewVerband() {
 
 
 /* ---- UOS: Lektionsbewertung (jede Lektion pro Anw nach fachlicher Richtigkeit und methodischer Effektivität) ---- */
-const LB_SK = [['', '–'], ['4', '4 übertroffen'], ['3', '3 erfüllt'], ['2', '2 teilweise erfüllt'], ['1', '1 nicht erfüllt']];
+const LB_SK = [['', '–'], ['4', 'Übertroffen'], ['3', 'Erfüllt'], ['2', 'Mängel'], ['1', 'Fehlt']];
+const LB_TXT = { 4: 'Übertroffen', 3: 'Erfüllt', 2: 'Mängel', 1: 'Fehlt' };
+/* Kriterien der Lektionsbewertung (fach/meth bleiben als Schlüssel, damit frühere Beurteilungen erhalten bleiben) */
+const LB_K = [['ziel', 'Zielsetzung bekannt'], ['meth', 'Methodischer Aufbau korrekt'], ['fach', 'Fachlich korrekt'], ['check', 'Zielsetzung überprüft']];
+const lbSchnitt = r => { const v = LB_K.map(([k]) => +(r || {})[k]).filter(x => x >= 1); return v.length ? v.reduce((a, x) => a + x, 0) / v.length : null; };
+/* Schlussnote: Schnitt gerundet, oder bewusst auf-/abgerundet (Begründung in der Bemerkung) */
+const lbNote = r => { const a = lbSchnitt(r); if (a == null) return null; const rd = (r || {}).rund; return rd === 'auf' ? Math.ceil(a - 1e-9) : rd === 'ab' ? Math.floor(a + 1e-9) : Math.round(a + 1e-9); };
 const lbId = (lek, pid) => 'lb|' + lek + '|' + pid;
 const lbGet = (lek, pid) => (D.lbew || []).find(x => x.id === lbId(lek, pid));
-const lbDone = r => !!(r && r.fach && r.meth);
-const lbAvg = a => { const v = a.filter(x => x).map(Number); return v.length ? (v.reduce((s, x) => s + x, 0) / v.length).toFixed(1) : '–'; };
+const lbDone = r => !!r && LB_K.every(([k]) => r[k]);
+const lbAvg = a => { const v = a.filter(x => x != null && x !== '').map(Number); return v.length ? (v.reduce((s, x) => s + x, 0) / v.length).toFixed(1) : '–'; };
 const lekAnw = () => D.personen.filter(p => !/^besatzer/i.test(String(p.funktion || '')));
 const lekGr = p => { const g = D.zuege.flatMap(z => z.gruppen).find(g => g.id === p.gruppeId); return g ? g.name : ''; };
 function viewLektionen() {
@@ -1972,16 +1987,21 @@ function viewLektionen() {
   const sk = (lek, pid, k, v) => sel(v || '', LB_SK, `data-lbf="${esc(k)}" data-lek="${esc(lek)}" data-pid="${esc(pid)}" class="lb-sk lb-v${esc(v || '0')}"`);
   const row = (l, a, showLek) => { const p = D.personen.find(x => x.id === a.pid), r = lbGet(l.id, a.pid) || {};
     return `<tr class="${lbDone(r) ? 'lb-ok' : ''}"><td class="lb-n">${showLek ? `<b>${esc(l.titel)}</b><small>${esc(fmtDayShort(l.datum))} · ${esc(l.stufe || '')}${l.platz ? ' · ' + esc(l.platz) : ''}</small>` : `${p ? esc(nameNV(p)) : '(unbekannt)'}<small>${p ? esc(lekGr(p)) : ''}${a.rolle === 'a' ? ' · Ass' : ' · hält'}</small>`}</td>
-      <td data-l="Fachliche Richtigkeit">${sk(l.id, a.pid, 'fach', r.fach)}</td><td data-l="Methodische Effektivität">${sk(l.id, a.pid, 'meth', r.meth)}</td>
+      ${LB_K.map(([k, lb]) => `<td data-l="${lb}">${sk(l.id, a.pid, k, r[k])}</td>`).join('')}
+      <td data-l="Schnitt / Note" class="lb-note">${(() => { const av = lbSchnitt(r), n = lbNote(r); if (av == null) return '<span class="hint" style="margin:0">–</span>';
+        const lo = Math.floor(av + 1e-9), hi = Math.ceil(av - 1e-9), ganz = lo === hi;
+        return `<div class="lb-av">Ø ${av.toFixed(2)}${lbDone(r) ? '' : ' <small>(unvollständig)</small>'}</div>
+          <div class="lb-nt lb-v${n}"><b>${n}</b> ${LB_TXT[n]}</div>
+          ${ganz ? '' : (() => { const auto = Math.round(av + 1e-9), autoAuf = auto === hi; return sel(r.rund === (autoAuf ? 'ab' : 'auf') ? r.rund : '', [['', (autoAuf ? 'aufgerundet' : 'abgerundet') + ' auf ' + auto], autoAuf ? ['ab', 'abrunden auf ' + lo] : ['auf', 'aufrunden auf ' + hi]], `data-lbf="rund" data-lek="${esc(l.id)}" data-pid="${esc(a.pid)}" class="lb-rd" title="Begründung in der Bemerkung festhalten"`); })()}`; })()}</td>
       <td class="lb-bem"><textarea rows="2" data-lbf="bem" data-lek="${esc(l.id)}" data-pid="${esc(a.pid)}" placeholder="Bemerkung">${esc(r.bem || '')}</textarea></td>
       <td><input list="lek-btr" data-lbf="wer" data-lek="${esc(l.id)}" data-pid="${esc(a.pid)}" value="${esc(r.wer || '')}" placeholder="Beurteiler" style="width:100px"></td>
       ${showLek ? '' : `<td><button class="small danger" data-lekunanw="${esc(l.id)}|${esc(a.pid)}" title="Anw von dieser Lektion entfernen">✕</button></td>`}</tr>`; };
-  const head = (first, x) => `<thead><tr><th>${first}</th><th>Fachliche Richtigkeit</th><th>Methodische Effektivität</th><th>Bemerkung</th><th>Beurteiler</th>${x ? '<th></th>' : ''}</tr></thead>`;
+  const head = (first, x) => `<thead><tr><th>${first}</th>${LB_K.map(([, lb]) => `<th>${lb}</th>`).join('')}<th>Schnitt / Note</th><th>Bemerkung</th><th>Beurteiler</th>${x ? '<th></th>' : ''}</tr></thead>`;
   if (f.mode === 'anw') {
     const list = anwF.filter(p => f.anw === 'all' || p.id === f.anw);
     list.forEach(p => { const my = pairs.filter(x => x.a.pid === p.id && (f.tag === 'all' || x.l.datum === f.tag) && keepPair(x));
       const all = pairs.filter(x => x.a.pid === p.id);
-      h += `<div class="lek"><div class="lek-h"><b>${esc(nameNV(p))}</b> <span class="hint" style="margin:0">${esc(lekGr(p))} · ${all.length} Lektionen · beurteilt ${all.filter(x => lbDone(x.r)).length} · Ø fachlich ${lbAvg(all.map(x => (x.r || {}).fach))} · Ø methodisch ${lbAvg(all.map(x => (x.r || {}).meth))}</span></div>
+      h += `<div class="lek"><div class="lek-h"><b>${esc(nameNV(p))}</b> <span class="hint" style="margin:0">${esc(lekGr(p))} · ${all.length} Lektionen · beurteilt ${all.filter(x => lbDone(x.r)).length} · Ø Note ${lbAvg(all.map(x => lbNote(x.r)))}</span></div>
         ${my.length ? `<table class="lb">${head('Lektion')}<tbody>${my.sort((a, b) => a.l.datum < b.l.datum ? -1 : 1).map(x => row(x.l, x.a, true)).join('')}</tbody></table>` : '<p class="hint">Keine Lektion in dieser Auswahl.</p>'}</div>`; });
     return h + '</div>';
   }
@@ -2008,9 +2028,9 @@ function viewLektionen() {
 }
 function lbSet(lek, pid, k, v) {
   const id = lbId(lek, pid); let r = lbGet(lek, pid);
-  if (!r) { r = NEW({ id, lek, pid, fach: '', meth: '', bem: '', wer: '' }); D.lbew.push(r); }
+  if (!r) { r = NEW({ id, lek, pid, ziel: '', meth: '', fach: '', check: '', rund: '', bem: '', wer: '' }); D.lbew.push(r); }
   if (r[k] === v) return false;
-  r[k] = v; if (k !== 'wer' && !r.wer && ui.lekWer) r.wer = ui.lekWer; if (k === 'wer') ui.lekWer = v; r.datum = isoDay(new Date()); stamp(r); touch(); return true;
+  r[k] = v; if (k !== 'rund' && LB_K.some(x => x[0] === k)) { const av = lbSchnitt(r); if (av == null || Math.floor(av + 1e-9) === Math.ceil(av - 1e-9)) r.rund = ''; } if (k !== 'wer' && !r.wer && ui.lekWer) r.wer = ui.lekWer; if (k === 'wer') ui.lekWer = v; r.datum = isoDay(new Date()); stamp(r); touch(); return true;
 }
 document.addEventListener('change', ev => {
   const t = ev.target; if (!t || !t.dataset || !t.closest('#view')) return;
