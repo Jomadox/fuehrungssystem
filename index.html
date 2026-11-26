@@ -17,6 +17,27 @@
 .help-pop details{margin:2px 0;border-top:1px solid var(--line);padding:4px 0}.help-pop details summary{cursor:pointer;font-weight:600;font-size:13px}.help-pop details .hint{margin:4px 0}
 .ak-bulk:empty{display:none}
 .zug-cols>.zug-card:only-child .gm-h,.zug-cols>.zug-card:only-child .gm-r{grid-template-columns:58px minmax(0,1fr) 180px 26px}
+
+.lek{border:1px solid #ddd;border-radius:6px;padding:8px 10px;margin:8px 0;background:#fff}
+.lek-h{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.lek-z{font-size:13px;margin:4px 0 2px}
+.lek-g{font-size:12px;color:#666;margin-bottom:4px}
+h3.lek-d{margin:16px 0 4px;font-size:15px;border-bottom:2px solid #333;padding-bottom:2px}
+table.lb{border-collapse:collapse;width:100%;margin:4px 0;font-size:13px}
+table.lb th{text-align:left;font-weight:600;font-size:12px;color:#555;border-bottom:1px solid #ccc;padding:3px 4px}
+table.lb td{border-bottom:1px solid #eee;padding:3px 4px;vertical-align:top}
+table.lb td.lb-n{min-width:170px}
+table.lb td.lb-n small{display:block;color:#666}
+table.lb td.lb-bem{width:40%}
+table.lb td.lb-bem textarea{width:100%;box-sizing:border-box;min-height:34px}
+table.lb tr.lb-ok td.lb-n{border-left:4px solid #2e7d32}
+select.lb-sk{min-width:130px}
+select.lb-v4{background:#c8e6c9} select.lb-v3{background:#e8f5e9} select.lb-v2{background:#fff3c4} select.lb-v1{background:#ffcdd2}
+.lek-f{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;margin-top:4px}
+.lek-e{flex-basis:100%}
+.lek-e label{display:block;margin:4px 0}
+.lek-e input,.lek-e textarea{width:100%;box-sizing:border-box}
+@media (max-width:760px){table.lb,table.lb tbody,table.lb tr,table.lb td{display:block;width:auto!important}table.lb thead{display:none}table.lb tr{border-bottom:1px solid #ccc;padding:4px 0}table.lb td{border:0}}
 </style>
 <style>
 :root{
@@ -529,6 +550,7 @@ body.grmode select,body.grmode input{padding:7px 8px;font-size:15px}
       <p class="hint"><b>Eigene Kartendatei:</b> Ersetzt die swisstopo-Karte (Bild ohne Georeferenz).</p>
       <p class="hint"><b>Signaturen:</b> Signatur wählen und in die Karte klicken: Es entsteht ein neuer Eintrag im angeklickten Rasterfeld. Bei einem bestehenden Eintrag öffnet «Sig» die Signatur zum Bearbeiten. «Betrifft» steuert, welche Stufen den Eintrag sehen (Kp = alle). Linien (Abschnittsgrenzen, Phasenlinien, Pfeile) unter der Karte wählen, «Linie einzeichnen» klicken und die Punkte setzen.</p></details>
     <details data-help="systeme"><summary>Statusübersicht</summary><p class="hint">Systeme: ok = einsatzbereit, eingeschränkt = gelb, ausgefallen = rot, n/a = nicht vorhanden. Mit ▸ klappst du eine Gruppe auf und bearbeitest Status, Mittel, Mat und Mun pro Soldat. Mitglieder erfasst du in der Einsatzgliederung oder hier mit «+ Soldat». Der Zug zeigt automatisch den schlechtesten Wert seiner Gruppen. Die Ampelgrenzen stellst du unter «Einstellungen Statusübersicht» ein.</p></details>
+    <details data-help="lektionen"><summary>Lektionen</summary><p class="hint">Alle Lektionen, die die Anw halten, mit Ausbildungsziel, Stufe/Dauer, Grundlagen und Ausbildungsplatz. Pro Anw beurteilt das Berufspersonal die Lektion nach <b>fachlicher Richtigkeit</b> und <b>methodischer Effektivität</b> (4 übertroffen · 3 erfüllt · 2 teilweise erfüllt · 1 nicht erfüllt) und hält Bemerkungen fest. «Hält» = verantwortlich, «Ass» = Assistent (in der Ausbildungsplanung mit (x) bezeichnet). Lektionen ohne Anw: unten «+ Anw zuweisen». Ansicht «pro Anw» zeigt alle Lektionen und Durchschnitte eines Anw. Mit den Filtern lassen sich Tag, Gruppe, Anw und offene Beurteilungen auswählen.</p></details>
     <details data-help="ausbildung"><summary>Ausbildungskontrolle</summary><p class="hint">Grundlage: Stoffplan Infanterist. Pro Soldat und Kompetenz den Stand festhalten. Klick auf ein Feld schaltet weiter: – hat die Kompetenz nicht › ✓ erfüllt › schwarz = nicht pflichtig. Nicht pflichtige Kompetenzen zählen in den Summen nicht mit. Grfhr und Besatzer erscheinen nicht; die Soldaten stehen mit «Nachname, Vorname». Mehrere AdA gleichzeitig: links die Kästchen der AdA (oder der ganzen Gruppe) anwählen und dann oben die Kompetenz anklicken. Ein Klick in der grauen Gruppenzeile gibt der ganzen Gruppe «erfüllt».</p></details>
     <div style="border-top:1px solid var(--line);margin:2px 0 8px"></div>
 
@@ -551,7 +573,7 @@ body.grmode select,body.grmode input{padding:7px 8px;font-size:15px}
   <span class="grow"></span>
   <div class="hdr-tagcol"><div class="hdr-tagrow"><input type="date" id="hdr-tag" title="Tag"><select id="role-sel" class="role-sel" title="Rolle dieses Geräts"></select></div><button id="btn-new" class="danger hdr-new" title="Alle Daten auf diesem Gerät löschen und neu beginnen">Alles neu beginnen</button></div>
   <span class="save-state" id="save-state"></span>
-  <div class="hdr-icons"><button id="btn-export" class="ico" title="Export: alle Daten als Datei sichern"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M4 14v6h16v-6"/></svg></button><button id="btn-import" class="ico" title="Import: Daten aus einer gesicherten Datei laden"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 14v6h16v-6"/></svg></button><button id="btn-qr" class="ico" title="QR: Gruppenpaket an Grfhr senden, Rückmeldung empfangen"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v1M14 20h1M17 17h4v4h-4z"/></svg></button><span class="druck-wrap"><button id="btn-druckmenu" class="ico" title="Drucken: Druckansicht wählen"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-8h16v8h-2"/><rect x="6" y="14" width="12" height="7"/></svg></button><div id="druck-menu" class="druck-menu" hidden></div></span><span id="hdr-sync" class="hdr-sync"></span><button id="help-btn" class="ico help-btn" title="So funktioniert es">?</button></div>
+  <div class="hdr-icons"><button id="btn-export" class="ico" title="Export: alle Daten als Datei sichern und per Mail senden"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M4 14v6h16v-6"/></svg></button><button id="btn-import" class="ico" title="Import: Daten aus einer gesicherten Datei laden"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 14v6h16v-6"/></svg></button><button id="btn-qr" class="ico" title="QR: Gruppenpaket an Grfhr senden, Rückmeldung empfangen"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v1M14 20h1M17 17h4v4h-4z"/></svg></button><span class="druck-wrap"><button id="btn-druckmenu" class="ico" title="Drucken: Druckansicht wählen"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-8h16v8h-2"/><rect x="6" y="14" width="12" height="7"/></svg></button><div id="druck-menu" class="druck-menu" hidden></div></span><span id="hdr-sync" class="hdr-sync"></span><button id="help-btn" class="ico help-btn" title="So funktioniert es">?</button></div>
   <input type="file" id="file-import" accept=".json,application/json" hidden>
 </header>
 <div id="gr-head" class="gr-only noprint"></div>
@@ -644,7 +666,7 @@ function blankData() {
     meta: { verband: 'Inf DD RS Kp 14-1/1', kdt: 'Hptm Dossenbach | Einh BO', beilage: '', tag: isoDay(new Date()), version: 1, stand: null,
       startH: 5, endH: 24, rasterCols: 20, rasterRows: 20, gelb: 85, rot: 70, karteOpac: 60,
       systemTypen: ['Führung','Fz','VBR','LMg','Breacher','SMW','Funk','Mun','Betr.Stoff'], betreuer: ['DOJ','HUJ','PUR','STM','CAM','SNJ'], ausbThemen: [], ausbStoff: JSON.parse(JSON.stringify(STOFF_INF)), dsid: 'ds' + uid() + uid(), fresh: true },
-    zuege: [], personen: [], systeme: {}, termine: [], auftraege: [], lage: [], antraege: [], linien: [], ausb: [], pend: [],
+    zuege: [], personen: [], systeme: {}, termine: [], auftraege: [], lage: [], antraege: [], linien: [], ausb: [], pend: [], lektionen: [], lbew: [],
     karte: null, karteW: 1000, karteH: 1000, karteGeo: null, geo: null, geoUpd: '', tomb: {}
   };
 }
@@ -840,7 +862,7 @@ function load() {
 function migrate(d) {
   const b = blankData();
   d.meta = Object.assign(b.meta, d.meta || {});
-  ['zuege','personen','termine','auftraege','lage','antraege','linien','ausb','pend'].forEach(k => { if (!Array.isArray(d[k])) d[k] = []; });
+  ['zuege','personen','termine','auftraege','lage','antraege','linien','ausb','pend','lektionen','lbew'].forEach(k => { if (!Array.isArray(d[k])) d[k] = []; });
   if (!d.systeme) d.systeme = {};
   if (!d.tomb) d.tomb = {};
   (d.termine || []).forEach(x => { if (x.kategorie === 'Auftrag/Ausbildung' || x.kategorie === 'Auftrag') x.kategorie = 'Ausbildung'; else if (x.kategorie === 'Entscheidpunkt') x.kategorie = 'Besonderes'; });
@@ -1739,7 +1761,7 @@ function pagesWeek() {
 
 /* ===================== Oberfläche ===================== */
 const TABS = [
-  ['pend','Pendenzen'],['verband','Einsatzgliederung'],['termine','Synchromatrix'],['lage','Lagekarte'],['systeme','Statusübersicht'],['ausbildung','Ausbildungskontrolle'], // Befehl/Anträge nur noch im Ausdruck (Handeintrag)
+  ['pend','Pendenzen'],['verband','Einsatzgliederung'],['termine','Synchromatrix'],['lage','Lagekarte'],['systeme','Statusübersicht'],UOS ? ['lektionen','Lektionen'] : ['ausbildung','Ausbildungskontrolle'], // Befehl/Anträge nur noch im Ausdruck (Handeintrag)
 ];
 const DRUCK = [['p-kp', 'Tagesbefehl'], ['p-zug', 'Zfhr'], ['p-gr', 'Grfhr'], ['p-woche', 'Wochenarbeitsplan']];
 function syncTabs() {
@@ -1749,6 +1771,8 @@ function syncTabs() {
 }
 window.addEventListener('scroll', syncTabs, { passive: true }); window.addEventListener('resize', syncTabs);
 function renderTabs() {
+  if (UOS && currentTab === 'ausbildung') currentTab = 'lektionen';
+  if (!UOS && currentTab === 'lektionen') currentTab = 'ausbildung';
   if (!isKp() && (currentTab === 'p-kp' || currentTab === 'p-woche' || currentTab === 'p-zug' || currentTab === 'p-gr')) currentTab = 'p-zfhr';
   if (isKp() && (currentTab === 'p-zfhr' || currentTab === 'p-zug' || currentTab === 'p-gr')) currentTab = 'p-kp';
   const dr = DRUCK.filter(([k]) => isKp() && (k === 'p-kp' || k === 'p-woche'));
@@ -1777,7 +1801,7 @@ function render() {
   try { syncAutoPend(); } catch (e) {}
   renderTabs(); renderHeader();
   const v = $('#view');
-  const fn = { 'p-zfhr': viewPrint, pend: viewPend, start: viewStart, verband: viewVerband, systeme: viewSysteme, ausbildung: viewAusbildung, termine: viewTermine, auftraege: viewAuftraege, lage: viewLage, antraege: viewAntraege, 'p-kp': viewPrint, 'p-zug': viewPrint, 'p-gr': viewPrint, 'p-woche': viewPrint }[currentTab];
+  const fn = { 'p-zfhr': viewPrint, pend: viewPend, start: viewStart, verband: viewVerband, systeme: viewSysteme, ausbildung: viewAusbildung, lektionen: viewLektionen, termine: viewTermine, auftraege: viewAuftraege, lage: viewLage, antraege: viewAntraege, 'p-kp': viewPrint, 'p-zug': viewPrint, 'p-gr': viewPrint, 'p-woche': viewPrint }[currentTab];
   const cw = v.querySelector('.cal-wrap'), sx = cw ? cw.scrollLeft : 0;
   v.innerHTML = fn();
   const cw2 = v.querySelector('.cal-wrap'); if (cw2) cw2.scrollLeft = sx;
@@ -1875,6 +1899,96 @@ function viewVerband() {
   return `<div class="card"><h2>Einsatzgliederung</h2>${isKp() ? kdo : ''}<div class="zug-cols">${zc}</div>${isKp() ? '<div class="row-actions"><button data-addzug="1">+ Zug</button></div>' : ''}</div>`;
 }
 
+
+/* ---- UOS: Lektionsbewertung (jede Lektion pro Anw nach fachlicher Richtigkeit und methodischer Effektivität) ---- */
+const LB_SK = [['', '–'], ['4', '4 übertroffen'], ['3', '3 erfüllt'], ['2', '2 teilweise erfüllt'], ['1', '1 nicht erfüllt']];
+const lbId = (lek, pid) => 'lb|' + lek + '|' + pid;
+const lbGet = (lek, pid) => (D.lbew || []).find(x => x.id === lbId(lek, pid));
+const lbDone = r => !!(r && r.fach && r.meth);
+const lbAvg = a => { const v = a.filter(x => x).map(Number); return v.length ? (v.reduce((s, x) => s + x, 0) / v.length).toFixed(1) : '–'; };
+const lekAnw = () => D.personen.filter(p => !/^besatzer/i.test(String(p.funktion || '')));
+const lekGr = p => { const g = D.zuege.flatMap(z => z.gruppen).find(g => g.id === p.gruppeId); return g ? g.name : ''; };
+function viewLektionen() {
+  const L = D.lektionen || [], f = ui.lek || (ui.lek = { tag: 'all', gr: 'all', anw: 'all', st: 'all', mode: 'lek' });
+  const days = [...new Set(L.map(l => l.datum))].sort();
+  const grs = D.zuege.flatMap(z => z.gruppen), anwAll = lekAnw();
+  const anwF = anwAll.filter(p => f.gr === 'all' || p.gruppeId === f.gr);
+  const BTR = D.meta.betreuer || [];
+  const pairs = L.flatMap(l => (l.anw || []).map(a => ({ l, a, r: lbGet(l.id, a.pid) })));
+  const nDone = pairs.filter(x => lbDone(x.r)).length;
+  const keepPair = x => (f.gr === 'all' || (D.personen.find(p => p.id === x.a.pid) || {}).gruppeId === f.gr) && (f.anw === 'all' || x.a.pid === f.anw) && (f.st === 'all' || (f.st === 'offen') !== lbDone(x.r));
+  let h = `<div class="card"><h2>Lektionen</h2>
+    <div class="toolbar"><label>Ansicht ${sel(f.mode, [['lek', 'nach Tag'], ['anw', 'pro Anw']], 'data-lekflt="mode"')}</label>
+    <label>Tag ${sel(f.tag, [['all', 'alle Tage'], ...days.map(d => [d, fmtDayShort(d) + ' ' + d.slice(0, 4)])], 'data-lekflt="tag"')}</label>
+    <label>Gruppe ${sel(f.gr, [['all', 'alle Gruppen'], ...grs.map(g => [g.id, g.name])], 'data-lekflt="gr"')}</label>
+    <label>Anw ${sel(f.anw, [['all', 'alle Anw'], ...anwF.map(p => [p.id, nameNV(p)])], 'data-lekflt="anw"')}</label>
+    <label>Beurteilung ${sel(f.st, [['all', 'alle'], ['offen', 'offen'], ['fertig', 'beurteilt']], 'data-lekflt="st"')}</label>
+    <span class="hint" style="margin:0">${L.length} Lektionen · ${nDone} von ${pairs.length} Beurteilungen erfasst</span>
+    <button data-lekadd="1" class="small">+ Lektion</button></div>
+    <datalist id="lek-btr">${BTR.map(b => `<option value="${esc(b)}">`).join('')}</datalist>`;
+  if (!L.length) return h + `<p class="hint">Noch keine Lektionen erfasst. Lektionen kommen mit der Klassendatei (Import) oder über «+ Lektion».</p></div>`;
+  const sk = (lek, pid, k, v) => sel(v || '', LB_SK, `data-lbf="${esc(k)}" data-lek="${esc(lek)}" data-pid="${esc(pid)}" class="lb-sk lb-v${esc(v || '0')}"`);
+  const row = (l, a, showLek) => { const p = D.personen.find(x => x.id === a.pid), r = lbGet(l.id, a.pid) || {};
+    return `<tr class="${lbDone(r) ? 'lb-ok' : ''}"><td class="lb-n">${showLek ? `<b>${esc(l.titel)}</b><small>${esc(fmtDayShort(l.datum))} · ${esc(l.stufe || '')}${l.platz ? ' · ' + esc(l.platz) : ''}</small>` : `${p ? esc(nameNV(p)) : '(unbekannt)'}<small>${p ? esc(lekGr(p)) : ''}${a.rolle === 'a' ? ' · Ass' : ' · hält'}</small>`}</td>
+      <td>${sk(l.id, a.pid, 'fach', r.fach)}</td><td>${sk(l.id, a.pid, 'meth', r.meth)}</td>
+      <td class="lb-bem"><textarea rows="2" data-lbf="bem" data-lek="${esc(l.id)}" data-pid="${esc(a.pid)}" placeholder="Bemerkung">${esc(r.bem || '')}</textarea></td>
+      <td><input list="lek-btr" data-lbf="wer" data-lek="${esc(l.id)}" data-pid="${esc(a.pid)}" value="${esc(r.wer || '')}" placeholder="Beurteiler" style="width:100px"></td>
+      ${showLek ? '' : `<td><button class="small danger" data-lekunanw="${esc(l.id)}|${esc(a.pid)}" title="Anw von dieser Lektion entfernen">✕</button></td>`}</tr>`; };
+  const head = (first, x) => `<thead><tr><th>${first}</th><th>Fachliche Richtigkeit</th><th>Methodische Effektivität</th><th>Bemerkung</th><th>Beurteiler</th>${x ? '<th></th>' : ''}</tr></thead>`;
+  if (f.mode === 'anw') {
+    const list = anwF.filter(p => f.anw === 'all' || p.id === f.anw);
+    list.forEach(p => { const my = pairs.filter(x => x.a.pid === p.id && (f.tag === 'all' || x.l.datum === f.tag) && keepPair(x));
+      const all = pairs.filter(x => x.a.pid === p.id);
+      h += `<div class="lek"><div class="lek-h"><b>${esc(nameNV(p))}</b> <span class="hint" style="margin:0">${esc(lekGr(p))} · ${all.length} Lektionen · beurteilt ${all.filter(x => lbDone(x.r)).length} · Ø fachlich ${lbAvg(all.map(x => (x.r || {}).fach))} · Ø methodisch ${lbAvg(all.map(x => (x.r || {}).meth))}</span></div>
+        ${my.length ? `<table class="lb">${head('Lektion')}<tbody>${my.sort((a, b) => a.l.datum < b.l.datum ? -1 : 1).map(x => row(x.l, x.a, true)).join('')}</tbody></table>` : '<p class="hint">Keine Lektion in dieser Auswahl.</p>'}</div>`; });
+    return h + '</div>';
+  }
+  const shown = L.filter(l => f.tag === 'all' || l.datum === f.tag);
+  let cur = null, any = false;
+  shown.slice().sort((a, b) => (a.datum || '') < (b.datum || '') ? -1 : (a.datum || '') > (b.datum || '') ? 1 : (a.nr || 0) - (b.nr || 0)).forEach(l => {
+    const as = (l.anw || []).map(a => ({ l, a, r: lbGet(l.id, a.pid) })).filter(keepPair);
+    const filt = f.gr !== 'all' || f.anw !== 'all' || f.st !== 'all';
+    if (filt && !as.length) return;
+    any = true;
+    if (l.datum !== cur) { cur = l.datum; h += `<h3 class="lek-d">${esc(fmtDay ? fmtDay(l.datum) : l.datum)}</h3>`; }
+    const free = anwAll.filter(p => !(l.anw || []).some(a => a.pid === p.id));
+    h += `<div class="lek"><div class="lek-h"><b>${esc(l.titel || '(ohne Titel)')}</b> <span class="hint" style="margin:0">${esc(l.stufe || '')}${l.platz ? ' · ' + esc(l.platz) : ''}</span></div>
+      ${l.ziel ? `<div class="lek-z">${esc(l.ziel)}</div>` : ''}${l.grundlagen ? `<div class="lek-g">Grundlagen: ${esc(l.grundlagen)}</div>` : ''}
+      ${as.length ? `<table class="lb">${head('Anw', 1)}<tbody>${as.map(x => row(l, x.a, false)).join('')}</tbody></table>` : '<p class="hint">Noch kein Anw zugewiesen.</p>'}
+      <div class="lek-f"><select data-lekaddanw="${esc(l.id)}"><option value="">+ Anw zuweisen …</option>${grs.map(g => `<optgroup label="${esc(g.name)}">${free.filter(p => p.gruppeId === g.id).map(p => `<option value="${esc(p.id)}">${esc(nameNV(p))}</option>`).join('')}</optgroup>`).join('')}</select>
+      <select data-lekaddrolle="${esc(l.id)}"><option value="h">hält</option><option value="a">Ass</option></select>
+      <details class="lek-e"><summary>Lektion bearbeiten</summary>
+        ${[['titel', 'Lektion'], ['datum', 'Datum', 'date'], ['stufe', 'Stufe / Dauer'], ['platz', 'Ausbildungsplatz'], ['ziel', 'Ausbildungsziel', 'ta'], ['grundlagen', 'Grundlagen / Reglemente', 'ta']].map(([k, lb, ty]) => `<label>${lb}${ty === 'ta' ? `<textarea rows="2" data-lkf="${k}" data-lek="${esc(l.id)}">${esc(l[k] || '')}</textarea>` : `<input ${ty ? 'type="' + ty + '"' : ''} data-lkf="${k}" data-lek="${esc(l.id)}" value="${esc(l[k] || '')}">`}</label>`).join('')}
+        <button class="small danger" data-lekdel="${esc(l.id)}">Lektion löschen</button></details></div></div>`;
+  });
+  if (!any) h += '<p class="hint">Keine Lektion in dieser Auswahl.</p>';
+  return h + '</div>';
+}
+function lbSet(lek, pid, k, v) {
+  const id = lbId(lek, pid); let r = lbGet(lek, pid);
+  if (!r) { r = NEW({ id, lek, pid, fach: '', meth: '', bem: '', wer: '' }); D.lbew.push(r); }
+  if (r[k] === v) return false;
+  r[k] = v; if (k !== 'wer' && !r.wer && ui.lekWer) r.wer = ui.lekWer; if (k === 'wer') ui.lekWer = v; r.datum = isoDay(new Date()); stamp(r); touch(); return true;
+}
+document.addEventListener('change', ev => {
+  const t = ev.target; if (!t || !t.dataset || !t.closest('#view')) return;
+  if (t.dataset.lekflt) { const f = ui.lek; f[t.dataset.lekflt] = t.value; if (t.dataset.lekflt === 'gr') f.anw = 'all'; render(); return; }
+  if (t.dataset.lbf) { const ch = lbSet(t.dataset.lek, t.dataset.pid, t.dataset.lbf, t.value); if (ch && t.tagName === 'SELECT') render(); return; }
+  if (t.dataset.lkf) { const l = D.lektionen.find(x => x.id === t.dataset.lek); if (!l) return; l[t.dataset.lkf] = t.value; stamp(l); touch(); render(); return; }
+  if (t.dataset.lekaddanw) { if (!t.value) return; const l = D.lektionen.find(x => x.id === t.dataset.lekaddanw); if (!l) return;
+    const ro = document.querySelector(`[data-lekaddrolle="${t.dataset.lekaddanw}"]`);
+    l.anw = (l.anw || []).concat([{ pid: t.value, rolle: ro ? ro.value : 'h' }]); stamp(l); touch(); render(); return; }
+});
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('button'); if (!b || !b.closest('#view')) return;
+  if (b.dataset.lekadd) { const l = NEW({ id: 'lk' + uid(), nr: (D.lektionen.length + 1) * 10, datum: ui.lek && ui.lek.tag !== 'all' ? ui.lek.tag : D.meta.tag, titel: 'Neue Lektion', ziel: '', stufe: '', grundlagen: '', platz: '', anw: [] }); D.lektionen.push(l); touch(); render(); return; }
+  if (b.dataset.lekunanw) { const [lid, pid] = b.dataset.lekunanw.split('|'); const l = D.lektionen.find(x => x.id === lid); if (!l) return;
+    if (lbDone(lbGet(lid, pid)) && !confirm('Für diesen Anw ist schon eine Beurteilung erfasst. Trotzdem von der Lektion entfernen?')) return;
+    l.anw = (l.anw || []).filter(a => a.pid !== pid); stamp(l); touch(); render(); return; }
+  if (b.dataset.lekdel) { const l = D.lektionen.find(x => x.id === b.dataset.lekdel); if (!l || !confirm('Lektion «' + l.titel + '» mit allen Beurteilungen löschen?')) return;
+    const now = nowISO(); D.tomb[l.id] = now; D.lektionen = D.lektionen.filter(x => x !== l);
+    D.lbew.filter(r => r.lek === l.id).forEach(r => { D.tomb[r.id] = now; }); D.lbew = D.lbew.filter(r => r.lek !== l.id); touch(); render(); return; }
+});
 /* ---- Ausbildungskontrolle: Soldat × Ausbildungsthema ---- */
 /* Stoffplan Infanterist (Kompetenzen: Nr, Kategorie, Titel, Lektionen, Reglement) */
 const STOFF_INF = [{"nr":1,"kat":"Sich schützen","titel":"Umgangsformen: Grüssen, Gradkenntnisse, Ruhn- & Achtungstellung, An- & Abmelden, Gefechtsmeldung","l":"1","regl":"51.019.01, Kap 1 (Ziff 1–6), Ziff 18"},{"nr":2,"kat":"Sich schützen","titel":"Rechtliche Grundlagen: Notwehr, Notwehrhilfe, Verhältnismässigkeit, Polizeibefugnisse VPA, ROE / ROB, KVR inkl Th Wachtdienst","l":"1","regl":""},{"nr":3,"kat":"Sich schützen","titel":"Initiale Materialvorbereitung inkl Materialkenntnisse","l":"4","regl":"53.096, Kap 3 (Ziff 43–46); 51.019.01, Kap 2.3, Anh 4"},{"nr":4,"kat":"Sich schützen","titel":"Einsatzvorbereitung","l":"1","regl":"51.019.01, Kap 2.2–2.3, Anh 3; 53.096, Kap 6.3"},{"nr":5,"kat":"Sich schützen","titel":"Leben im Feld (Notunterkunft)","l":"2","regl":"51.019.01, Anh 4"},{"nr":6,"kat":"Sich schützen","titel":"CUF: SATE, MAN DOWN, Self-Check","l":"1","regl":"59.005.02, Kap 3.1–3.2, 3.5; 59.003.04"},{"nr":7,"kat":"Sich schützen","titel":"CUF: Tourniquet SELF-AID, BUDDY-AID","l":"1","regl":"59.005.02, Kap 3.2, 4.1.6"},{"nr":8,"kat":"Sich schützen","titel":"CUF: Bergen, Tragarten, San Barre","l":"1","regl":"59.005.02, Kap 3.2; 53.008.01, Kap 7.9.1"},{"nr":9,"kat":"Sich schützen","titel":"TFC: MARCH","l":"1","regl":"59.005.02, Kap 3.3–3.4, 4; 59.003.04"},{"nr":10,"kat":"Sich schützen","titel":"TFC: Druck, Packing, Verband","l":"1","regl":"59.005.02, Kap 4.1.5–4.1.8"},{"nr":11,"kat":"Sich schützen","titel":"TFC: Atemwege frei, Seitenlage","l":"1","regl":"59.005.02, Kap 4.2"},{"nr":12,"kat":"Sich schützen","titel":"TFC: Okklusivverband Thorax","l":"1","regl":"59.005.02, Kap 4.3"},{"nr":13,"kat":"Sich schützen","titel":"TFC: Versteckte Blutung, Becken","l":"1","regl":"59.005.02, Kap 4.4"},{"nr":14,"kat":"Sich schützen","titel":"TFC: Augen, Wärmeerhalt, Combat-Pill-Pack, MIST-Report, Reassessment (AVPU)","l":"1","regl":"59.005.02, Kap 3.7, 4.5–4.7"},{"nr":15,"kat":"Sich schützen","titel":"Schutzmaske: Einstellen, Aufsetzen, Alarm, Dichtigkeit, Handeln, Reinigung","l":"2","regl":""},{"nr":16,"kat":"Sich schützen","titel":"Tarnung: Licht, Lärm, EM-Sigantur, Informationsraum (TOZZA)","l":"1","regl":"51.019.01, Kap 2.5.3.1, 2.5.3.6–2.5.3.9, Anh 7"},{"nr":17,"kat":"Sich schützen","titel":"Verhalten bei Nacht","l":"1","regl":"51.019.01, Kap 2.6; 53.008.01, Kap 10"},{"nr":18,"kat":"Sich schützen","titel":"Verhalten bei UAV / UGV","l":"1","regl":"51.019.01, Kap 2.5.3.3–2.5.3.5"},{"nr":19,"kat":"Sich schützen","titel":"Verhalten bei Explosive Hazards","l":"1","regl":"51.019.01, Ziff 69; 53.008.01, Kap 7.9.3, Anh 2–3"},{"nr":20,"kat":"Kommunizieren","titel":"Gefechtszeichen & Kurzkommandi","l":"1","regl":"51.019.01, Kap 2.4.1 (Ziff 12–15)"},{"nr":21,"kat":"Kommunizieren","titel":"HOK-Zeichen, -Kommandos, Fassaden, Öffnungen & Markierungen","l":"1","regl":"53.008.01, Kap 5.2–5.3, 6.2"},{"nr":22,"kat":"Kommunizieren","titel":"Melden nach AEIOU inkl Meldezettel","l":"1","regl":"51.019.01, Ziff 17–18"},{"nr":23,"kat":"Kommunizieren","titel":"Funkgerät laden & bedienen","l":"1","regl":"51.019.01, Ziff 80"},{"nr":24,"kat":"Kommunizieren","titel":"Sprechregeln inkl Buchstabiertabelle","l":"1","regl":"58.406; 51.019.01, Ziff 16"},{"nr":25,"kat":"Bewegen & Beobachten","titel":"Deckungsangepasster Stellungsbezug, -wechsel","l":"1","regl":"51.019.01, Kap 2.4.2 (Ziff 22–24), 2.4.3.3"},{"nr":26,"kat":"Bewegen & Beobachten","titel":"Geländeangepasstes Bewegen inkl Winkel öffnen","l":"1","regl":"51.019.01, Kap 2.4.2 (Ziff 19–21); 53.008.01, Kap 6.3"},{"nr":27,"kat":"Bewegen & Beobachten","titel":"Geländetaufe, Zifferblatt, Kroki","l":"1","regl":"51.019.01, Kap 2.5.1.2–2.5.1.3"},{"nr":28,"kat":"Bewegen & Beobachten","titel":"Karte, Bussole, Azimut","l":"1","regl":"51.019.01, Kap 2.5.1.1; 51.210"},{"nr":29,"kat":"Bewegen & Beobachten","titel":"Distanzen bestimmen, Ziele bezeichnen, Sektoren beobachten","l":"1","regl":"51.019.01, Kap 2.5.2, 2.5.4, 2.5.5, Ziff 51"},{"nr":30,"kat":"Bewegen & Beobachten","titel":"RLV: Montage & Bedienung","l":"1","regl":"53.156, Kap 2.1–2.7"},{"nr":31,"kat":"Bewegen & Beobachten","titel":"RLV: Bedienung bei Nacht (inkl Batteriewechsel)","l":"1","regl":"53.156, Kap 2.2–2.3, 3–4; 53.008.01, Kap 10.2"},{"nr":32,"kat":"Wachtdienst","titel":"Zwami: Grundstellung, Waffenschutz, Gleitschritt, Ausweisen","l":"1","regl":"51.047, Kap 3.3.1–3.3.4; 51.301, Kap 5.4–5.5"},{"nr":33,"kat":"Wachtdienst","titel":"Blöcke, Befreiung, Abwehr","l":"1","regl":"51.047, Kap 3.3.5–3.3.7; 51.301, Kap 5.10"},{"nr":34,"kat":"Wachtdienst","titel":"Überwältigen, Führen","l":"1","regl":"51.047, Kap 3.3.8–3.3.9"},{"nr":35,"kat":"Wachtdienst","titel":"Schliessen liegend","l":"1","regl":"51.047, Kap 4.1–4.3.2"},{"nr":36,"kat":"Wachtdienst","titel":"Schliessen stehend","l":"1","regl":"51.047, Kap 4.3.3–4.3.4"},{"nr":37,"kat":"Wachtdienst","titel":"Sicherheitsdurchsuchung inkl Beschlagnahmung","l":"1","regl":"51.301, Kap 5.6–5.9"},{"nr":38,"kat":"Wachtdienst","titel":"RSG 23: Sicherheit, Tragen, Einsatz, Hilfe","l":"1","regl":"51.047, Kap 5; 51.301, Kap 5.11.2, 7.2"},{"nr":39,"kat":"Wachtdienst","titel":"Personenkontrolle","l":"1","regl":"51.301, Kap 5.1–5.6; 51.019.01, Ziff 39, 105"},{"nr":40,"kat":"Wachtdienst","titel":"Fahrzeugkontrolle","l":"1","regl":"51.047, Kap 7.3.4–7.3.8; 51.301, Kap 5.7"},{"nr":41,"kat":"Wachtdienst","titel":"Entscheidungsdrill","l":"2","regl":"51.301, Kap 7, Anh 5"},{"nr":42,"kat":"Wachtdienst","titel":"WD-Schiessen Stgw","l":"2","regl":"51.301, Kap 4.4, 5.11.3, 6, Anh 3"},{"nr":43,"kat":"Wachtdienst","titel":"WD-Schiessen Pist","l":"2","regl":"51.301, Kap 5.11.3, 6, Anh 4"},{"nr":44,"kat":"Wachtdienst","titel":"Waffenwechsel: Stgw, Pist, RSG","l":"2","regl":"53.103, Kap 9.6; 53.096, Kap 11.9"},{"nr":45,"kat":"Sturmgewehr","titel":"Grundlagen & Sicherheitsvorschriften","l":"1","regl":"53.096, Kap 1, 5"},{"nr":46,"kat":"Sturmgewehr","titel":"5 Grundsätze des Schiessens & Schiesssequenz in 7 Schritten","l":"1","regl":"53.096, Kap 8.1–8.2"},{"nr":47,"kat":"Sturmgewehr","titel":"Proaktive Manipulationen","l":"1","regl":"53.096, Kap 4, 6.2–6.7, 10"},{"nr":48,"kat":"Sturmgewehr","titel":"Reaktive Manipulationen","l":"1","regl":"53.096, Kap 6.6, 6.8"},{"nr":49,"kat":"Sturmgewehr","titel":"Trockendrills","l":"1","regl":"53.096, Kap 7, 9, 11.7–11.8; 53.096.08"},{"nr":50,"kat":"Sturmgewehr","titel":"Einschiessen","l":"2","regl":"53.096, Kap 2.6, 3, 4.2, 11.2.1, Anh 1"},{"nr":51,"kat":"Sturmgewehr","titel":"Grundlagen (LN 1)","l":"1","regl":"53.096.08, Kap 4.2.4"},{"nr":52,"kat":"Sturmgewehr","titel":"Schiesstraining: Innerhalb der Gesprächsdistanz (LN 2 & 3)","l":"3","regl":"53.096.08, Kap 5 (5.8, 5.13); 53.096, Kap 11.10"},{"nr":53,"kat":"Sturmgewehr","titel":"Schiesstraining: Ausserhalb der Gesprächsdistanz (LN 4 & 5)","l":"3","regl":"53.096.08, Kap 6 (6.4, 6.6); 53.096, Kap 11.1–11.3"},{"nr":54,"kat":"Sturmgewehr","titel":"Wettschiessen 300m","l":"1","regl":""},{"nr":55,"kat":"Sturmgewehr","titel":"Parkdienst & Fubeko","l":"1","regl":"53.096, Kap 2"},{"nr":56,"kat":"Pistole","titel":"Grundlagen & Sicherheitsvorschriften","l":"1","regl":"53.103, Kap 1, 4"},{"nr":57,"kat":"Pistole","titel":"Proaktive Manipulationen","l":"1","regl":"53.103, Kap 5.1–5.3, 6"},{"nr":58,"kat":"Pistole","titel":"Reaktive Manipulationen","l":"1","regl":"53.103, Kap 5.4, 5.6"},{"nr":59,"kat":"Pistole","titel":"Präventive Manipulationen","l":"1","regl":"53.103, Kap 5.5, 5.6.2"},{"nr":60,"kat":"Pistole","titel":"Trockendrills","l":"1","regl":"53.103, Kap 7; 53.103.02, Kap 3.1.8–3.1.10, Beilage 4"},{"nr":61,"kat":"Pistole","titel":"5 Grundsätze des Schiessens inkl Einschiessen (LN 1)","l":"1","regl":"53.103, Kap 8; 53.103.02, Kap 3.2–3.3"},{"nr":62,"kat":"Pistole","titel":"Schiesstraining (LN 2-6)","l":"4","regl":"53.103.02, Kap 4.1, 5.1; 53.103, Kap 9.1–9.5"},{"nr":63,"kat":"Pistole","titel":"Wettschiessen 25m","l":"1","regl":""},{"nr":64,"kat":"Pistole","titel":"Parkdienst inkl Fubeko","l":"1","regl":"53.103, Kap 2–3"},{"nr":65,"kat":"Handmunition","titel":"Grundlagen, Sicherheitsvorschriften inkl Test, Gefahrentraining, Vorbereiten Mark HG","l":"2","regl":"53.104, Kap 1, Ziff 19–21, 27–28, Kap 4"},{"nr":66,"kat":"Handmunition","titel":"Handgranate: LN 1","l":"1","regl":"53.104, Ziff 16–18, 27, 34"},{"nr":67,"kat":"Handmunition","titel":"Handgranate: LN 2","l":"1","regl":"53.104, Ziff 16, 35"},{"nr":68,"kat":"Handmunition","titel":"EUHG 11 schulmässig","l":"1","regl":"53.104, Ziff 29, 31, 44, 46"},{"nr":69,"kat":"Handmunition","titel":"EUHG 11 gefechtsmässig","l":"1","regl":"53.104, Ziff 30, 32, 35; 53.008.01, Kap 9.2.6"},{"nr":70,"kat":"Handmunition","titel":"Einsatz der IK inkl schulmässig","l":"1","regl":"53.104, Kap 5–8; 53.008.01, Kap 9.2.5"},{"nr":71,"kat":"Handmunition","titel":"Einsatz Nebelkörper","l":"1","regl":"53.104, Kap 9; 53.008.01, Ziff 98–99"},{"nr":72,"kat":"Zusatzsysteme","titel":"LLM: Montage, Batterien, Test, Reset, Bedienung, Störung","l":"1","regl":"53.096.06, Kap 1–2, 4, 6.1"},{"nr":73,"kat":"Zusatzsysteme","titel":"LLM: Justieren, Einschiessen 10 m","l":"1","regl":"53.096.06, Kap 3, 6.1, Anh 1"},{"nr":74,"kat":"Zusatzsysteme","titel":"LLM: Schiessen mit Weisslicht","l":"1","regl":"53.096.06, Kap 2.4; 53.096, Kap 11.11.2; 53.008.01, Kap 10.6"},{"nr":75,"kat":"Zusatzsysteme","titel":"LLM: Schiessen mit Rotlaser","l":"1","regl":"53.096.06, Kap 2.4, 6.2–6.3"},{"nr":76,"kat":"Zusatzsysteme","titel":"LLM 9: Schiessen mit KD","l":"1","regl":"53.096.06, Kap 6, Anh 3; 53.156, Kap 2;"},{"nr":77,"kat":"Zusatzsysteme","titel":"LLM: Schiessen mit LD","l":"1","regl":"53.096.06, Kap 6, Anh 3; 53.156, Kap 2.3;"},{"nr":78,"kat":"Zusatzsysteme","titel":"GWA: Sicherheitsvorschriften, Montage, Manipulationen, Zielen, Schiessen, Parkdienst","l":"2","regl":"53.096.03, Kap 1–4; 53.008.01, Kap 9.2.3"},{"nr":79,"kat":"Kämpfen im Verband","titel":"Taktische Grundprinzipien","l":"1","regl":"53.008.01, Kap 4, 5.2, 6.1, 6.3; 51.019.01, Kap 2.4"},{"nr":80,"kat":"Kämpfen im Verband","titel":"Binom: Feuer & Bewegung","l":"1","regl":"51.019.01, Kap 3.3.1, Ziff 20, 26–27; 53.008.01, Kap 4.2"},{"nr":81,"kat":"Kämpfen im Verband","titel":"Binom: Eindringtechnik (Closed, Passing)","l":"1","regl":"53.008.01, Kap 7.6.3, 7.7.1–7.7.3"},{"nr":82,"kat":"Kämpfen im Verband","titel":"Trupp: Formationen, Sektoren, Zifferblatt, 360° Sicherung","l":"1","regl":"51.019.01, Kap 3.1–3.2, 3.5; 53.008.01, Kap 7.5"},{"nr":83,"kat":"Kämpfen im Verband","titel":"Trupp: Feuerüberfall","l":"1","regl":"51.019.01, Kap 3.4.3, 3.4.4.1, Ziff 26, 31"},{"nr":84,"kat":"Kämpfen im Verband","titel":"Trupp: Einbruch","l":"2","regl":"53.008.01, Kap 7.1–7.6, 7.8, 11.2"},{"nr":85,"kat":"Kämpfen im Verband","titel":"Trupp: Treppe / Korridor","l":"1","regl":"53.008.01, Kap 6.3.6, 7.7.4–7.7.5"},{"nr":86,"kat":"Kämpfen im Verband","titel":"Trupp: Verhalten bei gn Kontakt","l":"1","regl":"51.019.01, Kap 3.4, Ziff 17"}];
@@ -2050,6 +2164,7 @@ function parseKomp(str) {
 const kompNr = t => t && t.kategorie === 'Ausbildung' && t.kompetenzen && parseKomp(t.kompetenzen).length ? ' (Nr ' + parseKomp(t.kompetenzen).join(', ') + ')' : '';
 const kompText = t => t && t.kategorie === 'Ausbildung' && t.kompetenzen ? parseKomp(t.kompetenzen).map(n => { const o = STOFF_INF.find(x => String(x.nr) === n); return n + (o ? ' ' + o.titel : ''); }).join('; ') : '';
 function komPanel(t, ro, a) {
+  if (UOS) return '';
   const nrs = parseKomp(t.kompetenzen), list = nrs.map(n => STOFF_INF.find(o => String(o.nr) === n) || { nr: n, titel: '(unbekannte Nr)' });
   const kats = [...new Set(STOFF_INF.map(o => o.kat))];
   return `<label>Inhalt (Nr Ausbildungskontrolle)<input ${a('kompetenzen')} value="${esc(t.kompetenzen || '')}" placeholder="z.B. 45, 46, 49-50"></label>
@@ -2855,12 +2970,8 @@ function doPrint(fmt) {
 }
 function exportObj() { return Object.assign({}, D, { _from: ROLE, _fromName: roleName() }); }
 function exportData() {
-  const blob = new Blob([JSON.stringify(exportObj())], { type: 'application/json' });
-  const a = document.createElement('a');
   const d = new Date();
-  a.href = URL.createObjectURL(blob);
-  a.download = `Fuehrung_${roleFileBase()}_${D.meta.tag}_${pad(d.getHours())}${pad(d.getMinutes())}.json`;
-  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  return shareFile(exportObj(), `Fuehrung_${roleFileBase()}_${D.meta.tag}_${pad(d.getHours())}${pad(d.getMinutes())}.json`);
 }
 function exportTermine() {
   const d = new Date();
@@ -2960,7 +3071,7 @@ function loadKarte(file) {
   img.src = url;
 }
 /* ===================== Zusammenführen und Ordner-Abgleich ===================== */
-const ARRS = ['termine', 'auftraege', 'lage', 'antraege', 'personen', 'zuege', 'linien', 'ausb', 'pend'];
+const ARRS = ['termine', 'auftraege', 'lage', 'antraege', 'personen', 'zuege', 'linien', 'ausb', 'pend', 'lektionen', 'lbew'];
 const SHARED_META = ['verband', 'kdt', 'beilage', 'version', 'startH', 'endH', 'rasterCols', 'rasterRows', 'gelb', 'rot', 'systemTypen', 'betreuer', 'ausbThemen', 'ausbStoff', 'kdtStv', 'karteOpac'];
 const clone = o => JSON.parse(JSON.stringify(o));
 function mergeData(a, b) {
@@ -3019,7 +3130,7 @@ async function idbSet(k, v) { try { const db = await idb(); await new Promise(r 
 async function idbGet(k) { try { const db = await idb(); return await new Promise(r => { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => r(q.result); q.onerror = () => r(null); }); } catch (e) { return null; } }
 
 let syncDir = null, syncBusy = false, syncQueued = null, lastSync = null, syncMsg = '';
-const roleFileBase = () => isKp() ? 'Kp' : 'Zug_' + ((roleZug() || {}).name || ROLE).replace(/[^A-Za-z0-9ÄÖÜäöü_-]/g, '_');
+const roleFileBase = () => isKp() ? 'Kp' : (UOS ? 'Klasse_' : 'Zug_') + ((roleZug() || {}).name || ROLE).replace(/[^A-Za-z0-9ÄÖÜäöü_-]/g, '_');
 const roleFile = () => 'Fuehrung_' + roleFileBase() + '.json';
 function syncInfo() { if (!syncDir) return 'Kein Ordner verbunden.'; return 'Ordner «' + syncDir.name + '»' + (lastSync ? ', zuletzt abgeglichen ' + pad(lastSync.getHours()) + ':' + pad(lastSync.getMinutes()) : '') + (syncMsg ? ' · ' + syncMsg : ''); }
 function setSync(msg, warn) {
@@ -3196,14 +3307,24 @@ async function qrShow(obj, title, info) {
   show(); run();
   return frames.length;
 }
+/* Datei versenden: Handy/Tablet über das Teilen-Menü (dort «Mail» wählen, Datei ist angehängt);
+   PC: Datei in den Download-Ordner speichern und ein vorbereitetes Mail öffnen (Anhängen muss man selbst, mailto kann keine Anhänge). */
+const mailSubj = name => (GR_MODE ? 'Grfhr' : UOS ? 'Führungssystem UOS' : 'Führungssystem') + ': ' + ((D.meta && D.meta.verband) || '') + ' – ' + name;
+const mailBody = (name, pc) => 'Im Anhang die Datei «' + name + '».\n\nÖffnen: im Führungssystem oben auf «Import» und die Datei wählen.' + (pc ? '\n\n[Die Datei liegt im Download-Ordner. Bitte vor dem Senden anhängen.]' : '');
+function openMail(name, pc) {
+  const a = document.createElement('a'); a.href = 'mailto:?subject=' + encodeURIComponent(mailSubj(name)) + '&body=' + encodeURIComponent(mailBody(name, pc));
+  document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 500);
+}
 async function shareFile(obj, name) {
   const txt = JSON.stringify(obj);
+  const mobile = (window.matchMedia && matchMedia('(pointer:coarse)').matches) || /iPhone|iPad|Android/i.test(navigator.userAgent);
   try {
     const f = new File([txt], name, { type: 'application/json' });
-    if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: name }); return 'geteilt'; }
+    if (mobile && navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: mailSubj(name), text: mailBody(name, false) }); return 'geteilt'; }
   } catch (e) { if (e && e.name === 'AbortError') return 'abgebrochen'; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'application/json' })); a.download = name;
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+  setTimeout(() => openMail(name, true), 300);
   return 'gespeichert';
 }
 const fnSafe = s => String(s || '').replace(/[^A-Za-z0-9ÄÖÜäöü_-]+/g, '_');
