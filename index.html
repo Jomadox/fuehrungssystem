@@ -623,7 +623,7 @@ body.grmode select,body.grmode input{padding:7px 8px;font-size:15px}
   <span class="grow"></span>
   <div class="hdr-tagcol"><div class="hdr-tagrow"><input type="date" id="hdr-tag" title="Tag"><select id="role-sel" class="role-sel" title="Rolle dieses Geräts"></select></div><button id="btn-new" class="danger hdr-new" title="Alle Daten auf diesem Gerät löschen und neu beginnen">Alles neu beginnen</button></div>
   <span class="save-state" id="save-state"></span>
-  <div class="hdr-icons"><button id="btn-export" class="ico" title="Export: alle Daten als Datei sichern und per Mail senden"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M4 14v6h16v-6"/></svg></button><button id="btn-import" class="ico" title="Import: Daten aus einer gesicherten Datei laden"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 14v6h16v-6"/></svg></button><button id="btn-qr" class="ico" title="QR: Gruppenpaket an Grfhr senden, Rückmeldung empfangen"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v1M14 20h1M17 17h4v4h-4z"/></svg></button><span class="druck-wrap"><button id="btn-druckmenu" class="ico" title="Drucken: Druckansicht wählen"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-8h16v8h-2"/><rect x="6" y="14" width="12" height="7"/></svg></button><div id="druck-menu" class="druck-menu" hidden></div></span><span id="hdr-sync" class="hdr-sync"></span><button id="help-btn" class="ico help-btn" title="So funktioniert es">?</button></div>
+  <div class="hdr-icons"><button id="btn-export" class="ico" title="Export: alle Daten als Datei sichern (auf dem Handy direkt per Mail teilen)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M4 14v6h16v-6"/></svg></button><button id="btn-import" class="ico" title="Import: Daten aus einer gesicherten Datei laden"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 14v6h16v-6"/></svg></button><button id="btn-qr" class="ico" title="QR: Gruppenpaket an Grfhr senden, Rückmeldung empfangen"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v1M14 20h1M17 17h4v4h-4z"/></svg></button><span class="druck-wrap"><button id="btn-druckmenu" class="ico" title="Drucken: Druckansicht wählen"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-8h16v8h-2"/><rect x="6" y="14" width="12" height="7"/></svg></button><div id="druck-menu" class="druck-menu" hidden></div></span><span id="hdr-sync" class="hdr-sync"></span><button id="help-btn" class="ico help-btn" title="So funktioniert es">?</button></div>
   <input type="file" id="file-import" accept=".json,application/json" hidden>
 </header>
 <div id="gr-head" class="gr-only noprint"></div>
@@ -3370,7 +3370,7 @@ async function qrShow(obj, title, info) {
   return frames.length;
 }
 /* Datei versenden: Handy/Tablet über das Teilen-Menü (dort «Mail» wählen, Datei ist angehängt);
-   PC: Datei in den Download-Ordner speichern und ein vorbereitetes Mail öffnen (Anhängen muss man selbst, mailto kann keine Anhänge). */
+   PC: nur Download, kein Mail. */
 const mailSubj = name => (GR_MODE ? 'Grfhr' : UOS ? 'Führungssystem UOS' : 'Führungssystem') + ': ' + ((D.meta && D.meta.verband) || '') + ' – ' + name;
 const mailBody = (name, pc) => 'Im Anhang die Datei «' + name + '».\n\nÖffnen: im Führungssystem oben auf «Import» und die Datei wählen.' + (pc ? '\n\n[Die Datei liegt im Download-Ordner. Bitte vor dem Senden anhängen.]' : '');
 function openMail(name, pc) {
@@ -3386,7 +3386,6 @@ async function shareFile(obj, name) {
   } catch (e) { if (e && e.name === 'AbortError') return 'abgebrochen'; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'application/json' })); a.download = name;
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
-  setTimeout(() => openMail(name, true), 300);
   return 'gespeichert';
 }
 const fnSafe = s => String(s || '').replace(/[^A-Za-z0-9ÄÖÜäöü_-]+/g, '_');
