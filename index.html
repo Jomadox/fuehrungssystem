@@ -1990,8 +1990,12 @@ const lbAvg = a => { const v = a.filter(x => x != null && x !== '').map(Number);
 const lekAnw = () => D.personen.filter(p => !/^besatzer/i.test(String(p.funktion || '')));
 const lekGr = p => { const g = D.zuege.flatMap(z => z.gruppen).find(g => g.id === p.gruppeId); return g ? g.name : ''; };
 function viewLektionen() {
-  const L = D.lektionen || [], f = ui.lek || (ui.lek = { tag: 'all', gr: 'all', anw: 'all', st: 'all', mode: 'lek' });
+  const L = D.lektionen || [], f = ui.lek || (ui.lek = { tag: '', gr: 'all', anw: 'all', st: 'all', mode: 'lek' });
   const days = [...new Set(L.map(l => l.datum))].sort();
+  // Standard: Lektionen von heute; gibt es heute keine, der nächste Tag mit Lektionen (sonst der letzte)
+  let tagHint = '';
+  if (!f.tag) { const heute = isoDay(new Date()); f.tag = days.includes(heute) ? heute : (days.find(d => d > heute) || days[days.length - 1] || 'all');
+    if (f.tag !== 'all' && f.tag !== heute) tagHint = `Heute keine Lektionen. Angezeigt: ${fmtDay(f.tag)}.`; }
   const grs = D.zuege.flatMap(z => z.gruppen), anwAll = lekAnw();
   const anwF = anwAll.filter(p => f.gr === 'all' || p.gruppeId === f.gr);
   const BTR = D.meta.betreuer || [];
@@ -2004,7 +2008,7 @@ function viewLektionen() {
     <label>Gruppe ${sel(f.gr, [['all', 'alle Gruppen'], ...grs.map(g => [g.id, g.name])], 'data-lekflt="gr"')}</label>
     <label>Anw ${sel(f.anw, [['all', 'alle Anw'], ...anwF.map(p => [p.id, nameNV(p)])], 'data-lekflt="anw"')}</label>
     <label>Beurteilung ${sel(f.st, [['all', 'alle'], ['offen', 'offen'], ['fertig', 'beurteilt']], 'data-lekflt="st"')}</label>
-    <span class="hint" style="margin:0">${L.length} Lektionen · ${nDone} von ${pairs.length} Beurteilungen erfasst</span>
+    <span class="hint" style="margin:0">${tagHint ? `<b>${esc(tagHint)}</b> · ` : ''}${L.length} Lektionen · ${nDone} von ${pairs.length} Beurteilungen erfasst</span>
     <button data-lekadd="1" class="small">+ Lektion</button></div>
     <datalist id="lek-btr">${BTR.map(b => `<option value="${esc(b)}">`).join('')}</datalist>`;
   if (!L.length) return h + `<p class="hint">Noch keine Lektionen erfasst. Lektionen kommen mit der Klassendatei (Import) oder über «+ Lektion».</p></div>`;
