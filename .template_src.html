@@ -89,6 +89,15 @@ svg.ka-mx{cursor:crosshair;display:block;touch-action:manipulation;max-width:100
 .ka-it{padding:4px 10px;border-top:1px solid #f0f0f0;font-size:13px}.ka-it small{display:block;color:#777}
 .ka-it a{color:inherit;text-decoration:none;font-weight:600}
 table.ka-g2 input{font-size:13px}
+
+.gl-bar{border:1px solid #e3e3e3;border-radius:8px;padding:8px 10px;margin:4px 0 12px;background:#fafafa}
+.gl-row{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
+.gl-row label{display:flex;align-items:center;gap:5px;font-size:13px}
+.gl-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.gl-chip{border:1px solid #ccc;border-radius:14px;padding:3px 10px;background:#fff;font-size:12px}
+.gl-chip.on{background:#1d1d1d;color:#fff;border-color:#1d1d1d}
+.gl-chip small{opacity:.75}
+.gl-msg{color:#2e7d32!important;font-weight:600}
 </style>
 <style>
 :root{
@@ -760,7 +769,7 @@ function blankData() {
     meta: { verband: 'Inf DD RS Kp 14-1/1', kdt: 'Hptm Dossenbach | Einh BO', beilage: '', tag: isoDay(new Date()), version: 1, stand: null,
       startH: 5, endH: 24, rasterCols: 20, rasterRows: 20, gelb: 85, rot: 70, karteOpac: 60,
       systemTypen: ['Führung','Fz','VBR','LMg','Breacher','SMW','Funk','Mun','Betr.Stoff'], betreuer: ['DOJ','HUJ','PUR','STM','CAM','SNJ'], ausbThemen: [], ausbStoff: JSON.parse(JSON.stringify(STOFF_INF)), dsid: 'ds' + uid() + uid(), fresh: true },
-    zuege: [], personen: [], systeme: {}, termine: [], auftraege: [], lage: [], antraege: [], linien: [], ausb: [], pend: [], lektionen: [], lbew: [], kader: [],
+    zuege: [], personen: [], systeme: {}, termine: [], auftraege: [], lage: [], antraege: [], linien: [], ausb: [], pend: [], lektionen: [], lbew: [], kader: [], glStore: [],
     karte: null, karteW: 1000, karteH: 1000, karteGeo: null, geo: null, geoUpd: '', tomb: {}
   };
 }
@@ -959,7 +968,7 @@ function load() {
 function migrate(d) {
   const b = blankData();
   d.meta = Object.assign(b.meta, d.meta || {});
-  ['zuege','personen','termine','auftraege','lage','antraege','linien','ausb','pend','lektionen','lbew','kader'].forEach(k => { if (!Array.isArray(d[k])) d[k] = []; });
+  ['zuege','personen','termine','auftraege','lage','antraege','linien','ausb','pend','lektionen','lbew','kader','glStore'].forEach(k => { if (!Array.isArray(d[k])) d[k] = []; });
   if (!d.systeme) d.systeme = {};
   if (!d.tomb) d.tomb = {};
   (d.termine || []).forEach(x => { if (x.kategorie === 'Auftrag/Ausbildung' || x.kategorie === 'Auftrag') x.kategorie = 'Ausbildung'; else if (x.kategorie === 'Entscheidpunkt') x.kategorie = 'Besonderes'; });
@@ -1897,6 +1906,7 @@ function renderHeader() {
 }
 function render() {
   uosRole();
+  if (!GR_MODE) { try { glAuto(); } catch (e) {} }
   if (GR_MODE) return grRender();
   _elCache = null;
   try { syncAutoPend(); } catch (e) {}
@@ -1997,7 +2007,7 @@ function viewVerband() {
   const ps = D.personen.filter(p => p.gruppeId === ui.persGr);
   const s = ui.persGr ? grStatus(ui.persGr) : null;
   const kdo = `<div class="zug-card"><div class="zh"><b>Kp Kdo</b></div><div class="zh"><label class="hint" style="margin:0">Kp Kdt <input data-meta="kdt" value="${esc(D.meta.kdt || '')}" placeholder="Kp Kdt (Grad Name)" style="width:220px"${kd}></label><label class="hint" style="margin:0">Kp Kdt Stv <input data-meta="kdtStv" value="${esc(D.meta.kdtStv || '')}" placeholder="Kp Kdt Stv (Grad Name)" style="width:220px"${kd}></label></div></div>`;
-  return `<div class="card"><h2>Einsatzgliederung</h2>${isKp() ? kdo : ''}<div class="zug-cols">${zc}</div>${isKp() ? '<div class="row-actions"><button data-addzug="1">+ Zug</button></div>' : ''}</div>`;
+  return `<div class="card"><h2>Einsatzgliederung</h2>${glBar()}${isKp() ? kdo : ''}<div class="zug-cols">${zc}</div>${isKp() ? '<div class="row-actions"><button data-addzug="1">+ Zug</button></div>' : ''}</div>`;
 }
 
 
@@ -2016,6 +2026,58 @@ document.addEventListener('click', ev => {
     D.meta.extern = extList().filter(y => y.id !== x.id); D.meta.upd = now; _elCache = null; touch(); render(); return; }
 });
 
+
+/* ---- Varianten der Einsatzgliederung: mehrere benannte Gliederungen, pro Phase (Datum von–bis) eine aktiv ---- */
+const glAll = () => { if (!D.glStore) D.glStore = []; if (!D.meta.glAktiv || !D.glStore.some(g => g.id === D.meta.glAktiv)) {
+    const id = D.meta.glAktiv || 'glMain'; if (!D.glStore.some(g => g.id === id)) D.glStore.unshift({ id, name: 'Grundgliederung', von: '', bis: '', upd: nowISO(), by: ROLE }); D.meta.glAktiv = id; }
+  return D.glStore; };
+const glCur = () => glAll().find(g => g.id === D.meta.glAktiv);
+const glPhase = g => g.von || g.bis ? (g.von ? fmtDayShort(g.von) : '…') + '–' + (g.bis ? fmtDayShort(g.bis) : '…') : 'ohne Phase';
+function glSnapshot() { const c = glCur(); c.zuege = clone(D.zuege); c.personen = clone(D.personen); c.systeme = clone(D.systeme); stamp(c); }
+function glSwitch(id) {
+  const tgt = glAll().find(g => g.id === id); if (!tgt || id === D.meta.glAktiv) return false;
+  glSnapshot();
+  if (!tgt.zuege) { tgt.zuege = clone(D.zuege); tgt.personen = clone(D.personen); tgt.systeme = clone(D.systeme); }
+  const now = nowISO(), keepZ = new Set(tgt.zuege.map(z => z.id)), keepP = new Set(tgt.personen.map(x => x.id)), keepS = new Set(Object.keys(tgt.systeme || {}));
+  // was in der Zielvariante fehlt, wird auf anderen Geräten beim Abgleich ebenfalls entfernt
+  D.zuege.forEach(z => { if (!keepZ.has(z.id)) D.tomb[z.id] = now; }); D.personen.forEach(x => { if (!keepP.has(x.id)) D.tomb[x.id] = now; });
+  Object.keys(D.systeme || {}).forEach(k => { if (!keepS.has(k)) D.tomb[k] = now; });
+  D.zuege = clone(tgt.zuege).map(z => Object.assign(z, { upd: now })); D.personen = clone(tgt.personen).map(x => Object.assign(x, { upd: now }));
+  D.systeme = clone(tgt.systeme || {}); Object.values(D.systeme).forEach(v => { if (v) v.upd = now; });
+  D.meta.glAktiv = id; D.meta.upd = now; _elCache = null; touch(); return true;
+}
+function glAuto() {
+  if (ui.glTag === D.meta.tag) return; ui.glTag = D.meta.tag;
+  const t = D.meta.tag, hit = glAll().filter(g => (g.von || g.bis) && (!g.von || g.von <= t) && (!g.bis || t <= g.bis))
+    .sort((a, b) => ((a.bis || '9999') < (b.bis || '9999') ? -1 : 1))[0]; // bei Überschneidung die engere (früher endende) Phase
+  if (hit && hit.id !== D.meta.glAktiv) { glSwitch(hit.id); ui.glMsg = { tag: t, txt: 'Gliederung «' + hit.name + '» für ' + fmtDayShort(t) + ' aktiviert (Phase ' + glPhase(hit) + ').' }; }
+}
+function glBar() {
+  const L = glAll(), c = glCur(), ed = isAdm(), msg = ui.glMsg && ui.glMsg.tag === D.meta.tag ? ui.glMsg.txt : '';
+  if (!ed) return `<p class="hint">Gliederung: <b>${esc(c.name)}</b> (${esc(glPhase(c))})</p>`;
+  return `<div class="gl-bar"><div class="gl-row"><label>Gliederung ${sel(c.id, L.map(g => [g.id, g.name + ' · ' + glPhase(g)]), 'data-glsel="1"')}</label>
+      <label>Name <input data-glf="name" value="${esc(c.name)}" style="width:170px"></label>
+      <label>Phase von <input type="date" data-glf="von" value="${esc(c.von || '')}"></label><label>bis <input type="date" data-glf="bis" value="${esc(c.bis || '')}"></label>
+      <button class="small" data-glnew="1" title="Neue Variante als Kopie der aktuellen Gliederung (mit Personal)">+ Variante (Kopie)</button>${L.length > 1 ? '<button class="small danger" data-gldel="1">Variante löschen</button>' : ''}</div>
+    ${L.length > 1 ? `<div class="gl-list">${L.slice().sort((a, b) => (a.von || '0') < (b.von || '0') ? -1 : 1).map(g => `<button class="gl-chip${g.id === c.id ? ' on' : ''}" data-glgo="${esc(g.id)}">${esc(g.name)} <small>${esc(glPhase(g))}</small></button>`).join('')}</div>` : ''}
+    ${msg ? `<p class="hint gl-msg">${esc(msg)}</p>` : ''}
+    <p class="hint" style="margin:2px 0 0">Mit einer Phase (von–bis) wird die passende Gliederung automatisch aktiv, sobald oben ein Tag in dieser Phase gewählt ist.</p></div>`;
+}
+document.addEventListener('change', ev => {
+  const t = ev.target; if (!t || !t.dataset || !t.closest('#view') || !isAdm()) return;
+  if (t.dataset.glsel) { ui.glMsg = null; glSwitch(t.value); render(); return; }
+  if (t.dataset.glf) { const c = glCur(); c[t.dataset.glf] = t.value.trim ? t.value.trim() : t.value; stamp(c); D.meta.upd = nowISO(); touch(); render(); return; }
+});
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('button'); if (!b || !b.closest('#view') || !isAdm()) return;
+  if (b.dataset.glgo) { ui.glMsg = null; glSwitch(b.dataset.glgo); render(); return; }
+  if (b.dataset.glnew) { const n = prompt('Name der neuen Variante (z.B. «Durchhalteübung», «Verlegung», «Phase 2»):', glCur().name + ' Kopie'); if (!n || !n.trim()) return;
+    glSnapshot(); const g = NEW({ id: 'gl' + uid(), name: n.trim(), von: '', bis: '', zuege: clone(D.zuege), personen: clone(D.personen), systeme: clone(D.systeme) }); D.glStore.push(g);
+    glSwitch(g.id); ui.glMsg = { tag: D.meta.tag, txt: 'Variante «' + g.name + '» angelegt und aktiv. Phase festlegen, damit sie automatisch gilt.' }; render(); return; }
+  if (b.dataset.gldel) { const c = glCur(), L = glAll(); if (L.length < 2) return;
+    if (!confirm('Variante «' + c.name + '» löschen? Es wird auf eine andere Variante gewechselt.')) return;
+    const other = L.find(g => g.id !== c.id); glSwitch(other.id); D.tomb[c.id] = nowISO(); D.glStore = D.glStore.filter(g => g.id !== c.id); touch(); render(); return; }
+});
 /* ---- BM: Kaderselektion = Anwärtergespräch 1 pro AdA (Formular Seite 1), Will/Kann-Matrix, Prioritäten, Liste für Gespräch 2 ---- */
 const KA_PRIO = { 1: ['will & kann', '#c5e0b4'], 2: ['kann & will nicht', '#fbd5b5'], 3: ['will & kann nicht', '#f8cbad'], 4: ['will nicht & kann nicht', '#e6b9b8'] };
 const KA_LISTE = [['', 'automatisch'], ['p1', 'Prio 1 – 2. Gespräch fix'], ['p2', 'Prio 2 – 2. Gespräch, wenn zu wenig Prio 1'], ['str', 'Streichen']];
@@ -3332,8 +3394,8 @@ function loadKarte(file) {
   img.src = url;
 }
 /* ===================== Zusammenführen und Ordner-Abgleich ===================== */
-const ARRS = ['termine', 'auftraege', 'lage', 'antraege', 'personen', 'zuege', 'linien', 'ausb', 'pend', 'lektionen', 'lbew', 'kader'];
-const SHARED_META = ['verband', 'kdt', 'beilage', 'version', 'startH', 'endH', 'rasterCols', 'rasterRows', 'gelb', 'rot', 'systemTypen', 'betreuer', 'ausbThemen', 'ausbStoff', 'kdtStv', 'karteOpac', 'extern'];
+const ARRS = ['termine', 'auftraege', 'lage', 'antraege', 'personen', 'zuege', 'linien', 'ausb', 'pend', 'lektionen', 'lbew', 'kader', 'glStore'];
+const SHARED_META = ['verband', 'kdt', 'beilage', 'version', 'startH', 'endH', 'rasterCols', 'rasterRows', 'gelb', 'rot', 'systemTypen', 'betreuer', 'ausbThemen', 'ausbStoff', 'kdtStv', 'karteOpac', 'extern', 'glAktiv'];
 const clone = o => JSON.parse(JSON.stringify(o));
 function mergeData(a, b) {
   const out = Object.assign({}, a);
