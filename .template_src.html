@@ -2,7 +2,8 @@
 <html lang="de-CH">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#ffffff">
 <title>Führungssystem Kp</title>
 <style id="page-style">@page { size: A3 landscape; margin: 7mm; }.zv-seg{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 2px}.zv-seg button{font-size:12px;padding:4px 9px}.zv-seg button.on{background:#1d1d1f;color:#fff;border-color:#1d1d1f}
 #lage-map{touch-action:pinch-zoom}#lage-map.panning{cursor:grabbing;opacity:.9}.lage-mapcol .mapbox{overflow:hidden}
@@ -524,6 +525,46 @@ body.grmode select,body.grmode input{padding:7px 8px;font-size:15px}
 .lage-set label.opac{flex-direction:row;align-items:center;gap:6px}.lage-set label.opac input{flex:1;width:auto}
 @media (max-width:1150px){.lage-layout.three{grid-template-columns:minmax(0,1fr) 270px}.lage-layout.three .lage-setcol{grid-column:1/-1;order:3;position:static;max-height:none}}
 @media (max-width:900px){.lage-layout.three{grid-template-columns:1fr}}
+
+/* ===== Handy und Tablet: Layout passt sich der Bildschirmgrösse an (Ausdrucke unverändert) ===== */
+@media screen and (max-width:900px){
+  .zug-cols{flex-direction:column;overflow-x:visible}
+  .zug-cols>.zug-card{min-width:0;width:100%;box-sizing:border-box}
+  .help-pop{left:8px!important;right:8px!important;max-width:none!important;top:60px!important}
+}
+@media screen and (max-width:700px){
+  body{-webkit-text-size-adjust:100%}
+  .app-head{padding:8px 10px 6px!important;gap:6px 8px!important;padding-top:max(8px,env(safe-area-inset-top))!important}
+  .app-head h1{font-size:20px!important}
+  .app-head .wappen{height:38px!important}
+  .app-head .titleblock .unit,.app-head .hdr-meta{font-size:12px!important}
+  .app-head .hdr-tagcol{display:flex;flex-direction:row;gap:6px;align-items:center;flex-wrap:wrap}
+  .app-head .hdr-new{font-size:11px;padding:3px 8px}
+  .app-head .hdr-icons{flex-wrap:wrap;gap:4px}
+  .app-head .ico{width:40px;height:40px}
+  .app-head .save-state{font-size:11px}
+  nav.tabs{flex-wrap:nowrap!important;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:6px 8px!important;gap:2px!important}
+  nav.tabs::-webkit-scrollbar{display:none}
+  nav.tabs button{white-space:nowrap;flex:0 0 auto;padding:8px 12px}
+  main{padding:8px!important}
+  #view .card{padding:12px 10px;border-radius:10px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  #view h2{font-size:18px}
+  /* iOS zoomt bei Schrift unter 16px in Eingabefelder hinein */
+  input,select,textarea{font-size:16px!important}
+  .toolbar{gap:6px 8px}
+  .toolbar label{display:flex;align-items:center;gap:6px;flex:1 1 100%;justify-content:space-between}
+  .toolbar label select,.toolbar label input{flex:1 1 auto;max-width:65%}
+  .toolbar button,.row-actions button{min-height:34px}
+  table.lb td[data-l]::before{content:attr(data-l);display:block;font-size:11px;color:#666;font-weight:600}
+  .druck-menu{right:auto!important;left:0}
+  .qr-box{width:calc(100vw - 16px)!important;max-width:none!important;box-sizing:border-box}
+  .lek-f select{flex:1 1 100%}
+  table.lb input[data-lbf="wer"]{width:160px!important}
+  .zug-cols .gm-h,.zug-cols .gm-r,.zug-cols>.zug-card:only-child .gm-h,.zug-cols>.zug-card:only-child .gm-r{grid-template-columns:56px minmax(0,1.5fr) minmax(0,1fr) 30px!important}
+  table.lb td.lb-n small{display:inline;margin-left:6px}
+  table.lb td.lb-bem{width:auto}
+  table.lb select.lb-sk{width:100%}
+}
 </style>
 </head>
 <body>
@@ -580,6 +621,7 @@ body.grmode select,body.grmode input{padding:7px 8px;font-size:15px}
 /* ===================== Grundlagen ===================== */
 const GR_MODE = /*__GR_MODE__*/false; // Grfhr-Version (eigene Datei Grfhr.html)
 const UOS = /*__UOS_MODE__*/false; // UOS: eine Klasse (Struktur eines Zuges) mit drei Gruppen, ohne Rollen
+document.querySelectorAll(UOS ? 'details[data-help="ausbildung"]' : 'details[data-help="lektionen"]').forEach(d => d.remove()); // Hilfe: nur der passende Reiter
 const LS_KEY = GR_MODE ? 'fuehrungssystem_grfhr_v1' : UOS ? 'fuehrungssystem_uos_v1' : 'fuehrungssystem_kp_v1';
 const DEMO_MAP = "__DEMO_MAP__";
 const DEMO_MAP_W = __DEMO_MAP_W__, DEMO_MAP_H = __DEMO_MAP_H__;
@@ -1921,7 +1963,7 @@ function viewLektionen() {
   const sk = (lek, pid, k, v) => sel(v || '', LB_SK, `data-lbf="${esc(k)}" data-lek="${esc(lek)}" data-pid="${esc(pid)}" class="lb-sk lb-v${esc(v || '0')}"`);
   const row = (l, a, showLek) => { const p = D.personen.find(x => x.id === a.pid), r = lbGet(l.id, a.pid) || {};
     return `<tr class="${lbDone(r) ? 'lb-ok' : ''}"><td class="lb-n">${showLek ? `<b>${esc(l.titel)}</b><small>${esc(fmtDayShort(l.datum))} · ${esc(l.stufe || '')}${l.platz ? ' · ' + esc(l.platz) : ''}</small>` : `${p ? esc(nameNV(p)) : '(unbekannt)'}<small>${p ? esc(lekGr(p)) : ''}${a.rolle === 'a' ? ' · Ass' : ' · hält'}</small>`}</td>
-      <td>${sk(l.id, a.pid, 'fach', r.fach)}</td><td>${sk(l.id, a.pid, 'meth', r.meth)}</td>
+      <td data-l="Fachliche Richtigkeit">${sk(l.id, a.pid, 'fach', r.fach)}</td><td data-l="Methodische Effektivität">${sk(l.id, a.pid, 'meth', r.meth)}</td>
       <td class="lb-bem"><textarea rows="2" data-lbf="bem" data-lek="${esc(l.id)}" data-pid="${esc(a.pid)}" placeholder="Bemerkung">${esc(r.bem || '')}</textarea></td>
       <td><input list="lek-btr" data-lbf="wer" data-lek="${esc(l.id)}" data-pid="${esc(a.pid)}" value="${esc(r.wer || '')}" placeholder="Beurteiler" style="width:100px"></td>
       ${showLek ? '' : `<td><button class="small danger" data-lekunanw="${esc(l.id)}|${esc(a.pid)}" title="Anw von dieser Lektion entfernen">✕</button></td>`}</tr>`; };
