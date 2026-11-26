@@ -4,6 +4,8 @@ t=t.replace('<!--__QRLIBS__-->',libs)
 b=open('demo_map.b64').read().strip()
 m=t.replace('"__DEMO_MAP__"','"data:image/jpeg;base64,'+b+'"').replace('__DEMO_MAP_W__','1474').replace('__DEMO_MAP_H__','1600')
 open('app/Fuehrungssystem.html','w',encoding='utf-8').write(m)
+# BM-Version: wie Kp Kdt, zusätzlich Kaderselektion
+open('app/Fuehrungssystem_BM.html','w',encoding='utf-8').write(m.replace('/*__BM_MODE__*/false','true').replace('<title>Führungssystem Kp</title>','<title>Führungssystem BM</title>'))
 g=t.replace('"__DEMO_MAP__"','"data:image/jpeg;base64,'+b+'"').replace('__DEMO_MAP_W__','1474').replace('__DEMO_MAP_H__','1600').replace('/*__GR_MODE__*/false','true').replace('<title>Führungssystem Kp</title>','<title>Führungssystem Grfhr</title>')
 open('app/Grfhr.html','w',encoding='utf-8').write(g)
 # Web-App (PWA) für iPhone/Android: index.html + manifest + Service Worker + Icons
