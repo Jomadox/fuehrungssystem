@@ -109,6 +109,14 @@ ol.rk-list{list-style:none;margin:0;padding:0}
 .rk-nr{font-weight:700;min-width:26px;color:#555}
 .rk-it.rk-drag{box-shadow:0 6px 18px rgba(0,0,0,.2);border-color:#1d1d1d;opacity:.95}
 .rk-mv{margin-left:auto;display:flex;gap:2px}.rk-mv button{padding:0 7px}
+
+.ka-bereich{margin:0 0 10px}
+.hk-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.hk-txt{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px 14px;margin-top:8px}
+details.hk-entf{opacity:.65}
+details.hk-entfbox{margin-top:12px}
+@media screen and (max-width:700px){#view .seg{flex-wrap:wrap}#view .seg button{flex:1 1 auto}}
+.ka-g1sum{background:#f4f6f8;border:1px solid #d5dbe1;border-radius:6px;padding:8px 10px;margin:8px 0}.ka-g1sum table{border-collapse:collapse;width:100%;font-size:13px}.ka-g1sum th{text-align:left;font-weight:600;color:#444;padding:3px 10px 3px 0;width:190px;vertical-align:top}.ka-g1sum td{padding:3px 0;vertical-align:top}@media screen and (max-width:700px){.ka-g1sum th{width:auto;display:block;padding-bottom:0}.ka-g1sum td{display:block}.ka-g1sum tr{display:block;margin-bottom:4px}}
 </style>
 <style>
 :root{
@@ -662,7 +670,7 @@ body.grmode select,body.grmode input{padding:7px 8px;font-size:15px}
       <p class="hint"><b>Eigene Kartendatei:</b> Ersetzt die swisstopo-Karte (Bild ohne Georeferenz).</p>
       <p class="hint"><b>Signaturen:</b> Signatur wählen und in die Karte klicken: Es entsteht ein neuer Eintrag im angeklickten Rasterfeld. Bei einem bestehenden Eintrag öffnet «Sig» die Signatur zum Bearbeiten. «Betrifft» steuert, welche Stufen den Eintrag sehen (Klasse = alle). Linien (Abschnittsgrenzen, Phasenlinien, Pfeile) unter der Karte wählen, «Linie einzeichnen» klicken und die Punkte setzen.</p></details>
     <details data-help="systeme"><summary>Statusübersicht</summary><p class="hint">Systeme: ok = einsatzbereit, eingeschränkt = gelb, ausgefallen = rot, n/a = nicht vorhanden. Mit ▸ klappst du eine Gruppe auf und bearbeitest Status, Mittel, Mat und Mun pro Soldat. Mitglieder erfasst du in der Einsatzgliederung oder hier mit «+ Soldat». Die Klasse zeigt automatisch den schlechtesten Wert seiner Gruppen. Die Ampelgrenzen stellst du unter «Einstellungen Statusübersicht» ein.</p></details>
-    <details data-help="kader"><summary>Kaderselektion</summary><p class="hint">Erstes Anwärtergespräch mit jedem AdA der Einsatzgliederung (ohne Grfhr, zuschaltbar). Name antippen öffnet das Formular (Seite 1 «Anwärtergespräch»): Datum, Strafregister, Ausbildung, Tätigkeit nach dem Militärdienst / Zielsetzungen, <b>Will/Kann-Matrix</b> (in die Matrix tippen), Bemerkungen und Anwärterliste 1. Der erste Eintrag setzt das Gesprächsdatum auf heute (änderbar); damit gilt das Gespräch als geführt. Aus der Matrix ergibt sich die Prio: 1 will &amp; kann, 2 kann &amp; will nicht, 3 will &amp; kann nicht, 4 will nicht &amp; kann nicht. Die Anwärterliste folgt automatisch (Prio 1 → 2. Gespräch fix, Prio 2 → 2. Gespräch wenn zu wenig Prio 1, Prio 3/4 → streichen) und lässt sich übersteuern. «Übersicht Prio» zeigt alle Gesprochenen nach Prio und die Offenen; «Liste Gespräch 2» enthält nur Prio 1 und 2, mit Termin für das 2. Gespräch und Druck.</p></details>
+    <details data-help="kader"><summary>Kaderselektion</summary><p class="hint">Erstes Anwärtergespräch mit jedem AdA der Einsatzgliederung (ohne Grfhr, zuschaltbar). Name antippen öffnet das Formular (Seite 1 «Anwärtergespräch»): Datum, Strafregister, Ausbildung, Tätigkeit nach dem Militärdienst / Zielsetzungen, <b>Will/Kann-Matrix</b> (in die Matrix tippen), Bemerkungen und Anwärterliste 1. Der erste Eintrag setzt das Gesprächsdatum auf heute (änderbar); damit gilt das Gespräch als geführt. Aus der Matrix ergibt sich die Prio: 1 will &amp; kann, 2 kann &amp; will nicht, 3 will &amp; kann nicht, 4 will nicht &amp; kann nicht. Die Anwärterliste folgt automatisch (Prio 1 → 2. Gespräch fix, Prio 2 → 2. Gespräch wenn zu wenig Prio 1, Prio 3/4 → streichen) und lässt sich übersteuern. «Anwärterliste 1» zeigt alle Gesprochenen nach Prio und die Offenen; «Gespräch 2» enthält nur Prio 1 und 2, mit Termin, Zusammenfassung von Gespräch 1, Fragen und Ergebnis (Positiv / Möglich / Negativ); «Anwärterliste 2» ist die Rangliste (Positiv oben, Möglich darunter), Namen mit Maus oder Finger verschiebbar.</p></details>
     <details data-help="lektionen"><summary>Beurteilung</summary><p class="hint">Alle Lektionen, die die Anw halten, mit Ausbildungsziel, Stufe/Dauer, Grundlagen und Ausbildungsplatz. Pro Anw beurteilt das Berufspersonal sechs Kriterien: <b>Zielsetzung bekannt</b>, <b>Methodischer Aufbau korrekt</b>, <b>Methodische Effizienz</b>, <b>Fachlich korrekt</b>, <b>Räumlich organisiert</b> und <b>Zielsetzung überprüft</b>, je mit Fehlt (1), Mängel (2), Erfüllt (3) oder Übertroffen (4). Der Schnitt wird automatisch berechnet und zur Note gerundet. Liegt der Schnitt zwischen zwei Noten, kann man bewusst auf- oder abrunden; die Begründung gehört in die Bemerkung. «Hält» = verantwortlich, «Ass» = Assistent (in der Ausbildungsplanung mit (x) bezeichnet). Ansicht «pro Anw» zeigt alle Lektionen und die Durchschnittsnote eines Anw.</p></details>
     <details data-help="ausbildung"><summary>Ausbildungskontrolle</summary><p class="hint">Grundlage: Stoffplan Infanterist. Pro Soldat und Kompetenz den Stand festhalten. Klick auf ein Feld schaltet weiter: – hat die Kompetenz nicht › ✓ erfüllt › schwarz = nicht pflichtig. Nicht pflichtige Kompetenzen zählen in den Summen nicht mit. Grfhr und Besatzer erscheinen nicht; die Soldaten stehen mit «Nachname, Vorname». Mehrere AdA gleichzeitig: links die Kästchen der AdA (oder der ganzen Gruppe) anwählen und dann oben die Kompetenz anklicken. Ein Klick in der grauen Gruppenzeile gibt der ganzen Gruppe «erfüllt».</p></details>
     <div style="border-top:1px solid var(--line);margin:2px 0 8px"></div>
@@ -781,7 +789,7 @@ function blankData() {
     meta: { verband: 'Inf DD RS Klasse 14-1/1', kdt: 'Hptm Dossenbach | Einh BO', beilage: '', tag: isoDay(new Date()), version: 1, stand: null,
       startH: 5, endH: 24, rasterCols: 20, rasterRows: 20, gelb: 85, rot: 70, karteOpac: 60,
       systemTypen: ['Führung','Fz','VBR','LMg','Breacher','SMW','Funk','Mun','Betr.Stoff'], betreuer: ['DOJ','HUJ','PUR','STM','CAM','SNJ'], ausbThemen: [], ausbStoff: JSON.parse(JSON.stringify(STOFF_INF)), dsid: 'ds' + uid() + uid(), fresh: true },
-    zuege: [], personen: [], systeme: {}, termine: [], auftraege: [], lage: [], antraege: [], linien: [], ausb: [], pend: [], lektionen: [], lbew: [], kader: [], glStore: [],
+    zuege: [], personen: [], systeme: {}, termine: [], auftraege: [], lage: [], antraege: [], linien: [], ausb: [], pend: [], lektionen: [], lbew: [], kader: [], hkader: [], glStore: [],
     karte: null, karteW: 1000, karteH: 1000, karteGeo: null, geo: null, geoUpd: '', tomb: {}
   };
 }
@@ -980,7 +988,7 @@ function load() {
 function migrate(d) {
   const b = blankData();
   d.meta = Object.assign(b.meta, d.meta || {});
-  ['zuege','personen','termine','auftraege','lage','antraege','linien','ausb','pend','lektionen','lbew','kader','glStore'].forEach(k => { if (!Array.isArray(d[k])) d[k] = []; });
+  ['zuege','personen','termine','auftraege','lage','antraege','linien','ausb','pend','lektionen','lbew','kader','hkader','glStore'].forEach(k => { if (!Array.isArray(d[k])) d[k] = []; });
   if (!d.systeme) d.systeme = {};
   if (!d.tomb) d.tomb = {};
   (d.termine || []).forEach(x => { if (x.kategorie === 'Auftrag/Ausbildung' || x.kategorie === 'Auftrag') x.kategorie = 'Ausbildung'; else if (x.kategorie === 'Entscheidpunkt') x.kategorie = 'Besonderes'; });
@@ -2137,15 +2145,17 @@ function kaForm(x) {
       <label>Gesprächsführer<input list="ks-btr" ${A('wer')} value="${esc(r.wer || '')}" placeholder="Grad Name"></label></div>
   </div>`;
 }
+const kaTop = b => `<h2>Kaderselektion</h2><div class="seg ka-bereich">${[['uof', 'Anwärter Uof'], ['hk', 'Höhere Kader (Of / Hptfw / Four)']].map(([k, l]) => `<button class="${b === k ? 'on' : ''}" data-kabereich="${k}">${l}</button>`).join('')}</div>`;
 function viewKader() {
+  if (ui.ka && ui.ka.bereich === 'hk') return viewHK();
   const f = ui.ka || (ui.ka = { zug: 'all', gr: 'all', st: 'all', mode: 'liste', grfhr: false });
   const open = ui.kaOpen || (ui.kaOpen = new Set());
   const zOpts = [['all', 'alle Klassen'], ...D.zuege.map(z => [z.id, z.name])];
   const gOpts = [['all', 'alle Gruppen'], ...D.zuege.filter(z => f.zug === 'all' || z.id === f.zug).flatMap(z => z.gruppen.map(g => [g.id, (f.zug === 'all' ? z.name + ' ' : '') + g.name]))];
   const all = kaPeople(f), done = all.filter(x => kaDone(x.r)), offen = all.filter(x => !kaDone(x.r));
   const pc = n => done.filter(x => kaPrio(x.r) === n).length;
-  let h = `<div class="card"><h2>Kaderselektion – Anwärtergespräche</h2>
-    <div class="toolbar"><div class="seg">${[['liste', 'Gespräche'], ['prio', 'Übersicht Prio'], ['g2', 'Gespräch 2'], ['rang', 'Rangliste']].map(([k, l]) => `<button class="${f.mode === k ? 'on' : ''}" data-kamode="${k}">${l}</button>`).join('')}</div>
+  let h = `<div class="card">${kaTop('uof')}
+    <div class="toolbar"><div class="seg">${[['liste', 'Gespräch 1'], ['prio', 'Anwärterliste 1'], ['g2', 'Gespräch 2'], ['rang', 'Anwärterliste 2']].map(([k, l]) => `<button class="${f.mode === k ? 'on' : ''}" data-kamode="${k}">${l}</button>`).join('')}</div>
     <label>Klasse ${sel(f.zug, zOpts, 'data-kaflt="zug"')}</label><label>Gruppe ${sel(f.gr, gOpts, 'data-kaflt="gr"')}</label>
     ${f.mode === 'liste' ? `<label>Stand ${sel(f.st, [['all', 'alle'], ['offen', 'noch offen'], ['done', 'gesprochen']], 'data-kaflt="st"')}</label>` : ''}
     <label class="ks-cb"><input type="checkbox" data-kaflt="grfhr"${f.grfhr ? ' checked' : ''}> Grfhr einbeziehen</label></div>
@@ -2161,7 +2171,7 @@ function viewKader() {
   if (f.mode === 'g2') {
     const L = kaG2List(done);
     const nD = L.filter(x => x.r.g2erg).length;
-    h += `<p class="hint">Anwärterliste 1: Prio 1 (2. Gespräch fix) und Prio 2 (2. Gespräch, wenn zu wenig Prio 1). Name antippen öffnet das Gespräch 2. ${offen.length ? `<b>Noch ${offen.length} erste Gespräche offen.</b>` : ''}</p>
+    h += `<p class="hint">Gespräch 2 mit Prio 1 (fix) und Prio 2 (wenn zu wenig Prio 1). Name antippen öffnet das Gespräch 2 mit der Zusammenfassung von Gespräch 1. ${offen.length ? `<b>Noch ${offen.length} erste Gespräche offen.</b>` : ''}</p>
       <div class="ka-sum"><span><b>${nD}</b> von ${L.length} Gespräch 2 geführt</span><span class="ka-bar"><i style="width:${L.length ? nD / L.length * 100 : 0}%"></i></span>${Object.entries(KA_ERG).map(([k, [l, c]]) => `<span class="ka-prio" style="background:${c}">${l}: <b>${L.filter(x => x.r.g2erg === k).length}</b></span>`).join('')}
       <button class="small" data-kaprint="1">Liste drucken</button></div>`;
     if (!L.length) return h + '<p class="hint">Noch niemand auf Prio 1 oder 2.</p></div>';
@@ -2174,7 +2184,7 @@ function viewKader() {
   if (f.mode === 'rang') {
     const R = kaRang(done);
     h += `<p class="hint">Ergebnis Gespräch 2: oben <b>Positiv</b>, darunter <b>Möglich</b>; Negativ kommt nicht auf die Liste. Namen am Griff ⠿ mit Maus oder Finger greifen und verschieben.</p>
-      <div class="row-actions"><button class="small" data-karangprint="1">Rangliste drucken</button></div>`;
+      <div class="row-actions"><button class="small" data-karangprint="1">Anwärterliste 2 drucken</button></div>`;
     let n = 0;
     ['pos', 'mog'].forEach(e => { const arr = R.filter(x => x.r.g2erg === e);
       h += `<div class="rk-h" style="background:${KA_ERG[e][1]}">${KA_ERG[e][0]} <b>${arr.length}</b></div><ol class="rk-list" data-rk="${e}" start="${n + 1}">${arr.map(x => `<li class="rk-it" data-pid="${esc(x.p.id)}"><span class="rk-grip" title="ziehen zum Verschieben">⠿</span><span class="rk-nr">${++n}.</span><b>${esc(nameNV(x.p))}</b><small>${esc(x.z.name + ' · ' + x.g.name)}${x.r.g2bem ? ' · ' + esc(x.r.g2bem.slice(0, 80)) : ''}</small>
@@ -2204,17 +2214,30 @@ const KA_ERG = { pos: ['Positiv', '#c5e0b4'], mog: ['Möglich', '#fbe5a5'], neg:
 const KA_Q = [['q1', 'Was motiviert Sie zum Grfhr?'], ['q2', 'Was bedeutet Führung für Sie? Positives / Negatives Beispiel?'], ['q3', 'Wie würden Sie Kameraden beschreiben? Stärken / Schwächen / Freizeit'], ['q4', 'Grösste Niederlage und Umgang damit?']];
 const kaG2List = done => done.filter(x => ['p1', 'p2'].includes(kaListe(x.r))).sort((a, b) => kaListe(a.r).localeCompare(kaListe(b.r)) || a.z.name.localeCompare(b.z.name) || nameNV(a.p).localeCompare(nameNV(b.p)));
 const kaRang = done => done.filter(x => x.r && (x.r.g2erg === 'pos' || x.r.g2erg === 'mog')).sort((a, b) => (a.r.g2erg === b.r.g2erg ? 0 : a.r.g2erg === 'pos' ? -1 : 1) || (a.r.rang ?? 1e9) - (b.r.rang ?? 1e9) || nameNV(a.p).localeCompare(nameNV(b.p)));
+function kaG1Sum(r) {
+  const row = (l, v) => v ? `<tr><th>${l}</th><td>${v}</td></tr>` : '';
+  const p = kaPrio(r), lst = (KA_LISTE.find(o => o[0] === kaListe(r)) || ['', ''])[1];
+  return `<div class="ka-g1sum"><div class="ka-l">Zusammenfassung Gespräch 1</div><table>
+    ${row('Datum', r.g1 ? esc(fmtDayShort(r.g1)) + (r.wer ? ' · ' + esc(r.wer) : '') : '')}
+    ${row('Will / Kann', p ? `${kaBadge(r)} <small>will ${Math.round(r.will)} % · kann ${Math.round(r.kann)} %</small>` : '')}
+    ${row('Anwärterliste 1', esc(lst))}
+    ${row('Strafregister', r.straf ? (r.straf === 'ja' ? '<b>Ja</b>' : 'Nein') : '')}
+    ${row('Ausbildung', esc(kaAusbTxt(r)))}
+    ${row('Nach dem Militärdienst / Ziele', esc(r.ziel || '').replace(/\n/g, '<br>'))}
+    ${row('Bemerkungen', esc(r.bem || '').replace(/\n/g, '<br>'))}
+  </table></div>`;
+}
 function kaForm2(x) {
   const r = x.r || {}, pid = x.p.id, A = k => `data-kaf="${k}" data-pid="${esc(pid)}"`;
   return `<div class="ka-form">
     <div class="ka-grid"><label>Termin Gespräch 2<input type="datetime-local" ${A('g2')} value="${esc(r.g2 || '')}"></label>
-      <div><span class="ka-l">Gespräch 1</span>${kaBadge(r)} ${esc(kaAusbTxt(r))}${r.ziel ? '<br><small>' + esc(r.ziel) + '</small>' : ''}</div></div>
+      <div><span class="ka-l">Klasse</span><b>${esc(x.z.name)}</b> · ${esc(x.g.name)}${x.p.funktion ? ' · ' + esc(x.p.funktion) : ''}</div></div>
+    ${kaG1Sum(r)}
     ${KA_Q.map(([k, q]) => `<label class="ka-full">${q}<textarea rows="2" ${A(k)}>${esc(r[k] || '')}</textarea></label>`).join('')}
     <label class="ka-full">Bemerkungen<textarea rows="2" ${A('g2bem')}>${esc(r.g2bem || '')}</textarea></label>
-    <div class="ka-grid"><div><span class="ka-l">Ergebnis Gespräch 2</span><div class="ka-erg">${Object.entries(KA_ERG).map(([k, [l, c]]) => `<button class="${r.g2erg === k ? 'on' : ''}" style="--c:${c}" data-kaerg="${k}" data-pid="${esc(pid)}">${l}</button>`).join('')}</div></div>
-      <label>Gesprächsführer<input list="ks-btr" ${A('g2wer')} value="${esc(r.g2wer || '')}" placeholder="Grad Name"></label></div></div>`;
+    <div class="ka-grid"><div><span class="ka-l">Ergebnis Gespräch 2</span><div class="ka-erg">${Object.entries(KA_ERG).map(([k, [l, c]]) => `<button class="${r.g2erg === k ? 'on' : ''}" style="--c:${c}" data-kaerg="${k}" data-pid="${esc(pid)}">${l}</button>`).join('')}</div></div></div></div>`;
 }
-function kaRangSave(listEl) { const now = nowISO(); [...document.querySelectorAll('.rk-list .rk-it')].forEach((li, i) => { const r = kaGet(li.dataset.pid); if (r && r.rang !== i) { r.rang = i; r.upd = now; r.by = ROLE; } }); touch(); render(); }
+function kaRangSave(listEl) { const now = nowISO(); [...document.querySelectorAll('.rk-list .rk-it')].forEach((li, i) => { const r = li.closest('.rk-list').dataset.store === 'hk' ? hkGet(li.dataset.pid) : kaGet(li.dataset.pid); if (r && r.rang !== i) { r.rang = i; r.upd = now; r.by = ROLE; } }); touch(); render(); }
 /* Ziehen mit Maus oder Finger (Pointer Events), nur innerhalb der eigenen Liste (Positiv / Möglich) */
 document.addEventListener('pointerdown', ev => {
   const g = ev.target.closest && ev.target.closest('.rk-grip'); if (!g) return;
@@ -2239,12 +2262,66 @@ document.addEventListener('click', ev => {
 function kaPrintRang() {
   const R = kaRang(kaPeople(ui.ka).filter(x => kaDone(x.r)));
   const w = window.open('', '_blank'); if (!w) { alert('Das Druckfenster wurde blockiert. Bitte Pop-ups für diese Seite erlauben.'); return; }
-  w.document.write(`<!doctype html><meta charset="utf-8"><title>Rangliste Anwärter</title><style>body{font:12px Arial,sans-serif;margin:15mm}h1{font-size:17px;margin:0 0 4px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:4px 5px;text-align:left;vertical-align:top}th{background:#eee}.pos{background:#c5e0b4}.mog{background:#fbe5a5}@page{size:A4;margin:12mm}</style>
-    <h1>Rangliste Anwärter (nach Gespräch 2)</h1><p>${esc(D.meta.verband || '')} · Stand ${esc(fmtDayShort(isoDay(new Date())))} · ${R.length} Anwärter</p>
+  w.document.write(`<!doctype html><meta charset="utf-8"><title>Anwärterliste 2</title><style>body{font:12px Arial,sans-serif;margin:15mm}h1{font-size:17px;margin:0 0 4px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:4px 5px;text-align:left;vertical-align:top}th{background:#eee}.pos{background:#c5e0b4}.mog{background:#fbe5a5}@page{size:A4;margin:12mm}</style>
+    <h1>Anwärterliste 2 (Rangliste nach Gespräch 2)</h1><p>${esc(D.meta.verband || '')} · Stand ${esc(fmtDayShort(isoDay(new Date())))} · ${R.length} Anwärter</p>
     <table><tr><th>Rang</th><th>Ergebnis</th><th>Name, Vorname</th><th>Klasse</th><th>Gruppe</th><th>Bemerkungen</th></tr>
     ${R.map((x, i) => `<tr><td>${i + 1}</td><td class="${x.r.g2erg}">${KA_ERG[x.r.g2erg][0]}</td><td>${esc(nameNV(x.p))}</td><td>${esc(x.z.name)}</td><td>${esc(x.g.name)}</td><td>${esc(x.r.g2bem || '')}</td></tr>`).join('')}</table>`);
   w.document.close(); setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 300);
 }
+
+/* ---- BM: Selektion höhere Kader aus dem Pool der Gruppenführer (Wm): Interesse Of / Hptfw / Four, Ranglisten ---- */
+const HK_INT = { of: ['Of', '#c9daf8'], hptfw: ['Hptfw', '#c5e0b4'], four: ['Four', '#fbe5a5'], kein: ['kein Interesse', '#e0e0e0'] };
+const hkId = pid => 'hk|' + pid;
+const hkGet = pid => (D.hkader || []).find(x => x.id === hkId(pid));
+const hkPool = () => { const out = []; D.zuege.forEach(z => z.gruppen.forEach(g => D.personen.filter(p => p.gruppeId === g.id && (isGrfhr(p) || /^wm\b/i.test(String(p.grad || '')))).forEach(p => out.push({ p, z, g, r: hkGet(p.id) || {} })))); return out; };
+function hkSet(pid, k, v) { let r = hkGet(pid); if (!r) { r = NEW({ id: hkId(pid), pid }); D.hkader.push(r); } if (r[k] === v) return false;
+  r[k] = v; if (k === 'int' && v && v !== 'kein') r.rang = 1e6 + Date.now() % 1e6; stamp(r); touch(); return true; }
+function viewHK() {
+  const f = ui.ka, open = ui.kaOpen || (ui.kaOpen = new Set()), mode = f.hkmode || 'pool';
+  const pool = hkPool(), act = pool.filter(x => !x.r.entf), entf = pool.filter(x => x.r.entf);
+  const cnt = k => act.filter(x => (x.r.int || '') === k).length, offen = act.filter(x => !x.r.int).length;
+  let h = `<div class="card">${kaTop('hk')}
+    <div class="toolbar"><div class="seg">${[['pool', 'Pool & Gespräche'], ['rang', 'Ranglisten']].map(([k, l]) => `<button class="${mode === k ? 'on' : ''}" data-hkmode="${k}">${l}</button>`).join('')}</div></div>
+    <div class="ka-sum"><span>Pool <b>${pool.length}</b> Grfhr</span><span><b>${offen}</b> offen</span>${Object.entries(HK_INT).map(([k, [l, c]]) => `<span class="ka-prio" style="background:${c}">${l}: <b>${cnt(k)}</b></span>`).join('')}${entf.length ? `<span class="hint" style="margin:0">${entf.length} entfernt</span>` : ''}</div>`;
+  if (!pool.length) return h + '<p class="hint">Keine Gruppenführer in der Einsatzgliederung (Funktion «Grfhr» oder Grad «Wm»).</p></div>';
+  if (mode === 'rang') {
+    h += `<p class="hint">Pro Laufbahn eine Rangliste. Namen am Griff ⠿ mit Maus oder Finger greifen und verschieben. <button class="small" data-hkprint="1">Ranglisten drucken</button></p><div class="hk-cols">`;
+    ['of', 'hptfw', 'four'].forEach(k => { const L = act.filter(x => x.r.int === k).sort((a, b) => (a.r.rang ?? 1e12) - (b.r.rang ?? 1e12) || nameNV(a.p).localeCompare(nameNV(b.p)));
+      h += `<div><div class="rk-h" style="background:${HK_INT[k][1]}">${HK_INT[k][0]} <b>${L.length}</b></div><ol class="rk-list" data-store="hk" data-rk="${k}">${L.map((x, i) => `<li class="rk-it" data-pid="${esc(x.p.id)}"><span class="rk-grip" title="ziehen zum Verschieben">⠿</span><span class="rk-nr">${i + 1}.</span><b>${esc(nameNV(x.p))}</b><small>${esc(x.z.name + ' · ' + x.g.name)}${x.r.staerken ? ' · + ' + esc(x.r.staerken.slice(0, 60)) : ''}</small>
+        <span class="rk-mv"><button class="small" data-rkmv="-1" title="nach oben">▲</button><button class="small" data-rkmv="1" title="nach unten">▼</button></span></li>`).join('') || '<li class="hint" style="list-style:none">–</li>'}</ol></div>`; });
+    return h + '</div></div>';
+  }
+  const ord = { '': 0, of: 1, hptfw: 2, four: 3, kein: 4 };
+  const row = x => { const r = x.r, k = 'hk:' + x.p.id, A = kk => `data-hkf="${kk}" data-pid="${esc(x.p.id)}"`;
+    return `<details class="ka-p${r.int ? ' done' : ''}${r.entf ? ' hk-entf' : ''}" data-kap="${esc(k)}"${open.has(k) ? ' open' : ''}><summary><span class="ka-st">${r.int ? '✓' : '○'}</span><b>${esc(nameNV(x.p))}</b><small>${esc((x.p.grad ? x.p.grad + ' · ' : '') + x.z.name + ' · ' + x.g.name)}</small>
+      ${r.int ? `<span class="ka-prio" style="background:${HK_INT[r.int][1]}">${HK_INT[r.int][0]}</span>` : '<small class="ka-dt">offen</small>'}
+      ${r.int === 'kein' && !r.entf ? `<button class="small danger" data-hkentf="${esc(x.p.id)}" title="aus der Liste entfernen">entfernen</button>` : ''}${r.entf ? `<button class="small" data-hkback="${esc(x.p.id)}">zurückholen</button>` : ''}</summary>
+      ${open.has(k) ? `<div class="ka-form"><span class="ka-l">Interesse</span><div class="ka-erg">${Object.entries(HK_INT).map(([kk, [l, c]]) => `<button class="${r.int === kk ? 'on' : ''}" style="--c:${c}" data-hkint="${kk}" data-pid="${esc(x.p.id)}">${l}</button>`).join('')}</div>
+        <div class="hk-txt"><label class="ka-full">Stärken<textarea rows="3" ${A('staerken')}>${esc(r.staerken || '')}</textarea></label><label class="ka-full">Schwächen<textarea rows="3" ${A('schwaechen')}>${esc(r.schwaechen || '')}</textarea></label></div>
+        <label class="ka-full">Sonstige Bemerkungen<textarea rows="2" ${A('bem')}>${esc(r.bem || '')}</textarea></label></div>` : ''}</details>`; };
+  h += act.slice().sort((a, b) => ord[a.r.int || ''] - ord[b.r.int || ''] || a.z.name.localeCompare(b.z.name) || nameNV(a.p).localeCompare(nameNV(b.p))).map(row).join('');
+  if (entf.length) h += `<details class="hk-entfbox"><summary class="hint">Entfernt (kein Interesse): ${entf.length}</summary>${entf.map(row).join('')}</details>`;
+  return h + '</div>';
+}
+function hkPrint() {
+  const act = hkPool().filter(x => !x.r.entf);
+  const w = window.open('', '_blank'); if (!w) { alert('Das Druckfenster wurde blockiert. Bitte Pop-ups für diese Seite erlauben.'); return; }
+  w.document.write(`<!doctype html><meta charset="utf-8"><title>Ranglisten höhere Kader</title><style>body{font:12px Arial,sans-serif;margin:15mm}h1{font-size:17px;margin:0 0 4px}h2{font-size:14px;margin:14px 0 4px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:4px 5px;text-align:left;vertical-align:top}th{background:#eee}@page{size:A4 landscape;margin:12mm}</style>
+    <h1>Selektion höhere Kader – Ranglisten</h1><p>${esc(D.meta.verband || '')} · Stand ${esc(fmtDayShort(isoDay(new Date())))}</p>
+    ${['of', 'hptfw', 'four'].map(k => { const L = act.filter(x => x.r.int === k).sort((a, b) => (a.r.rang ?? 1e12) - (b.r.rang ?? 1e12));
+      return `<h2>${HK_INT[k][0]} (${L.length})</h2><table><tr><th>Rang</th><th>Grad Name, Vorname</th><th>Klasse / Gruppe</th><th>Stärken</th><th>Schwächen</th><th>Bemerkungen</th></tr>${L.map((x, i) => `<tr><td>${i + 1}</td><td>${esc((x.p.grad ? x.p.grad + ' ' : '') + nameNV(x.p))}</td><td>${esc(x.z.name + ' · ' + x.g.name)}</td><td>${esc(x.r.staerken || '')}</td><td>${esc(x.r.schwaechen || '')}</td><td>${esc(x.r.bem || '')}</td></tr>`).join('') || '<tr><td colspan="6">–</td></tr>'}</table>`; }).join('')}`);
+  w.document.close(); setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 300);
+}
+document.addEventListener('change', ev => { const t = ev.target; if (!t || !t.dataset || !t.dataset.hkf || !t.closest('#view')) return; hkSet(t.dataset.pid, t.dataset.hkf, t.value); });
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('button'); if (!b || !b.closest('#view')) return;
+  if (b.dataset.kabereich) { ui.ka = ui.ka || {}; ui.ka.bereich = b.dataset.kabereich; render(); return; }
+  if (b.dataset.hkmode) { ui.ka.hkmode = b.dataset.hkmode; render(); return; }
+  if (b.dataset.hkint) { const r0 = hkGet(b.dataset.pid), v = r0 && r0.int === b.dataset.hkint ? '' : b.dataset.hkint; hkSet(b.dataset.pid, 'int', v); render(); return; }
+  if (b.dataset.hkentf) { ev.preventDefault(); hkSet(b.dataset.hkentf, 'entf', true); render(); return; }
+  if (b.dataset.hkback) { ev.preventDefault(); hkSet(b.dataset.hkback, 'entf', false); render(); return; }
+  if (b.dataset.hkprint) { hkPrint(); return; }
+});
 function kaPrintG2() {
   const f = ui.ka, L = kaPeople(f).filter(x => kaDone(x.r) && ['p1', 'p2'].includes(kaListe(x.r))).sort((a, b) => kaListe(a.r).localeCompare(kaListe(b.r)) || a.z.name.localeCompare(b.z.name) || nameNV(a.p).localeCompare(nameNV(b.p)));
   const w = window.open('', '_blank'); if (!w) { alert('Das Druckfenster wurde blockiert. Bitte Pop-ups für diese Seite erlauben.'); return; }
@@ -3365,8 +3442,8 @@ function exportData(ziel) {
   // BM: Ziel wählen. «Für Klassenlehrer» ohne Kaderselektion (Anwärtergespräche bleiben bei den BM), «Für BM» alles
   if (BM && !ziel) { qrOpen('Export für …', `<p>Für welche Masterdatei soll exportiert werden?</p>
     <div class="qr-row" style="flex-direction:column;align-items:stretch;gap:8px"><button class="primary" data-bmexp="kp">Für Klassenlehrer<br><small>alles ausser Kaderselektion</small></button>
-    <button data-bmexp="bm">Für BM<br><small>alles, inkl. Kaderselektion (${(D.kader || []).length} Einträge)</small></button></div>`); return; }
-  const o = exportObj(); if (BM && ziel === 'kp') o.kader = [];
+    <button data-bmexp="bm">Für BM<br><small>alles, inkl. Kaderselektion (${(D.kader || []).length + (D.hkader || []).length} Einträge)</small></button></div>`); return; }
+  const o = exportObj(); if (BM && ziel === 'kp') { o.kader = []; o.hkader = []; }
   return shareFile(o, `Fuehrung_${roleFileBase()}${BM ? (ziel === 'kp' ? '_fuer_KpKdt' : '_fuer_BM') : ''}_${D.meta.tag}_${pad(d.getHours())}${pad(d.getMinutes())}.json`);
 }
 document.addEventListener('click', ev => { const b = ev.target.closest && ev.target.closest('[data-bmexp]'); if (!b) return; const z = b.dataset.bmexp; qrClose(); exportData(z); });
@@ -3468,7 +3545,7 @@ function loadKarte(file) {
   img.src = url;
 }
 /* ===================== Zusammenführen und Ordner-Abgleich ===================== */
-const ARRS = ['termine', 'auftraege', 'lage', 'antraege', 'personen', 'zuege', 'linien', 'ausb', 'pend', 'lektionen', 'lbew', 'kader', 'glStore'];
+const ARRS = ['termine', 'auftraege', 'lage', 'antraege', 'personen', 'zuege', 'linien', 'ausb', 'pend', 'lektionen', 'lbew', 'kader', 'hkader', 'glStore'];
 const SHARED_META = ['verband', 'kdt', 'beilage', 'version', 'startH', 'endH', 'rasterCols', 'rasterRows', 'gelb', 'rot', 'systemTypen', 'betreuer', 'ausbThemen', 'ausbStoff', 'kdtStv', 'karteOpac', 'extern', 'glAktiv'];
 const clone = o => JSON.parse(JSON.stringify(o));
 function mergeData(a, b) {
