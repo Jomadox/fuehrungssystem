@@ -39,6 +39,10 @@ table.lb .lb-nt.lb-v4{background:#c8e6c9} table.lb .lb-nt.lb-v3{background:#e8f5
 select.lb-rd{display:block;margin-top:2px;max-width:150px}
 select.lb-sk{min-width:110px!important}
 table.lb td.lb-bem{width:26%}
+
+.calh-row.ext .calh-lbl{background:#f3f0ff;font-style:italic}
+.calh-lbl .ext-b{display:inline-flex;gap:2px;margin-left:4px;vertical-align:middle}
+.calh-lbl .ext-b button{padding:0 4px;font-size:11px;min-height:0;line-height:1.4}
 </style>
 <style>
 :root{
@@ -583,7 +587,7 @@ body.grmode select,body.grmode input{padding:7px 8px;font-size:15px}
       <p class="hint"><b>Auftrag:</b> Von → An. Erscheint beim Absender als «Aufträge an …» und beim Empfänger als «Erhaltener Auftrag». <b>Absicht:</b> Von = wessen Absicht (erscheint eine und zwei Stufen tiefer). <b>Besondere Anordnung:</b> An leer = alle Unterstellten. Ohne Datum gilt ein Eintrag jeden Tag.</p>
       <p class="hint">Anträge der Gruppen und Züge erscheinen beim Empfänger. Typ «Änderung» erscheint im Änderungsjournal des Tages auf allen betroffenen Druckansichten. Offene Anträge bleiben sichtbar, bis sie erledigt sind.</p></details>
     <details data-help="verband"><summary>Einsatzgliederung</summary><p class="hint">Namen des Kommandos, der Züge (mit Zfhr und Stv) und der Gruppen erscheinen in allen Druckansichten. Die Züge stehen nebeneinander, die Gruppen untereinander. Besatzer werden nicht in die Ausbildungskontrolle aufgenommen.</p></details>
-    <details data-help="termine"><summary>Synchromatrix</summary><p class="hint">Aufbau wie im Ausdruck: Zeit von links nach rechts, pro Tag eine Zeile je Verband. In einer leeren Zeile ziehen = neuer Termin. Termin ziehen = verschieben, mit gedrückter Ctrl-Taste ziehen = kopieren, auch in einen anderen Zug oder Tag. Rechten Rand ziehen = Dauer ändern. Klick auf einen Termin = Angaben ergänzen. Klick auf den Tag = Tag für die Druckansichten. Raster 15 Minuten. Änderungen werden sofort gespeichert und erscheinen in allen Druckansichten.</p></details>
+    <details data-help="termine"><summary>Synchromatrix</summary><p class="hint">Aufbau wie im Ausdruck: Zeit von links nach rechts, pro Tag eine Zeile je Verband. In einer leeren Zeile ziehen = neuer Termin. Termin ziehen = verschieben, mit gedrückter Ctrl-Taste ziehen = kopieren, auch in einen anderen Zug oder Tag. Rechten Rand ziehen = Dauer ändern. Klick auf einen Termin = Angaben ergänzen. Klick auf den Tag = Tag für die Druckansichten. Raster 15 Minuten. Änderungen werden sofort gespeichert und erscheinen in allen Druckansichten. Mit «+ Verband / Det» lassen sich zusätzliche Zeilen für weitere Verbände oder Detachemente anlegen (unabhängig von der Einsatzgliederung); ✎ benennt sie um, ✕ entfernt sie samt ihren Terminen.</p></details>
     <details data-help="lage"><summary>Lagekarte</summary>
       <p class="hint"><b>swisstopo-Karte:</b> Ort, Flurname oder Koordinaten (z.B. 2674800 / 1245500) suchen, dann wird die swisstopo-Karte die Grundlage. Massstab und Kartentyp wählen. Online werden die Kacheln bei swisstopo geladen, dabei wird der Kartenausschnitt übermittelt. Vor dem Einsatz ohne Internet «Ausschnitt offline speichern»: Dann erscheint der Ausschnitt auch offline mit denselben Positionen.</p>
       <p class="hint"><b>Ausschnitt verschieben:</b> Karte mit gedrückter Maus ziehen, oder mit den Pfeilen. Ein kurzer Klick setzt weiterhin eine Signatur. Beim Verschieben oder Zoomen bleiben Signaturen und Linien am selben Ort im Gelände, ihre Rasterfelder ändern sich.</p>
@@ -592,7 +596,7 @@ body.grmode select,body.grmode input{padding:7px 8px;font-size:15px}
       <p class="hint"><b>Eigene Kartendatei:</b> Ersetzt die swisstopo-Karte (Bild ohne Georeferenz).</p>
       <p class="hint"><b>Signaturen:</b> Signatur wählen und in die Karte klicken: Es entsteht ein neuer Eintrag im angeklickten Rasterfeld. Bei einem bestehenden Eintrag öffnet «Sig» die Signatur zum Bearbeiten. «Betrifft» steuert, welche Stufen den Eintrag sehen (Kp = alle). Linien (Abschnittsgrenzen, Phasenlinien, Pfeile) unter der Karte wählen, «Linie einzeichnen» klicken und die Punkte setzen.</p></details>
     <details data-help="systeme"><summary>Statusübersicht</summary><p class="hint">Systeme: ok = einsatzbereit, eingeschränkt = gelb, ausgefallen = rot, n/a = nicht vorhanden. Mit ▸ klappst du eine Gruppe auf und bearbeitest Status, Mittel, Mat und Mun pro Soldat. Mitglieder erfasst du in der Einsatzgliederung oder hier mit «+ Soldat». Der Zug zeigt automatisch den schlechtesten Wert seiner Gruppen. Die Ampelgrenzen stellst du unter «Einstellungen Statusübersicht» ein.</p></details>
-    <details data-help="lektionen"><summary>Lektionen</summary><p class="hint">Alle Lektionen, die die Anw halten, mit Ausbildungsziel, Stufe/Dauer, Grundlagen und Ausbildungsplatz. Pro Anw beurteilt das Berufspersonal vier Kriterien: <b>Zielsetzung bekannt</b>, <b>Methodischer Aufbau korrekt</b>, <b>Fachlich korrekt</b> und <b>Zielsetzung überprüft</b>, je mit Fehlt (1), Mängel (2), Erfüllt (3) oder Übertroffen (4). Der Schnitt wird automatisch berechnet und zur Note gerundet. Liegt der Schnitt zwischen zwei Noten, kann man bewusst auf- oder abrunden; die Begründung gehört in die Bemerkung. «Hält» = verantwortlich, «Ass» = Assistent (in der Ausbildungsplanung mit (x) bezeichnet). Ansicht «pro Anw» zeigt alle Lektionen und die Durchschnittsnote eines Anw.</p></details>
+    <details data-help="lektionen"><summary>Beurteilung</summary><p class="hint">Alle Lektionen, die die Anw halten, mit Ausbildungsziel, Stufe/Dauer, Grundlagen und Ausbildungsplatz. Pro Anw beurteilt das Berufspersonal fünf Kriterien: <b>Zielsetzung bekannt</b>, <b>Methodischer Aufbau korrekt</b>, <b>Methodische Effizienz</b>, <b>Fachlich korrekt</b> und <b>Zielsetzung überprüft</b>, je mit Fehlt (1), Mängel (2), Erfüllt (3) oder Übertroffen (4). Der Schnitt wird automatisch berechnet und zur Note gerundet. Liegt der Schnitt zwischen zwei Noten, kann man bewusst auf- oder abrunden; die Begründung gehört in die Bemerkung. «Hält» = verantwortlich, «Ass» = Assistent (in der Ausbildungsplanung mit (x) bezeichnet). Ansicht «pro Anw» zeigt alle Lektionen und die Durchschnittsnote eines Anw.</p></details>
     <details data-help="ausbildung"><summary>Ausbildungskontrolle</summary><p class="hint">Grundlage: Stoffplan Infanterist. Pro Soldat und Kompetenz den Stand festhalten. Klick auf ein Feld schaltet weiter: – hat die Kompetenz nicht › ✓ erfüllt › schwarz = nicht pflichtig. Nicht pflichtige Kompetenzen zählen in den Summen nicht mit. Grfhr und Besatzer erscheinen nicht; die Soldaten stehen mit «Nachname, Vorname». Mehrere AdA gleichzeitig: links die Kästchen der AdA (oder der ganzen Gruppe) anwählen und dann oben die Kompetenz anklicken. Ein Klick in der grauen Gruppenzeile gibt der ganzen Gruppe «erfüllt».</p></details>
     <div style="border-top:1px solid var(--line);margin:2px 0 8px"></div>
 
@@ -686,7 +690,7 @@ const tombstone = id => { if (!D.tomb) D.tomb = {}; D.tomb[id] = nowISO(); };
 const myScope = () => { const z = roleZug(); return new Set(['kp', ...(z ? [z.id, ...z.gruppen.map(g => g.id)] : [])]); };
 const visLage = l => isKp() || myScope().has(l.betrifft || 'kp') || myScope().has(l.quelle);
 const visLin = l => isKp() || myScope().has(l.quelle || 'kp');
-function inZug(id) { if (isAdm()) return true; const z = roleZug(); if (!z) return false; return id === z.id || z.gruppen.some(g => g.id === id); }
+function inZug(id) { if (isAdm() || isExt(id)) return true; const z = roleZug(); if (!z) return false; return id === z.id || z.gruppen.some(g => g.id === id); }
 function canEdit(kind, r) {
   if (isAdm()) return true;
   if (!r) return false;
@@ -862,12 +866,15 @@ function uosDemo() {
   return d;
 }
 /* Verband-Hilfen */
+const extList = () => (D && D.meta && Array.isArray(D.meta.extern)) ? D.meta.extern : [];
+const isExt = id => !!id && extList().some(x => x.id === id);
 function elements() {
   const list = [{ id: 'kp', type: 'kp', name: 'Kp', short: 'Kp', zugId: null }];
   D.zuege.forEach(z => {
     list.push({ id: z.id, type: 'zug', name: UOS ? 'Klasse ' + z.name : z.name, short: UOS ? 'Klasse' : z.name, zugId: z.id });
     z.gruppen.forEach(g => list.push({ id: g.id, type: 'gr', name: UOS ? g.name : grLbl(z, g), short: g.name, zugId: z.id }));
   });
+  extList().forEach(x => list.push({ id: x.id, type: 'ext', name: x.name, short: x.name, zugId: null }));
   return list;
 }
 let _elCache = null;
@@ -971,6 +978,7 @@ function rowsKp(day) {
   const it = dayItems(day), rows = [];
   if (!UOS) rows.push({ label: 'Kompanie', items: it.filter(x => isMain(x.t) && x.t.element === 'kp') });
   D.zuege.forEach(z => rows.push({ label: z.name, items: it.filter(x => isMain(x.t) && (x.t.element === z.id || el(x.t.element).zugId === z.id && x.t.element !== z.id)).map(x => withPrefix(x, x.t.element !== z.id ? el(x.t.element).short : '')) }));
+  extList().forEach(x => rows.push({ label: x.name, items: it.filter(y => isMain(y.t) && y.t.element === x.id) }));
   CROSS.forEach(([k, lbl]) => rows.push({ label: lbl, items: it.filter(x => x.t.kategorie === k).map(x => withPrefix(x, x.t.element !== 'kp' ? el(x.t.element).name : '')) }));
   return rows;
 }
@@ -980,6 +988,7 @@ function rowsZug(day, z) {
   if (!UOS) rows.push({ label: 'Kompanie', items: it.filter(x => isMain(x.t) && x.t.element === 'kp') });
   rows.push({ label: 'Zug ' + z.name, items: it.filter(x => isMain(x.t) && x.t.element === z.id) });
   z.gruppen.forEach(g => rows.push({ label: g.name, items: it.filter(x => isMain(x.t) && x.t.element === g.id) }));
+  extList().forEach(x => { const its = it.filter(y => isMain(y.t) && y.t.element === x.id); if (its.length) rows.push({ label: x.name, items: its }); });
   CROSS.forEach(([k, lbl]) => rows.push({ label: lbl, items: it.filter(x => x.t.kategorie === k && mine.has(x.t.element)).map(x => withPrefix(x, x.t.element === 'kp' ? '' : x.t.element === z.id ? '' : el(x.t.element).short)) }));
   return rows;
 }
@@ -987,6 +996,7 @@ function rowsWeek(day) {
   const it = dayItems(day), rows = [];
   if (!UOS) rows.push({ label: 'Kompanie', items: it.filter(x => isMain(x.t) && x.t.element === 'kp') });
   D.zuege.forEach(z => rows.push({ label: z.name, items: it.filter(x => isMain(x.t) && (x.t.element === z.id || el(x.t.element).zugId === z.id && x.t.element !== z.id)).map(x => withPrefix(x, x.t.element !== z.id ? el(x.t.element).short : '')) }));
+  extList().forEach(x => rows.push({ label: x.name, items: it.filter(y => isMain(y.t) && y.t.element === x.id) }));
   const pf = x => withPrefix(x, x.t.element !== 'kp' ? el(x.t.element).name : '');
   rows.push({ label: 'Log / San', items: it.filter(x => x.t.kategorie === 'Logistik' || x.t.kategorie === 'Sanität').map(pf) });
   rows.push({ label: 'Rap / Mdg', items: it.filter(x => x.t.kategorie === 'Rapport' || x.t.kategorie === 'Meldung').map(pf) });
@@ -1799,12 +1809,12 @@ function pagesWeek() {
   const days = [0, 1, 2, 3, 4, 5, 6].map(i => addDays(mo, i));
   // immer eine Seite A3: kompakte Zeilen (3,4 mm), leere Nebenzeilen weggelassen, Tag im Zeitkopf, keine Skalierung
   return `<div class="page a3">${pageHead('Wochenplan Kp', 'Woche ' + fmtDayShort(mo) + '–' + fmtDayShort(addDays(mo, 6)) + addDays(mo, 6).slice(0, 4), 1, 1)}
-    <div class="wk-fit"><div class="wk-in">${days.map((d, i) => `<div class="wk-day${i ? '' : ' first'}">` + synchroHTML(rowsWeek(d).filter((r, ri) => ri <= D.zuege.length || r.items.length), { lane: 3.4, headLabel: fmtDay(d).split(',')[0].slice(0, 2) + ' ' + fmtDayShort(d), half: false }) + '</div>').join('')}${smLegend()}</div></div></div>`;
+    <div class="wk-fit"><div class="wk-in">${days.map((d, i) => `<div class="wk-day${i ? '' : ' first'}">` + synchroHTML(rowsWeek(d).filter((r, ri) => ri <= D.zuege.length - (UOS ? 1 : 0) || r.items.length), { lane: 3.4, headLabel: fmtDay(d).split(',')[0].slice(0, 2) + ' ' + fmtDayShort(d), half: false }) + '</div>').join('')}${smLegend()}</div></div></div>`;
 }
 
 /* ===================== Oberfläche ===================== */
 const TABS = [
-  ['pend','Pendenzen'],['verband','Einsatzgliederung'],['termine','Synchromatrix'],['lage','Lagekarte'],['systeme','Statusübersicht'],UOS ? ['lektionen','Lektionen'] : ['ausbildung','Ausbildungskontrolle'], // Befehl/Anträge nur noch im Ausdruck (Handeintrag)
+  ['pend','Pendenzen'],['verband','Einsatzgliederung'],['termine','Synchromatrix'],['lage','Lagekarte'],['systeme','Statusübersicht'],UOS ? ['lektionen','Beurteilung'] : ['ausbildung','Ausbildungskontrolle'], // Befehl/Anträge nur noch im Ausdruck (Handeintrag)
 ];
 const DRUCK = [['p-kp', 'Tagesbefehl'], ['p-zug', 'Zfhr'], ['p-gr', 'Grfhr'], ['p-woche', 'Wochenarbeitsplan']];
 function syncTabs() {
@@ -1859,7 +1869,7 @@ function elementOptions(opt = {}) {
   const own = !isKp() && !opt.full;
   if (opt.bat && !own) list.push(['bat', 'Bat (übergeordnet)']);
   if (opt.alle) list.push(['', 'alle']);
-  elements().filter(e => UOS ? e.id !== 'kp' : (!own || inZug(e.id) || (opt.kp && e.id === 'kp'))).forEach(e => list.push([e.id, e.type === 'kp' ? 'Kp (ganze Kompanie)' : e.type === 'zug' ? (UOS ? e.name : 'Zug ' + e.name) : ' ' + e.name]));
+  elements().filter(e => UOS ? e.id !== 'kp' : (!own || inZug(e.id) || (opt.kp && e.id === 'kp'))).forEach(e => list.push([e.id, e.type === 'kp' ? 'Kp (ganze Kompanie)' : e.type === 'zug' ? (UOS ? e.name : 'Zug ' + e.name) : e.type === 'ext' ? e.name + ' (zusätzlich)' : ' ' + e.name]));
   return list;
 }
 function sel(val, options, attrs) {
@@ -1943,11 +1953,25 @@ function viewVerband() {
 }
 
 
+
+/* ---- Synchromatrix: zusätzliche Verbände / Detachemente ---- */
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('button'); if (!b || !b.closest('#view')) return;
+  const ext = () => (D.meta.extern = extList().slice());
+  if (b.dataset.extadd) { const n = prompt('Name der zusätzlichen Zeile (Verband oder Detachement), z.B. «Det Log», «Nachbarkompanie», «Instruktoren»:', ''); if (!n || !n.trim()) return;
+    ext().push({ id: 'ex' + uid(), name: n.trim() }); D.meta.upd = nowISO(); _elCache = null; touch(); render(); return; }
+  if (b.dataset.extren) { const x = extList().find(y => y.id === b.dataset.extren); if (!x) return; const n = prompt('Neuer Name:', x.name); if (!n || !n.trim()) return;
+    D.meta.extern = extList().map(y => y.id === x.id ? Object.assign({}, y, { name: n.trim() }) : y); D.meta.upd = nowISO(); _elCache = null; touch(); render(); return; }
+  if (b.dataset.extdel) { const x = extList().find(y => y.id === b.dataset.extdel); if (!x) return; const tm = D.termine.filter(t => t.element === x.id);
+    if (!confirm('Zeile «' + x.name + '» entfernen?' + (tm.length ? '\n\n' + tm.length + ' Termin' + (tm.length > 1 ? 'e' : '') + ' dieser Zeile werden ebenfalls gelöscht.' : ''))) return;
+    const now = nowISO(); tm.forEach(t => { D.tomb[t.id] = now; }); D.termine = D.termine.filter(t => t.element !== x.id);
+    D.meta.extern = extList().filter(y => y.id !== x.id); D.meta.upd = now; _elCache = null; touch(); render(); return; }
+});
 /* ---- UOS: Lektionsbewertung (jede Lektion pro Anw nach fachlicher Richtigkeit und methodischer Effektivität) ---- */
 const LB_SK = [['', '–'], ['4', 'Übertroffen'], ['3', 'Erfüllt'], ['2', 'Mängel'], ['1', 'Fehlt']];
 const LB_TXT = { 4: 'Übertroffen', 3: 'Erfüllt', 2: 'Mängel', 1: 'Fehlt' };
 /* Kriterien der Lektionsbewertung (fach/meth bleiben als Schlüssel, damit frühere Beurteilungen erhalten bleiben) */
-const LB_K = [['ziel', 'Zielsetzung bekannt'], ['meth', 'Methodischer Aufbau korrekt'], ['fach', 'Fachlich korrekt'], ['check', 'Zielsetzung überprüft']];
+const LB_K = [['ziel', 'Zielsetzung bekannt'], ['meth', 'Methodischer Aufbau korrekt'], ['eff', 'Methodische Effizienz'], ['fach', 'Fachlich korrekt'], ['check', 'Zielsetzung überprüft']];
 const lbSchnitt = r => { const v = LB_K.map(([k]) => +(r || {})[k]).filter(x => x >= 1); return v.length ? v.reduce((a, x) => a + x, 0) / v.length : null; };
 /* Schlussnote: Schnitt gerundet, oder bewusst auf-/abgerundet (Begründung in der Bemerkung) */
 const lbNote = r => { const a = lbSchnitt(r); if (a == null) return null; const rd = (r || {}).rund; return rd === 'auf' ? Math.ceil(a - 1e-9) : rd === 'ab' ? Math.floor(a + 1e-9) : Math.round(a + 1e-9); };
@@ -1966,7 +1990,7 @@ function viewLektionen() {
   const pairs = L.flatMap(l => (l.anw || []).map(a => ({ l, a, r: lbGet(l.id, a.pid) })));
   const nDone = pairs.filter(x => lbDone(x.r)).length;
   const keepPair = x => (f.gr === 'all' || (D.personen.find(p => p.id === x.a.pid) || {}).gruppeId === f.gr) && (f.anw === 'all' || x.a.pid === f.anw) && (f.st === 'all' || (f.st === 'offen') !== lbDone(x.r));
-  let h = `<div class="card"><h2>Lektionen</h2>
+  let h = `<div class="card"><h2>Beurteilung</h2>
     <div class="toolbar"><label>Ansicht ${sel(f.mode, [['lek', 'nach Tag'], ['anw', 'pro Anw']], 'data-lekflt="mode"')}</label>
     <label>Tag ${sel(f.tag, [['all', 'alle Tage'], ...days.map(d => [d, fmtDayShort(d) + ' ' + d.slice(0, 4)])], 'data-lekflt="tag"')}</label>
     <label>Gruppe ${sel(f.gr, [['all', 'alle Gruppen'], ...grs.map(g => [g.id, g.name])], 'data-lekflt="gr"')}</label>
@@ -2020,7 +2044,7 @@ function viewLektionen() {
 }
 function lbSet(lek, pid, k, v) {
   const id = lbId(lek, pid); let r = lbGet(lek, pid);
-  if (!r) { r = NEW({ id, lek, pid, ziel: '', meth: '', fach: '', check: '', rund: '', bem: '', wer: '' }); D.lbew.push(r); }
+  if (!r) { r = NEW({ id, lek, pid, ziel: '', meth: '', eff: '', fach: '', check: '', rund: '', bem: '', wer: '' }); D.lbew.push(r); }
   if (r[k] === v) return false;
   r[k] = v; if (k !== 'rund' && LB_K.some(x => x[0] === k)) { const av = lbSchnitt(r); if (av == null || Math.floor(av + 1e-9) === Math.ceil(av - 1e-9)) r.rund = ''; } if (k !== 'wer' && !r.wer && ui.lekWer) r.wer = ui.lekWer; if (k === 'wer') ui.lekWer = v; r.datum = isoDay(new Date()); stamp(r); touch(); return true;
 }
@@ -2154,9 +2178,10 @@ function calLanes() {
   const f = isKp() ? (ui.calFilter || 'all') : ROLE;
   const lanes = UOS ? [] : [{ id: 'kp', name: 'Kp' }];
   D.zuege.forEach(z => { if (f === 'all' || f === z.id) { lanes.push({ id: z.id, name: UOS ? 'Klasse ' + z.name : z.name }); if (!isKp()) z.gruppen.forEach(g => lanes.push({ id: g.id, name: UOS ? g.name : grLbl(z, g), gr: true })); } });
+  extList().forEach(x => lanes.push({ id: x.id, name: x.name, ext: true }));
   return lanes;
 }
-const laneOf = id => { const e = el(id); if (e.type === 'kp') return UOS && D.zuege[0] ? D.zuege[0].id : 'kp'; if (!isKp() && e.type === 'gr' && inZug(id)) return id; return e.zugId || 'kp'; };
+const laneOf = id => { const e = el(id); if (e.type === 'ext') return id; if (e.type === 'kp') return UOS && D.zuege[0] ? D.zuege[0].id : 'kp'; if (!isKp() && e.type === 'gr' && inZug(id)) return id; return e.zugId || 'kp'; };
 function calShownDays() {
   const all = calDays(), n = ui.calDays || 7;
   if (n === 1) return [D.meta.tag];
@@ -2192,7 +2217,7 @@ function viewKalender(seg) {
           ${ep || x.carry || ro ? '' : '<div class="rz"></div>'}</div>`;
         if (narrow) evs += `<div class="cal-out" style="left:${left + wid + 4}px;top:${x.col * LANE_H + 2}px;height:${LANE_H - 4}px"><span class="tm">${ep ? '◆ ' : ''}${fmtMin(x.s)}${ep ? '' : '–' + fmtMin(x.e)}</span> <b>${esc(t.taetigkeit || '(ohne Titel)')}</b>${t.betreuung ? ` <b style="color:${btrCol(t.betreuung)}">${esc(t.betreuung)}</b>` : ''}${meta ? `<div class="mt">${esc(meta)}</div>` : ''}</div>`;
       });
-      body += `<div class="calh-row${d === D.meta.tag ? ' today' : ''}"><div class="calh-lbl">${esc(ln.name)}</div><div class="cal-col${inZug(ln.id) ? '' : ' locked'}" data-day="${d}" data-lane="${ln.id}" style="width:${TW}px;height:${nc * LANE_H}px">${evs}</div></div>`;
+      body += `<div class="calh-row${d === D.meta.tag ? ' today' : ''}${ln.ext ? ' ext' : ''}"><div class="calh-lbl">${esc(ln.name)}${ln.ext ? `<span class="ext-b"><button class="small" data-extren="${esc(ln.id)}" title="Umbenennen">✎</button><button class="small danger" data-extdel="${esc(ln.id)}" title="Zeile entfernen">✕</button></span>` : ''}</div><div class="cal-col${inZug(ln.id) ? '' : ' locked'}" data-day="${d}" data-lane="${ln.id}" style="width:${TW}px;height:${nc * LANE_H}px">${evs}</div></div>`;
     });
   });
   const t = ui.editTermin && D.termine.find(x => x.id === ui.editTermin);
@@ -2203,7 +2228,7 @@ function viewKalender(seg) {
     <div class="toolbar">${seg}<button id="cal-prev" class="small">◂ Woche</button><button id="cal-next" class="small">Woche ▸</button>
       <label>Tage ${sel(ui.calDays || 7, [[7, 'Mo–So'], [5, 'Mo–Fr'], [1, 'nur gewählter Tag']], 'id="cal-days"')}</label>
       ${UOS ? '' : `<label>Züge ${sel(ui.calFilter || 'all', fOpts, 'id="cal-filter"')}</label>`}
-      <span class="hint">Zeitraster ${pad(D.meta.startH)}–${pad(D.meta.endH)} Uhr</span><span style="flex:1"></span><button class="small" id="tm-export" title="Nur die Termine der Synchromatrix als JSON-Datei speichern">⤓ Termine speichern</button>${isAdm() ? '<button class="small" id="tm-import" title="Gespeicherte Termine laden: ersetzt alle Termine der Synchromatrix">⤒ Termine laden</button><input type="file" id="file-termine" accept=".json,application/json" hidden>' : ''}${isAdm() ? '<button class="small danger" id="btn-clear-ops" title="Alle Termine löschen (inkl. Aufträge und Anträge)">Termine leeren</button>' : ''}</div>
+      <span class="hint">Zeitraster ${pad(D.meta.startH)}–${pad(D.meta.endH)} Uhr</span><button class="small" data-extadd="1" title="Zusätzliche Zeile für einen Verband oder ein Detachement (z.B. Det Log, Nachbarkompanie, Instruktoren)">+ Verband / Det</button><span style="flex:1"></span><button class="small" id="tm-export" title="Nur die Termine der Synchromatrix als JSON-Datei speichern">⤓ Termine speichern</button>${isAdm() ? '<button class="small" id="tm-import" title="Gespeicherte Termine laden: ersetzt alle Termine der Synchromatrix">⤒ Termine laden</button><input type="file" id="file-termine" accept=".json,application/json" hidden>' : ''}${isAdm() ? '<button class="small danger" id="btn-clear-ops" title="Alle Termine löschen (inkl. Aufträge und Anträge)">Termine leeren</button>' : ''}</div>
     <div id="cal-host"><div class="cal-wrap"><div class="calh" id="cal" style="--hw:${HOUR_W}px;width:${TW + LBL_W}px">
       ${body}</div></div></div>
     <div class="sm-legend" style="font-size:12px;margin-top:8px"><span><i class="k-auftrag"></i>Ausbildung</span><span><i class="k-log"></i>Logistik</span><span><i class="k-san"></i>Sanität</span><span><i class="k-rap"></i>Rapport</span><span><i class="k-mdg"></i>Meldung</span><span><i class="k-bes"></i>Besonderes</span></div>
@@ -3126,7 +3151,7 @@ function loadKarte(file) {
 }
 /* ===================== Zusammenführen und Ordner-Abgleich ===================== */
 const ARRS = ['termine', 'auftraege', 'lage', 'antraege', 'personen', 'zuege', 'linien', 'ausb', 'pend', 'lektionen', 'lbew'];
-const SHARED_META = ['verband', 'kdt', 'beilage', 'version', 'startH', 'endH', 'rasterCols', 'rasterRows', 'gelb', 'rot', 'systemTypen', 'betreuer', 'ausbThemen', 'ausbStoff', 'kdtStv', 'karteOpac'];
+const SHARED_META = ['verband', 'kdt', 'beilage', 'version', 'startH', 'endH', 'rasterCols', 'rasterRows', 'gelb', 'rot', 'systemTypen', 'betreuer', 'ausbThemen', 'ausbStoff', 'kdtStv', 'karteOpac', 'extern'];
 const clone = o => JSON.parse(JSON.stringify(o));
 function mergeData(a, b) {
   const out = Object.assign({}, a);
