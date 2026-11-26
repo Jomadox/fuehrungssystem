@@ -16,6 +16,7 @@
 #lage-map{touch-action:pinch-zoom}#lage-map.panning{cursor:grabbing;opacity:.9}.lage-mapcol .mapbox{overflow:hidden}
 .help-pop details{margin:2px 0;border-top:1px solid var(--line);padding:4px 0}.help-pop details summary{cursor:pointer;font-weight:600;font-size:13px}.help-pop details .hint{margin:4px 0}
 .ak-bulk:empty{display:none}
+.zug-cols>.zug-card:only-child .gm-h,.zug-cols>.zug-card:only-child .gm-r{grid-template-columns:58px minmax(0,1fr) 180px 26px}
 </style>
 <style>
 :root{
@@ -650,7 +651,7 @@ function blankData() {
 /* Gruppenführer: nicht in der Ausbildungskontrolle (Stoffplan Infanterist gilt für die AdA) */
 const noAusb = p => isGrfhr(p) || /^besatzer/i.test(String(p.funktion || '').trim()); // Grfhr und Besatzer: nicht in der Ausbildungskontrolle
 // «Nachname, Vorname» aus dem Feld Name («Nachname Vorname»)
-const nameNV = p => { const t = String(p.name || '').trim().split(/\s+/).filter(Boolean); return t.length > 1 ? t[0] + ', ' + t.slice(1).join(' ') : (t[0] || ''); };
+const nameNV = p => { const t = String(p.name || '').trim().split(/\s+/).filter(Boolean); let k = 1; while (k < t.length - 1 && /^(von|van|de|di|da|del|della|le|la|du|dos|der|ten|vom|zur|zum)$/i.test(t[k - 1])) k++; return t.length > k ? t.slice(0, k).join(' ') + ', ' + t.slice(k).join(' ') : t.join(' '); };
 const isGrfhr = p => /^(gfhr|grfhr|gr fhr|gruppenf)/i.test(String(p.funktion || '').trim());
 const GR_FUNKTIONEN = ['Gfhr','Breacher 1','LMg 1','SMW 1','Trp C','Breacher 2','LMg 2','SMW 2'];
 function defaultStructure(d) {
@@ -812,6 +813,7 @@ function el(id) {
   return _elCache[id] || { id, type: '?', name: '(gelöscht)', short: '?' };
 }
 const zugOf = id => D.zuege.find(z => z.id === id);
+const STV_LBL = UOS ? 'Klassenchef' : 'Stv'; // UOS: Klassenchef statt Stv
 const grLbl = (z, g) => UOS ? g.name : z.name + ' ' + g.name; // Gruppenbezeichnung (UOS ohne Klassenname)
 const grOf = id => { for (const z of D.zuege) { const g = z.gruppen.find(g => g.id === id); if (g) return { z, g }; } return null; };
 
@@ -1586,7 +1588,7 @@ function statusTableKp() {
   const nums = s => `<td>${s.best}</td><td>${s.ef}</td><td>${s.abw || ''}</td><td>${s.verl || ''}</td><td${s.mat ? ' class="m-bad"' : ''}>${s.mat || ''}</td><td${s.mun ? ' class="m-bad"' : ''}>${s.mun || ''}</td>`;
   D.zuege.forEach(z => {
     const zs = zugStatus(z); all.push(zs);
-    h += `<tr class="zug"><td class="l">${esc(z.name)}</td>${nums(zs)}${zs.sys.map(sysCell).join('')}<td>${ampDot(zs.amp)}</td><td class="wrap">${esc(z.fuehrer)}${z.stv ? '<br><small>Stv ' + esc(z.stv) + '</small>' : ''}</td></tr>`;
+    h += `<tr class="zug"><td class="l">${esc(z.name)}</td>${nums(zs)}${zs.sys.map(sysCell).join('')}<td>${ampDot(zs.amp)}</td><td class="wrap">${esc(z.fuehrer)}${z.stv ? '<br><small>' + STV_LBL + ' ' + esc(z.stv) + '</small>' : ''}</td></tr>`;
     z.gruppen.forEach(g => {
       const s = grStatus(g.id);
       h += `<tr><td class="l">&nbsp;&nbsp;${esc(g.name)}</td>${nums(s)}${s.sys.map(sysCell).join('')}<td>${ampDot(s.amp)}</td><td class="wrap">${esc(s.bem)}</td></tr>`;
@@ -1649,7 +1651,7 @@ function pagesZug(z) {
   const day = D.meta.tag;
   const ids = new Set(z.gruppen.map(g => g.id));
   const bes = auf(a => a.art === 'Besondere Anordnung' && ((a.von === 'kp' && (!a.an || a.an === z.id)) || a.von === z.id));
-  const title = 'Führungsdokument Zfhr ' + z.name, who = esc(z.fuehrer || 'Zfhr') + (z.stv ? ' · Stv ' + esc(z.stv) : '');
+  const title = 'Führungsdokument Zfhr ' + z.name, who = esc(z.fuehrer || 'Zfhr') + (z.stv ? ' · ' + STV_LBL + ' ' + esc(z.stv) : '');
   const antr = D.antraege.filter(a => a.typ !== 'Änderung' && (ids.has(a.von) || a.von === z.id || a.an === z.id) && (a.status === 'offen' || onDay(a))).sort(sortZeit);
   const aend = D.antraege.filter(a => a.typ === 'Änderung' && onDay(a) && (a.von === 'kp' || a.von === z.id || ids.has(a.von))).sort(sortZeit);
   const p1 = `<div class="page a4">${pageHead(title, who, 1, 2)}
@@ -1704,7 +1706,7 @@ function pagesGr(z, g) {
       <div class="col flex1">
         <div class="sec" style="margin-top:0">Zeitplan <small>${esc(fmtDay(day))}</small></div>${zp}
         <div class="sec">Status Gruppe</div>${stt}
-        ${box('Kroki', '', 'flex:1;min-height:25mm')}
+        ${box('Kroki', '', 'flex:1;min-height:12mm')}
       </div>
     </div></div>`;
   const items = lageFor('gr', { z, g });
@@ -1861,10 +1863,10 @@ function viewVerband() {
   const allGr = []; D.zuege.filter(z => inZug(z.id)).forEach(z => z.gruppen.forEach(g => allGr.push([g.id, grLbl(z, g)])));
   const kd = isAdm() ? '' : ' disabled';
   if (!ui.persGr || !grOf(ui.persGr)) ui.persGr = allGr.length ? allGr[0][0] : null;
-  const zc = D.zuege.filter(z => inZug(z.id)).map(z => `<div class="zug-card"><div class="zh"><b>Zug</b><input data-zug="${z.id}" data-k="name" value="${esc(z.name)}" style="width:130px"${kd}><label class="zl"><span>Zfhr</span><input data-zug="${z.id}" data-k="fuehrer" value="${esc(z.fuehrer)}" placeholder="Grad Name" style="width:180px"></label><label class="zl"><span>Stv</span><input data-zug="${z.id}" data-k="stv" value="${esc(z.stv || '')}" placeholder="Grad Name" style="width:180px"></label>
+  const zc = D.zuege.filter(z => inZug(z.id)).map(z => `<div class="zug-card"><div class="zh"><b>Zug</b><input data-zug="${z.id}" data-k="name" value="${esc(z.name)}" style="width:130px"${kd}><label class="zl"><span>Zfhr</span><input data-zug="${z.id}" data-k="fuehrer" value="${esc(z.fuehrer)}" placeholder="Grad Name" style="width:180px"></label><label class="zl"><span>${STV_LBL}</span><input data-zug="${z.id}" data-k="stv" value="${esc(z.stv || '')}" placeholder="Grad Name" style="width:180px"></label>${UOS ? `<label class="zl"><span>Fz</span><input data-zug="${z.id}" data-k="fz" value="${esc(z.fz || '')}" placeholder="Fahrzeuge der Klasse" style="width:180px"></label>` : ''}
       ${isAdm() ? `<button class="small" data-addgr="${z.id}">+ Gruppe</button>${UOS ? '' : `<button class="small danger" data-delzug="${z.id}">Zug löschen</button>`}` : ''}</div>
       <div class="gr-list">${z.gruppen.map(g => { const mem = D.personen.filter(p => p.gruppeId === g.id); const ed = inZug(g.id); const ro = ed ? '' : ' disabled';
-        return `<div class="gr-item"><div class="gr-h"><input data-gr="${g.id}" data-k="name" value="${esc(g.name)}"${kd}><input data-gr="${g.id}" data-k="fuehrer" value="${esc(g.fuehrer)}" placeholder="Grfhr" style="width:150px">${isAdm() ? `<button class="small danger" data-delgr="${g.id}" title="Gruppe löschen">✕</button>` : ''}</div>
+        return `<div class="gr-item"><div class="gr-h"><input data-gr="${g.id}" data-k="name" value="${esc(g.name)}"${kd}><input data-gr="${g.id}" data-k="fuehrer" value="${esc(g.fuehrer)}" placeholder="Grfhr" style="width:150px">${UOS ? `</div><div class="gr-h"><input data-gr="${g.id}" data-k="fz" value="${esc(g.fz || '')}" placeholder="Fz der Gruppe" title="Fahrzeug der Gruppe" style="flex:1">` : ''}${isAdm() ? `<button class="small danger" data-delgr="${g.id}" title="Gruppe löschen">✕</button>` : ''}</div>
         <div class="gr-mem"><div class="gm-h"><span>Grad</span><span>Name</span><span>Funktion</span><span></span></div>${mem.map(m => `<div class="gm-r"><input data-tbl="personen" data-id="${esc(m.id)}" data-key="grad" value="${esc(m.grad)}" placeholder="Sdt"${ro}><input data-tbl="personen" data-id="${esc(m.id)}" data-key="name" value="${esc(m.name)}" placeholder="Name Vorname"${ro}><input data-tbl="personen" data-id="${esc(m.id)}" data-key="funktion" value="${esc(m.funktion)}" placeholder="Funktion"${ro}>${ed ? `<button class="small danger" data-del="personen" data-id="${esc(m.id)}" title="Mitglied entfernen">✕</button>` : '<span></span>'}</div>`).join('')}
         ${ed ? `<button class="small" data-addmember="${g.id}">+ Mitglied</button>` : ''} <span class="hint" style="margin:0">${mem.length} Mitglieder</span></div></div>`; }).join('')}</div></div>`).join('');
   const ps = D.personen.filter(p => p.gruppeId === ui.persGr);
@@ -2993,10 +2995,10 @@ function absorb(r, interactive) {
     D = migrate(mergeData(D, r)); D.meta.tag = tag; D.meta.fresh = false; _elCache = null;
     save(); if (sig(D) !== before) safeRender(); return 'merged';
   }
-  const fromKp = r._from === 'kp';
+  const fromKp = r._from === 'kp' || UOS;
   if (fromKp && (D.meta.fresh || (interactive && confirm('Diese Datei gehört zu einem anderen Datensatz (z.B. andere Kompanie oder neu begonnen).\n\nDeine lokalen Daten durch die Daten des Kp Kdt ersetzen?')))) {
     const tag = D.meta.tag, oldName = roleZug() ? roleZug().name : null;
-    D = migrate(clone(r)); D.meta.tag = tag; D.meta.fresh = false; _elCache = null;
+    D = migrate(clone(r)); D.meta.tag = UOS ? (r.meta.tag || tag) : tag; D.meta.fresh = false; _elCache = null;
     if (!isKp() && !zugOf(ROLE)) { const z = D.zuege.find(x => x.name === oldName); if (z) { ROLE = z.id; try { localStorage.setItem(ROLE_KEY, ROLE); } catch (e) {} } }
     save(); safeRender(); return 'adopted';
   }
