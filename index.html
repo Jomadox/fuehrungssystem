@@ -106,6 +106,17 @@ table.ka-g2 input{font-size:13px}
 .gl-chip.on{background:#1d1d1d;color:#fff;border-color:#1d1d1d}
 .gl-chip small{opacity:.75}
 .gl-msg{color:#2e7d32!important;font-weight:600}
+
+.ka-erg{display:flex;gap:6px;flex-wrap:wrap}.ka-erg button{border:1px solid #bbb;border-radius:16px;padding:5px 14px;background:#fff;min-height:34px}
+.ka-erg button.on{background:var(--c);border-color:#555;font-weight:700}
+.rk-h{padding:6px 10px;border-radius:8px;margin:12px 0 4px;font-size:14px}
+ol.rk-list{list-style:none;margin:0;padding:0}
+.rk-it{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid #e3e3e3;border-radius:8px;background:#fff;padding:6px 8px;margin:4px 0;user-select:none;-webkit-user-select:none}
+.rk-it small{color:#777;flex:1 1 200px}
+.rk-grip{cursor:grab;touch-action:none;font-size:20px;color:#888;padding:4px 8px;line-height:1}
+.rk-nr{font-weight:700;min-width:26px;color:#555}
+.rk-it.rk-drag{box-shadow:0 6px 18px rgba(0,0,0,.2);border-color:#1d1d1d;opacity:.95}
+.rk-mv{margin-left:auto;display:flex;gap:2px}.rk-mv button{padding:0 7px}
 </style>
 <style>
 :root{
@@ -2142,7 +2153,7 @@ function viewKader() {
   const all = kaPeople(f), done = all.filter(x => kaDone(x.r)), offen = all.filter(x => !kaDone(x.r));
   const pc = n => done.filter(x => kaPrio(x.r) === n).length;
   let h = `<div class="card"><h2>Kaderselektion – Anwärtergespräche</h2>
-    <div class="toolbar"><div class="seg">${[['liste', 'Gespräche'], ['prio', 'Übersicht Prio'], ['g2', 'Liste Gespräch 2']].map(([k, l]) => `<button class="${f.mode === k ? 'on' : ''}" data-kamode="${k}">${l}</button>`).join('')}</div>
+    <div class="toolbar"><div class="seg">${[['liste', 'Gespräche'], ['prio', 'Übersicht Prio'], ['g2', 'Gespräch 2'], ['rang', 'Rangliste']].map(([k, l]) => `<button class="${f.mode === k ? 'on' : ''}" data-kamode="${k}">${l}</button>`).join('')}</div>
     <label>Zug ${sel(f.zug, zOpts, 'data-kaflt="zug"')}</label><label>Gruppe ${sel(f.gr, gOpts, 'data-kaflt="gr"')}</label>
     ${f.mode === 'liste' ? `<label>Stand ${sel(f.st, [['all', 'alle'], ['offen', 'noch offen'], ['done', 'gesprochen']], 'data-kaflt="st"')}</label>` : ''}
     <label class="ks-cb"><input type="checkbox" data-kaflt="grfhr"${f.grfhr ? ' checked' : ''}> Grfhr einbeziehen</label></div>
@@ -2156,12 +2167,28 @@ function viewKader() {
     return h + '</div>';
   }
   if (f.mode === 'g2') {
-    const L = done.filter(x => ['p1', 'p2'].includes(kaListe(x.r))).sort((a, b) => kaListe(a.r).localeCompare(kaListe(b.r)) || a.z.name.localeCompare(b.z.name) || nameNV(a.p).localeCompare(nameNV(b.p)));
-    h += `<p class="hint">Anwärterliste 1: Prio 1 (2. Gespräch fix) und Prio 2 (2. Gespräch, wenn zu wenig Prio 1). ${offen.length ? `<b>Noch ${offen.length} Gespräche offen.</b>` : 'Alle Gespräche geführt.'}</p>
-      <div class="row-actions"><button class="small" data-kaprint="1">Liste drucken</button></div>
-      <div class="ks-wrap"><table class="lb ka-g2"><thead><tr><th>Liste</th><th>Name</th><th>Zug / Gruppe</th><th>Will / Kann</th><th>Ausbildung</th><th>Zielsetzung</th><th>Termin Gespräch 2</th></tr></thead><tbody>
-      ${L.map(x => { const r = x.r; return `<tr><td data-l="Liste"><span class="ka-prio" style="background:${kaListe(r) === 'p1' ? KA_PRIO[1][1] : KA_PRIO[2][1]}">${kaListe(r) === 'p1' ? 'Prio 1' : 'Prio 2'}</span></td><td class="lb-n">${esc(nameNV(x.p))}</td><td data-l="Zug / Gruppe">${esc(x.z.name + ' · ' + x.g.name)}</td><td data-l="Will / Kann">${esc(KA_PRIO[kaPrio(r)][0])}</td>
-        <td data-l="Ausbildung">${esc(kaAusbTxt(r))}</td><td data-l="Zielsetzung">${esc(r.ziel || '')}</td><td data-l="Termin Gespräch 2"><input type="datetime-local" data-kaf="g2" data-pid="${esc(x.p.id)}" value="${esc(r.g2 || '')}"></td></tr>`; }).join('') || '<tr><td colspan="7" class="hint">Noch niemand auf Prio 1 oder 2.</td></tr>'}</tbody></table></div>`;
+    const L = kaG2List(done);
+    const nD = L.filter(x => x.r.g2erg).length;
+    h += `<p class="hint">Anwärterliste 1: Prio 1 (2. Gespräch fix) und Prio 2 (2. Gespräch, wenn zu wenig Prio 1). Name antippen öffnet das Gespräch 2. ${offen.length ? `<b>Noch ${offen.length} erste Gespräche offen.</b>` : ''}</p>
+      <div class="ka-sum"><span><b>${nD}</b> von ${L.length} Gespräch 2 geführt</span><span class="ka-bar"><i style="width:${L.length ? nD / L.length * 100 : 0}%"></i></span>${Object.entries(KA_ERG).map(([k, [l, c]]) => `<span class="ka-prio" style="background:${c}">${l}: <b>${L.filter(x => x.r.g2erg === k).length}</b></span>`).join('')}
+      <button class="small" data-kaprint="1">Liste drucken</button></div>`;
+    if (!L.length) return h + '<p class="hint">Noch niemand auf Prio 1 oder 2.</p></div>';
+    h += L.map(x => { const r = x.r, k = 'g2:' + x.p.id, lp = kaListe(r) === 'p1';
+      return `<details class="ka-p${r.g2erg ? ' done' : ''}" data-kap="${esc(k)}"${open.has(k) ? ' open' : ''}><summary><span class="ka-st">${r.g2erg ? '✓' : '○'}</span>
+        <span class="ka-prio" style="background:${lp ? KA_PRIO[1][1] : KA_PRIO[2][1]}">${lp ? 'Prio 1' : 'Prio 2'}</span><b>${esc(nameNV(x.p))}</b><small>${esc(x.z.name + ' · ' + x.g.name)}</small>
+        ${r.g2erg ? `<span class="ka-prio" style="background:${KA_ERG[r.g2erg][1]}">${KA_ERG[r.g2erg][0]}</span>` : ''}<small class="ka-dt">${r.g2 ? esc(fmtDT(r.g2)) : 'kein Termin'}</small></summary>${open.has(k) ? kaForm2(x) : ''}</details>`; }).join('');
+    return h + '</div>';
+  }
+  if (f.mode === 'rang') {
+    const R = kaRang(done);
+    h += `<p class="hint">Ergebnis Gespräch 2: oben <b>Positiv</b>, darunter <b>Möglich</b>; Negativ kommt nicht auf die Liste. Namen am Griff ⠿ mit Maus oder Finger greifen und verschieben.</p>
+      <div class="row-actions"><button class="small" data-karangprint="1">Rangliste drucken</button></div>`;
+    let n = 0;
+    ['pos', 'mog'].forEach(e => { const arr = R.filter(x => x.r.g2erg === e);
+      h += `<div class="rk-h" style="background:${KA_ERG[e][1]}">${KA_ERG[e][0]} <b>${arr.length}</b></div><ol class="rk-list" data-rk="${e}" start="${n + 1}">${arr.map(x => `<li class="rk-it" data-pid="${esc(x.p.id)}"><span class="rk-grip" title="ziehen zum Verschieben">⠿</span><span class="rk-nr">${++n}.</span><b>${esc(nameNV(x.p))}</b><small>${esc(x.z.name + ' · ' + x.g.name)}${x.r.g2bem ? ' · ' + esc(x.r.g2bem.slice(0, 80)) : ''}</small>
+        <span class="rk-mv"><button class="small" data-rkmv="-1" data-pid="${esc(x.p.id)}" title="nach oben">▲</button><button class="small" data-rkmv="1" data-pid="${esc(x.p.id)}" title="nach unten">▼</button></span></li>`).join('') || '<li class="hint" style="list-style:none">–</li>'}</ol>`; });
+    const neg = R.length, nNeg = done.filter(x => x.r.g2erg === 'neg').length;
+    if (nNeg) h += `<p class="hint">Negativ (nicht auf der Liste): ${done.filter(x => x.r.g2erg === 'neg').map(x => esc(nameNV(x.p))).join(', ')}</p>`;
     return h + '</div>';
   }
   const shown = all.filter(x => f.st === 'all' || (f.st === 'done') === kaDone(x.r));
@@ -2177,16 +2204,62 @@ function kaSet(pid, k, v) {
   let r = kaGet(pid); if (!r) { r = NEW({ id: kaId(pid), pid }); D.kader.push(r); }
   if (r[k] === v) return false;
   r[k] = v; if (k === 'wer') ui.kaWer = v; else if (!r.wer && ui.kaWer) r.wer = ui.kaWer;
-  if (k !== 'g1' && k !== 'g2' && !r.g1) r.g1 = isoDay(new Date()); // erster Eintrag = Gespräch geführt (Datum heute, änderbar)
+  if (!/^(g1|g2|q\d|g2bem|g2wer|g2erg|rang)$/.test(k) && !r.g1) r.g1 = isoDay(new Date()); // erster Eintrag = Gespräch geführt (Datum heute, änderbar)
   stamp(r); touch(); return true;
+}
+
+const KA_ERG = { pos: ['Positiv', '#c5e0b4'], mog: ['Möglich', '#fbe5a5'], neg: ['Negativ', '#e6b9b8'] };
+const KA_Q = [['q1', 'Was motiviert Sie zum Grfhr?'], ['q2', 'Was bedeutet Führung für Sie? Positives / Negatives Beispiel?'], ['q3', 'Wie würden Sie Kameraden beschreiben? Stärken / Schwächen / Freizeit'], ['q4', 'Grösste Niederlage und Umgang damit?']];
+const kaG2List = done => done.filter(x => ['p1', 'p2'].includes(kaListe(x.r))).sort((a, b) => kaListe(a.r).localeCompare(kaListe(b.r)) || a.z.name.localeCompare(b.z.name) || nameNV(a.p).localeCompare(nameNV(b.p)));
+const kaRang = done => done.filter(x => x.r && (x.r.g2erg === 'pos' || x.r.g2erg === 'mog')).sort((a, b) => (a.r.g2erg === b.r.g2erg ? 0 : a.r.g2erg === 'pos' ? -1 : 1) || (a.r.rang ?? 1e9) - (b.r.rang ?? 1e9) || nameNV(a.p).localeCompare(nameNV(b.p)));
+function kaForm2(x) {
+  const r = x.r || {}, pid = x.p.id, A = k => `data-kaf="${k}" data-pid="${esc(pid)}"`;
+  return `<div class="ka-form">
+    <div class="ka-grid"><label>Termin Gespräch 2<input type="datetime-local" ${A('g2')} value="${esc(r.g2 || '')}"></label>
+      <div><span class="ka-l">Gespräch 1</span>${kaBadge(r)} ${esc(kaAusbTxt(r))}${r.ziel ? '<br><small>' + esc(r.ziel) + '</small>' : ''}</div></div>
+    ${KA_Q.map(([k, q]) => `<label class="ka-full">${q}<textarea rows="2" ${A(k)}>${esc(r[k] || '')}</textarea></label>`).join('')}
+    <label class="ka-full">Bemerkungen<textarea rows="2" ${A('g2bem')}>${esc(r.g2bem || '')}</textarea></label>
+    <div class="ka-grid"><div><span class="ka-l">Ergebnis Gespräch 2</span><div class="ka-erg">${Object.entries(KA_ERG).map(([k, [l, c]]) => `<button class="${r.g2erg === k ? 'on' : ''}" style="--c:${c}" data-kaerg="${k}" data-pid="${esc(pid)}">${l}</button>`).join('')}</div></div>
+      <label>Gesprächsführer<input list="ks-btr" ${A('g2wer')} value="${esc(r.g2wer || '')}" placeholder="Grad Name"></label></div></div>`;
+}
+function kaRangSave(listEl) { const now = nowISO(); [...document.querySelectorAll('.rk-list .rk-it')].forEach((li, i) => { const r = kaGet(li.dataset.pid); if (r && r.rang !== i) { r.rang = i; r.upd = now; r.by = ROLE; } }); touch(); render(); }
+/* Ziehen mit Maus oder Finger (Pointer Events), nur innerhalb der eigenen Liste (Positiv / Möglich) */
+document.addEventListener('pointerdown', ev => {
+  const g = ev.target.closest && ev.target.closest('.rk-grip'); if (!g) return;
+  const li = g.closest('.rk-it'), list = li.parentElement; ev.preventDefault();
+  li.classList.add('rk-drag'); const pidp = ev.pointerId;
+  const move = e => { if (e.pointerId !== pidp) return; e.preventDefault(); const y = e.clientY; const sib = [...list.querySelectorAll('.rk-it')].filter(x => x !== li);
+    const after = sib.find(x => { const b = x.getBoundingClientRect(); return y < b.top + b.height / 2; });
+    if (after) { if (li.nextElementSibling !== after) list.insertBefore(li, after); } else if (list.lastElementChild !== li) list.appendChild(li);
+    const vh = innerHeight; if (y < 60) scrollBy(0, -12); else if (y > vh - 60) scrollBy(0, 12); };
+  const up = e => { if (e && e.pointerId !== pidp) return; document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', up); li.classList.remove('rk-drag'); kaRangSave(list); };
+  document.addEventListener('pointermove', move, { passive: false }); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
+});
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('button'); if (!b || !b.closest('#view')) return;
+  if (b.dataset.kaerg) { const pid = b.dataset.pid, r0 = kaGet(pid), v = r0 && r0.g2erg === b.dataset.kaerg ? '' : b.dataset.kaerg;
+    kaSet(pid, 'g2erg', v); const r = kaGet(pid); if (v && !r.g2done) r.g2done = isoDay(new Date());
+    if (v && v !== 'neg' && r.rang == null) r.rang = 1e6 + Date.now() % 1e6; stamp(r); touch(); render(); return; }
+  if (b.dataset.rkmv) { const li = b.closest('.rk-it'), list = li.parentElement, d = +b.dataset.rkmv;
+    if (d < 0 && li.previousElementSibling) list.insertBefore(li, li.previousElementSibling); else if (d > 0 && li.nextElementSibling) list.insertBefore(li.nextElementSibling, li); kaRangSave(list); return; }
+  if (b.dataset.karangprint) { kaPrintRang(); return; }
+});
+function kaPrintRang() {
+  const R = kaRang(kaPeople(ui.ka).filter(x => kaDone(x.r)));
+  const w = window.open('', '_blank'); if (!w) { alert('Das Druckfenster wurde blockiert. Bitte Pop-ups für diese Seite erlauben.'); return; }
+  w.document.write(`<!doctype html><meta charset="utf-8"><title>Rangliste Anwärter</title><style>body{font:12px Arial,sans-serif;margin:15mm}h1{font-size:17px;margin:0 0 4px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:4px 5px;text-align:left;vertical-align:top}th{background:#eee}.pos{background:#c5e0b4}.mog{background:#fbe5a5}@page{size:A4;margin:12mm}</style>
+    <h1>Rangliste Anwärter (nach Gespräch 2)</h1><p>${esc(D.meta.verband || '')} · Stand ${esc(fmtDayShort(isoDay(new Date())))} · ${R.length} Anwärter</p>
+    <table><tr><th>Rang</th><th>Ergebnis</th><th>Name, Vorname</th><th>Zug</th><th>Gruppe</th><th>Bemerkungen</th></tr>
+    ${R.map((x, i) => `<tr><td>${i + 1}</td><td class="${x.r.g2erg}">${KA_ERG[x.r.g2erg][0]}</td><td>${esc(nameNV(x.p))}</td><td>${esc(x.z.name)}</td><td>${esc(x.g.name)}</td><td>${esc(x.r.g2bem || '')}</td></tr>`).join('')}</table>`);
+  w.document.close(); setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 300);
 }
 function kaPrintG2() {
   const f = ui.ka, L = kaPeople(f).filter(x => kaDone(x.r) && ['p1', 'p2'].includes(kaListe(x.r))).sort((a, b) => kaListe(a.r).localeCompare(kaListe(b.r)) || a.z.name.localeCompare(b.z.name) || nameNV(a.p).localeCompare(nameNV(b.p)));
   const w = window.open('', '_blank'); if (!w) { alert('Das Druckfenster wurde blockiert. Bitte Pop-ups für diese Seite erlauben.'); return; }
   w.document.write(`<!doctype html><meta charset="utf-8"><title>Anwärterliste Gespräch 2</title><style>body{font:12px Arial,sans-serif;margin:15mm}h1{font-size:17px;margin:0 0 4px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:4px 5px;text-align:left;vertical-align:top}th{background:#eee}.p1{background:#c5e0b4}.p2{background:#fbd5b5}@page{size:A4 landscape;margin:12mm}</style>
     <h1>Anwärterliste – Gespräch 2</h1><p>${esc(D.meta.verband || '')} · Stand ${esc(fmtDayShort(isoDay(new Date())))} · ${L.length} Anwärter</p>
-    <table><tr><th>Liste</th><th>Name, Vorname</th><th>Zug</th><th>Gruppe</th><th>Will / Kann</th><th>Ausbildung</th><th>Zielsetzung 3–5 Jahre</th><th>Bemerkungen</th><th>Termin Gespräch 2</th></tr>
-    ${L.map(x => `<tr><td class="${kaListe(x.r)}">${kaListe(x.r) === 'p1' ? 'Prio 1' : 'Prio 2'}</td><td>${esc(nameNV(x.p))}</td><td>${esc(x.z.name)}</td><td>${esc(x.g.name)}</td><td>${esc(KA_PRIO[kaPrio(x.r)][0])}</td><td>${esc(kaAusbTxt(x.r))}</td><td>${esc(x.r.ziel || '')}</td><td>${esc(x.r.bem || '')}</td><td>${x.r.g2 ? esc(fmtDT(x.r.g2)) : ''}</td></tr>`).join('')}</table>`);
+    <table><tr><th>Liste</th><th>Name, Vorname</th><th>Zug</th><th>Gruppe</th><th>Will / Kann</th><th>Ausbildung</th><th>Zielsetzung 3–5 Jahre</th><th>Bemerkungen</th><th>Termin Gespräch 2</th><th>Ergebnis</th></tr>
+    ${L.map(x => `<tr><td class="${kaListe(x.r)}">${kaListe(x.r) === 'p1' ? 'Prio 1' : 'Prio 2'}</td><td>${esc(nameNV(x.p))}</td><td>${esc(x.z.name)}</td><td>${esc(x.g.name)}</td><td>${esc(KA_PRIO[kaPrio(x.r)][0])}</td><td>${esc(kaAusbTxt(x.r))}</td><td>${esc(x.r.ziel || '')}</td><td>${esc(x.r.bem || '')}</td><td>${x.r.g2 ? esc(fmtDT(x.r.g2)) : ''}</td><td>${x.r.g2erg ? KA_ERG[x.r.g2erg][0] : ''}</td></tr>`).join('')}</table>`);
   w.document.close(); setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 300);
 }
 document.addEventListener('toggle', ev => { const d = ev.target; if (!d.dataset || !d.dataset.kap || !ui.kaOpen) return; const was = ui.kaOpen.has(d.dataset.kap);
