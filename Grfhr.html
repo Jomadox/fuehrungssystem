@@ -117,6 +117,12 @@ details.hk-entf{opacity:.65}
 details.hk-entfbox{margin-top:12px}
 @media screen and (max-width:700px){#view .seg{flex-wrap:wrap}#view .seg button{flex:1 1 auto}}
 .ka-g1sum{background:#f4f6f8;border:1px solid #d5dbe1;border-radius:6px;padding:8px 10px;margin:8px 0}.ka-g1sum table{border-collapse:collapse;width:100%;font-size:13px}.ka-g1sum th{text-align:left;font-weight:600;color:#444;padding:3px 10px 3px 0;width:190px;vertical-align:top}.ka-g1sum td{padding:3px 0;vertical-align:top}@media screen and (max-width:700px){.ka-g1sum th{width:auto;display:block;padding-bottom:0}.ka-g1sum td{display:block}.ka-g1sum tr{display:block;margin-bottom:4px}}
+.gm-r,.gm-h{position:relative;padding-left:18px;box-sizing:border-box}.gr-h{position:relative}
+.eg-grip{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;color:#888;font-size:15px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+.gm-r>.eg-grip{position:absolute;left:0;top:0;bottom:0;width:16px}.gr-h>.eg-grip{width:18px;flex:0 0 18px;align-self:stretch}
+.eg-grip:hover{color:#000}.eg-ghost{position:fixed;z-index:9999;pointer-events:none;opacity:.85;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.25);border-radius:6px;padding:4px 8px;font-size:13px;font-weight:600;white-space:nowrap}
+.eg-src{opacity:.35}.eg-tgt{outline:2px dashed #c00;outline-offset:2px;background:#fff5f5}.eg-before{box-shadow:0 -3px 0 #c00}
+@media screen and (max-width:700px){.gm-r>.eg-grip{width:22px}.gm-r,.gm-h{padding-left:24px}.gr-h>.eg-grip{flex-basis:24px;width:24px;font-size:18px}}
 </style>
 <style>
 :root{
@@ -2020,14 +2026,14 @@ function viewVerband() {
   if (!ui.persGr || !grOf(ui.persGr)) ui.persGr = allGr.length ? allGr[0][0] : null;
   const zc = D.zuege.filter(z => inZug(z.id)).map(z => `<div class="zug-card"><div class="zh"><b>Zug</b><input data-zug="${z.id}" data-k="name" value="${esc(z.name)}" style="width:130px"${kd}><label class="zl"><span>Zfhr</span><input data-zug="${z.id}" data-k="fuehrer" value="${esc(z.fuehrer)}" placeholder="Grad Name" style="width:180px"></label><label class="zl"><span>${STV_LBL}</span><input data-zug="${z.id}" data-k="stv" value="${esc(z.stv || '')}" placeholder="Grad Name" style="width:180px"></label>${UOS ? `<label class="zl"><span>Fz</span><input data-zug="${z.id}" data-k="fz" value="${esc(z.fz || '')}" placeholder="Fahrzeuge der Klasse" style="width:180px"></label>` : ''}
       ${isAdm() ? `<button class="small" data-addgr="${z.id}">+ Gruppe</button>${UOS ? '' : `<button class="small danger" data-delzug="${z.id}">Zug löschen</button>`}` : ''}</div>
-      <div class="gr-list">${z.gruppen.map(g => { const mem = D.personen.filter(p => p.gruppeId === g.id); const ed = inZug(g.id); const ro = ed ? '' : ' disabled';
-        return `<div class="gr-item"><div class="gr-h"><input data-gr="${g.id}" data-k="name" value="${esc(g.name)}"${kd}><input data-gr="${g.id}" data-k="fuehrer" value="${esc(g.fuehrer)}" placeholder="Grfhr" style="width:150px">${UOS ? `</div><div class="gr-h"><input data-gr="${g.id}" data-k="fz" value="${esc(g.fz || '')}" placeholder="Fz der Gruppe" title="Fahrzeug der Gruppe" style="flex:1">` : ''}${isAdm() ? `<button class="small danger" data-delgr="${g.id}" title="Gruppe löschen">✕</button>` : ''}</div>
-        <div class="gr-mem"><div class="gm-h"><span>Grad</span><span>Name</span><span>Funktion</span><span></span></div>${mem.map(m => `<div class="gm-r"><input data-tbl="personen" data-id="${esc(m.id)}" data-key="grad" value="${esc(m.grad)}" placeholder="Sdt"${ro}><input data-tbl="personen" data-id="${esc(m.id)}" data-key="name" value="${esc(m.name)}" placeholder="Name Vorname"${ro}><input data-tbl="personen" data-id="${esc(m.id)}" data-key="funktion" value="${esc(m.funktion)}" placeholder="Funktion"${ro}>${ed ? `<button class="small danger" data-del="personen" data-id="${esc(m.id)}" title="Mitglied entfernen">✕</button>` : '<span></span>'}</div>`).join('')}
+      <div class="gr-list" data-egz="${z.id}">${z.gruppen.map(g => { const mem = D.personen.filter(p => p.gruppeId === g.id); const ed = inZug(g.id); const ro = ed ? '' : ' disabled';
+        return `<div class="gr-item" data-egg="${g.id}"><div class="gr-h">${isAdm() ? `<span class="eg-grip" data-egdrag="g" data-id="${g.id}" title="Gruppe in einen anderen Zug ziehen">⠿</span>` : ''}<input data-gr="${g.id}" data-k="name" value="${esc(g.name)}"${kd}><input data-gr="${g.id}" data-k="fuehrer" value="${esc(g.fuehrer)}" placeholder="Grfhr" style="width:150px">${UOS ? `</div><div class="gr-h"><input data-gr="${g.id}" data-k="fz" value="${esc(g.fz || '')}" placeholder="Fz der Gruppe" title="Fahrzeug der Gruppe" style="flex:1">` : ''}${isAdm() ? `<button class="small danger" data-delgr="${g.id}" title="Gruppe löschen">✕</button>` : ''}</div>
+        <div class="gr-mem" data-egm="${g.id}"><div class="gm-h"><span>Grad</span><span>Name</span><span>Funktion</span><span></span></div>${mem.map(m => `<div class="gm-r" data-egp="${esc(m.id)}">${ed ? `<span class="eg-grip" data-egdrag="p" data-id="${esc(m.id)}" title="In eine andere Gruppe ziehen">⠿</span>` : ''}<input data-tbl="personen" data-id="${esc(m.id)}" data-key="grad" value="${esc(m.grad)}" placeholder="Sdt"${ro}><input data-tbl="personen" data-id="${esc(m.id)}" data-key="name" value="${esc(m.name)}" placeholder="Name Vorname"${ro}><input data-tbl="personen" data-id="${esc(m.id)}" data-key="funktion" value="${esc(m.funktion)}" placeholder="Funktion"${ro}>${ed ? `<button class="small danger" data-del="personen" data-id="${esc(m.id)}" title="Mitglied entfernen">✕</button>` : '<span></span>'}</div>`).join('')}
         ${ed ? `<button class="small" data-addmember="${g.id}">+ Mitglied</button>` : ''} <span class="hint" style="margin:0">${mem.length} Mitglieder</span></div></div>`; }).join('')}</div></div>`).join('');
   const ps = D.personen.filter(p => p.gruppeId === ui.persGr);
   const s = ui.persGr ? grStatus(ui.persGr) : null;
   const kdo = `<div class="zug-card"><div class="zh"><b>Kp Kdo</b></div><div class="zh"><label class="hint" style="margin:0">Kp Kdt <input data-meta="kdt" value="${esc(D.meta.kdt || '')}" placeholder="Kp Kdt (Grad Name)" style="width:220px"${kd}></label><label class="hint" style="margin:0">Kp Kdt Stv <input data-meta="kdtStv" value="${esc(D.meta.kdtStv || '')}" placeholder="Kp Kdt Stv (Grad Name)" style="width:220px"${kd}></label></div></div>`;
-  return `<div class="card"><h2>Einsatzgliederung</h2>${glBar()}${isKp() ? kdo : ''}<div class="zug-cols">${zc}</div>${isKp() ? '<div class="row-actions"><button data-addzug="1">+ Zug</button></div>' : ''}</div>`;
+  return `<div class="card"><h2>Einsatzgliederung</h2>${glBar()}<p class="hint eg-dndhint">Am Griff ⠿ ziehen (Maus oder Finger): Soldaten in eine andere Gruppe${isAdm() ? ', Gruppen in einen anderen Zug' : ''}.</p>${isKp() ? kdo : ''}<div class="zug-cols">${zc}</div>${isKp() ? '<div class="row-actions"><button data-addzug="1">+ Zug</button></div>' : ''}</div>`;
 }
 
 
@@ -2127,6 +2133,59 @@ function kaMatrix(pid, r, big) {
     <text x="${P + 2}" y="${P - 5}" font-size="10" font-weight="700">WILL</text><text x="${P + S}" y="${W - 3}" font-size="10" font-weight="700" text-anchor="end">KANN</text>${dot}</svg>`;
 }
 const kaBadge = r => { const p = kaPrio(r); return p ? `<span class="ka-prio" style="background:${KA_PRIO[p][1]}">Prio ${p} · ${KA_PRIO[p][0]}</span>` : ''; };
+/* ---- Einsatzgliederung: Ziehen & Ablegen (Maus und Finger) – Soldaten zwischen Gruppen, Gruppen zwischen Zügen ---- */
+(function () {
+  let st = null;
+  const clear = () => document.querySelectorAll('.eg-tgt,.eg-before').forEach(e => e.classList.remove('eg-tgt', 'eg-before'));
+  const target = (x, y) => {
+    const el = document.elementFromPoint(x, y); if (!el) return null;
+    if (st.kind === 'p') {
+      const m = el.closest('[data-egm]') || (el.closest('[data-egg]') || { querySelector: () => null }).querySelector('[data-egm]'); if (!m || !inZug(m.dataset.egm)) return null;
+      const rows = [...m.querySelectorAll('[data-egp]')].filter(r => r.dataset.egp !== st.id);
+      const bef = rows.find(r => { const b = r.getBoundingClientRect(); return y < b.top + b.height / 2; });
+      return { box: m, gid: m.dataset.egm, before: bef ? bef.dataset.egp : null, befEl: bef };
+    }
+    const l = el.closest('[data-egz]'); if (!l) return null;
+    const its = [...l.querySelectorAll(':scope>[data-egg]')].filter(r => r.dataset.egg !== st.id);
+    const vert = getComputedStyle(l).flexDirection.startsWith('column') || l.closest('.zug-cols');
+    const bef = its.find(r => { const b = r.getBoundingClientRect(); return vert ? y < b.top + b.height / 2 : (y < b.bottom && x < b.left + b.width / 2) || y < b.top; });
+    return { box: l, zid: l.dataset.egz, before: bef ? bef.dataset.egg : null, befEl: bef };
+  };
+  document.addEventListener('pointerdown', ev => {
+    const g = ev.target.closest && ev.target.closest('.eg-grip'); if (!g || !g.closest('#view')) return;
+    ev.preventDefault();
+    const kind = g.dataset.egdrag, id = g.dataset.id, src = kind === 'p' ? g.closest('[data-egp]') : g.closest('[data-egg]');
+    let label = '';
+    if (kind === 'p') { const p = D.personen.find(x => x.id === id); label = p ? ((p.grad ? p.grad + ' ' : '') + (p.name || p.funktion || 'Soldat')) : ''; }
+    else { const r = grOf(id); label = r ? 'Gruppe ' + r.g.name : ''; }
+    const gh = document.createElement('div'); gh.className = 'eg-ghost'; gh.textContent = '⠿ ' + label; document.body.appendChild(gh);
+    src.classList.add('eg-src');
+    st = { kind, id, src, gh, pid: ev.pointerId, t: null };
+    const mv = e => { if (e.pointerId !== st.pid) return; e.preventDefault(); gh.style.left = (e.clientX + 12) + 'px'; gh.style.top = (e.clientY - 10) + 'px';
+      if (e.clientY < 50) scrollBy(0, -14); else if (e.clientY > innerHeight - 50) scrollBy(0, 14);
+      clear(); st.t = target(e.clientX, e.clientY); if (st.t) { st.t.box.classList.add('eg-tgt'); if (st.t.befEl) st.t.befEl.classList.add('eg-before'); } };
+    const up = e => { if (e.pointerId !== st.pid) return; document.removeEventListener('pointermove', mv); document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', up);
+      clear(); gh.remove(); src.classList.remove('eg-src'); const t = e.type === 'pointerup' ? target(e.clientX, e.clientY) : null; const s0 = st; st = null; if (t) egDrop(s0, t); };
+    mv(ev);
+    document.addEventListener('pointermove', mv, { passive: false }); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
+  });
+})();
+function egDrop(s0, t) {
+  if (s0.kind === 'p') {
+    const i = D.personen.findIndex(x => x.id === s0.id); if (i < 0) return; const p = D.personen[i];
+    if (!inZug(p.gruppeId) || !inZug(t.gid)) return;
+    D.personen.splice(i, 1);
+    let j = t.before ? D.personen.findIndex(x => x.id === t.before) : -1;
+    if (j < 0) { const k = D.personen.map(x => x.gruppeId).lastIndexOf(t.gid); j = k < 0 ? D.personen.length : k + 1; }
+    D.personen.splice(j, 0, p); p.gruppeId = t.gid; stamp(p);
+  } else {
+    if (!isAdm()) return; const r = grOf(s0.id), zt = D.zuege.find(z => z.id === t.zid); if (!r || !zt) return;
+    r.z.gruppen.splice(r.z.gruppen.indexOf(r.g), 1);
+    let j = t.before ? zt.gruppen.findIndex(g => g.id === t.before) : -1; if (j < 0) j = zt.gruppen.length;
+    zt.gruppen.splice(j, 0, r.g); stamp(r.z); stamp(zt);
+  }
+  touch(); render();
+}
 function kaForm(x) {
   const r = x.r || {}, pid = x.p.id, A = k => `data-kaf="${k}" data-pid="${esc(pid)}"`;
   const radio = (k, v, l) => `<label class="ka-rb"><input type="radio" name="${k}-${esc(pid)}" value="${v}" ${A(k)}${(r[k] || '') === v ? ' checked' : ''}> ${l}</label>`;
