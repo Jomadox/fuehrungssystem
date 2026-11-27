@@ -1,11 +1,14 @@
-t=open('app/template.html',encoding='utf-8').read()
+# Ab 27.11.2026: nur noch BM wird umgebaut. Kp, Grfhr und UOS bauen aus dem eingefrorenen Stand (template_frozen.html).
+t=open('app/template_frozen.html',encoding='utf-8').read()
+tb=open('app/template.html',encoding='utf-8').read()
 libs='<script>'+open('libs/qrcode.min.js',encoding='utf-8').read()+'</script>\n<script>'+open('libs/jsqr.min.js',encoding='utf-8').read()+'</script>'
 t=t.replace('<!--__QRLIBS__-->',libs)
 b=open('demo_map.b64').read().strip()
 m=t.replace('"__DEMO_MAP__"','"data:image/jpeg;base64,'+b+'"').replace('__DEMO_MAP_W__','1474').replace('__DEMO_MAP_H__','1600')
 open('app/Fuehrungssystem.html','w',encoding='utf-8').write(m)
 # BM-Version: wie Kp Kdt, zusätzlich Kaderselektion
-open('app/Fuehrungssystem_BM.html','w',encoding='utf-8').write(m.replace('/*__BM_MODE__*/false','true').replace('<title>Führungssystem Kp</title>','<title>Führungssystem BM</title>'))
+mb=tb.replace('<!--__QRLIBS__-->',libs).replace('"__DEMO_MAP__"','"data:image/jpeg;base64,'+b+'"').replace('__DEMO_MAP_W__','1474').replace('__DEMO_MAP_H__','1600')
+open('app/Fuehrungssystem_BM.html','w',encoding='utf-8').write(mb.replace('/*__BM_MODE__*/false','true').replace('<title>Führungssystem Kp</title>','<title>Führungssystem BM</title>'))
 g=t.replace('"__DEMO_MAP__"','"data:image/jpeg;base64,'+b+'"').replace('__DEMO_MAP_W__','1474').replace('__DEMO_MAP_H__','1600').replace('/*__GR_MODE__*/false','true').replace('<title>Führungssystem Kp</title>','<title>Führungssystem Grfhr</title>')
 open('app/Grfhr.html','w',encoding='utf-8').write(g)
 # Web-App (PWA) für iPhone/Android: index.html + manifest + Service Worker + Icons
@@ -27,7 +30,7 @@ e.respondWith(caches.match(e.request,{ignoreSearch:true}).then(r=>r||fetch(e.req
 # UOS-Version: Klasse (Struktur eines Zuges) mit drei Gruppen, Klassenlehrer statt Kp Kdt / Zfhr
 import re as _re
 # Umbenennen nur im Quelltext: Bibliotheken und eingebettete Bilder (data:-URIs) bleiben unberührt
-_raw = open('app/template.html', encoding='utf-8').read()
+_raw = open('app/template_frozen.html', encoding='utf-8').read()
 _keep = []
 def _mask(mo):
     _keep.append(mo.group(0)); return '@@DATA%d@@' % (len(_keep) - 1)

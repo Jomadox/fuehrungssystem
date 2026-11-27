@@ -3216,8 +3216,14 @@ function mapTools() {
 function lageScreen(mz) {
   const { W, H } = mapDims(), V = zugView(mz), PA = V ? { x: V.fx * W, y: V.fy * H, w: V.fw * W, h: V.fh * H } : { x: 0, y: 0, w: W, h: H };
   const ar = ui.mapAr || 1.5, key = [ROLE, mz ? kmode(mz) : 'kp', W, H, PA.x, PA.y, PA.w, D.geo ? [D.geo.e, D.geo.n, D.geo.w].join(',') : ''].join('|');
-  if (!ui.mv || ui.mv.key !== key || ui.mv.ar !== ar) { const w0 = Math.max(PA.w * 1.06, PA.h * 1.06 * ar), keep = ui.mv && ui.mv.key === key;
-    ui.mv = keep ? Object.assign(ui.mv, { ar }) : { key, ar, cx: PA.x + PA.w / 2, cy: PA.y + PA.h / 2, w: w0 }; ui.mv.minW = W * .02; ui.mv.maxW = W * 12; }
+  // Karte füllt das ganze Fenster: Start so, dass der Druckbereich die Fläche ausfüllt (überstehende Teile abgeschnitten)
+  const coverW = Math.min(PA.w, PA.h * ar);
+  if (!ui.mv || ui.mv.key !== key || ui.mv.ar !== ar) { const keep = ui.mv && ui.mv.key === key;
+    ui.mv = keep ? Object.assign(ui.mv, { ar }) : { key, ar, cx: PA.x + PA.w / 2, cy: PA.y + PA.h / 2, w: coverW }; }
+  const mv0 = ui.mv; mv0.minW = W * .02; mv0.maxW = D.geo ? W * 12 : Math.min(W, H * ar);
+  if (!D.geo) { // Kartenbild ohne swisstopo: nie über den Bildrand hinaus, damit keine leeren Ränder entstehen
+    mv0.w = Math.min(mv0.w, mv0.maxW); const hh = mv0.w / ar;
+    mv0.cx = Math.max(mv0.w / 2, Math.min(W - mv0.w / 2, mv0.cx)); mv0.cy = Math.max(hh / 2, Math.min(H - hh / 2, mv0.cy)); }
   const mv = ui.mv, w = mv.w, h = w / ar, kp = !mz || kmode(mz) === 'kp', pw = kp && isKp() ? MAP_PRINT_W : MAP_PRINT_W_GR;
   const sc = { x: mv.cx - w / 2, y: mv.cy - h / 2, w, h, lbl: D.geo ? 'Druckbereich ' + fmtScale(Math.round(PA.w / W * D.geo.w / pw / 500) * 500) : '' };
   ui.dbProp = null;
