@@ -755,7 +755,7 @@ table.mx{border-collapse:separate;border-spacing:0;font-size:13px;min-width:100%
 table.mx th,table.mx td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle;white-space:nowrap}
 table.mx .mx-l{text-align:left;font-weight:600;color:var(--muted);position:sticky;left:0;background:#fff;z-index:1;padding-right:12px;min-width:90px}
 table.mx .mx-z{font-size:14px;border-bottom:2px solid #1d1d1d;border-left:3px solid #fff;padding-bottom:6px}table.mx .mx-z .pill{margin-left:4px}
-table.mx .mx-g button{border:0;background:none;font-weight:700;font-size:13px;padding:3px 6px;border-radius:6px;cursor:pointer}table.mx .mx-g button:hover{background:#f0f0f0}
+table.mx .mx-g button{display:inline-flex;align-items:center;gap:3px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:13px;padding:3px 7px 3px 9px;border-radius:999px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.06)}table.mx .mx-g button:hover{background:#f3f3f3;border-color:#1d1d1d}.mx-car{font-size:10px;color:#c00;line-height:1}table.mx th.on .mx-car{color:#fff}
 table.mx .mx-zb{border-left:3px solid #e2e2e2}
 table.mx th.on button{background:#1d1d1d!important;color:#fff!important;opacity:1!important}table.mx td.on{background:#f6f6f6}
 .mx-pers{border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;margin:auto;font-size:13px;padding:2px 4px}.mx-pers small{color:var(--rot);font-size:11px}
@@ -2803,9 +2803,9 @@ function viewSystemeMx() {
   const zl = z => z.gruppen.length, zS = z => sumStatus(z.gruppen.map(g => grStatus(g.id)));
   const ampTxt = a => a === 'na' ? '–' : a;
   let h = setPanel('status', 'Einstellungen Statusübersicht', `Ampel gelb < ${D.meta.gelb} %, rot < ${D.meta.rot} % · ${st.length} Systemtypen`, metaF('gelb', 'Ampel gelb unter % einsatzfähig', 'number', 'min="0" max="100"') + metaF('rot', 'Ampel rot unter % einsatzfähig', 'number', 'min="0" max="100"') + metaL('systemTypen', 'Systemtypen (mit Komma getrennt)'));
-  h += `<div class="card"><div class="mx-head"><h2 style="margin:0">Statusübersicht</h2><span style="flex:1"></span><span class="hint" style="margin:0">Gruppe anklicken = Soldaten anzeigen</span>${pgTools('status', isAdm() ? pgIc('reset', 'Status zurücksetzen: alle Personen einsatzfähig, alle Systeme ok', 'id="btn-reset-status"', 'danger') : '')}</div>
+  h += `<div class="card"><div class="mx-head"><h2 style="margin:0">Statusübersicht</h2><span style="flex:1"></span>${pgTools('status', isAdm() ? pgIc('reset', 'Status zurücksetzen: alle Personen einsatzfähig, alle Systeme ok', 'id="btn-reset-status"', 'danger') : '')}</div>
   <div class="tbl-wrap"><table class="mx"><thead><tr><th class="mx-l" rowspan="2"></th>${zs.map(z => { const t = zS(z); return `<th class="mx-z" colspan="${zl(z)}"><span>${esc(z.name)}</span> <span class="pill amp-${t.amp}">${t.ef}/${t.best}</span></th>`; }).join('')}</tr>
-  <tr>${grs.map((x, i) => `<th class="mx-g${x.g.id === selG ? ' on' : ''}${i && grs[i - 1].z !== x.z ? ' mx-zb' : ''}"><button data-statsel="${x.g.id}" title="Soldaten von ${esc(x.g.name)} anzeigen">${esc(x.g.name)}</button></th>`).join('')}</tr></thead><tbody>`;
+  <tr>${grs.map((x, i) => `<th class="mx-g${x.g.id === selG ? ' on' : ''}${i && grs[i - 1].z !== x.z ? ' mx-zb' : ''}"><button data-statsel="${x.g.id}" title="Soldaten von ${esc(x.g.name)} anzeigen">${esc(x.g.name)}<span class="mx-car">${x.g.id === selG ? '▴' : '▾'}</span></button></th>`).join('')}</tr></thead><tbody>`;
   const row = (lbl, fn, cls = '') => `<tr class="${cls}"><th class="mx-l">${lbl}</th>${grs.map((x, i) => `<td class="${x.g.id === selG ? 'on ' : ''}${i && grs[i - 1].z !== x.z ? 'mx-zb' : ''}">${fn(x)}</td>`).join('')}</tr>`;
   h += row('Ampel', x => `<span class="mx-dot amp-${x.s.amp}" title="${ampTxt(x.s.amp)}"></span>`, 'mx-amp');
   h += row('Personal', x => `<button class="mx-pers" data-statsel="${x.g.id}"><b>${x.s.ef}/${x.s.best}</b>${x.s.abw || x.s.verl ? `<small>${[x.s.abw ? x.s.abw + ' abw' : '', x.s.verl ? x.s.verl + ' verl' : ''].filter(Boolean).join(' · ')}</small>` : ''}</button>`);
