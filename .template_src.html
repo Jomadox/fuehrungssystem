@@ -712,6 +712,11 @@ body.grmode.gr-mini.gr-open #gr-head{position:fixed;top:0;left:0;right:0}
 .sigsub small{font-weight:400;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .sigsub.on{border-color:#1d1d1d;background:#f3f3f3}
 .sigsub-body{border:1px solid var(--line);border-radius:8px;padding:6px;margin-bottom:6px;background:#fafafa}
+.map-offline{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:8;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:14px 16px;width:min(380px,calc(100% - 80px));box-sizing:border-box}
+.map-offline p{margin:6px 0 10px;font-size:13.5px;color:var(--muted)}
+.map-info{position:absolute;top:56px;right:8px;z-index:6;width:320px;max-width:calc(100% - 84px);max-height:calc(100% - 64px);overflow:auto;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.22);padding:8px 10px;box-sizing:border-box}
+.mi-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;margin:4px 0 8px}.mi-grid label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:2px;min-width:0}.mi-grid .mi-w{grid-column:1/-1}.mi-grid input,.mi-grid select,.mi-grid textarea{width:100%;box-sizing:border-box;font-size:14px}.mi-grid .mi-chk{flex-direction:row;align-items:center;gap:6px;color:var(--ink)}.mi-grid .mi-chk input{width:auto}
+@media (max-width:700px){.map-info{left:56px;right:6px;top:auto;bottom:6px;width:auto;max-width:none;max-height:55%}}
 </style>
 </head>
 <body>
@@ -843,13 +848,16 @@ function canEdit(kind, r) {
 const myEl = () => isKp() ? 'kp' : ROLE;
 
 /* ===================== Datenmodell ===================== */
+// BM: swisstopo-Karte als Standard, Birmensdorf im Zentrum (1:10'000 auf A3)
+const BM_GEO_DEF = () => ({ e: 2675000, n: 1245650, w: 2500, h: 2500, layer: 'ch.swisstopo.pixelkarte-farbe' });
+const bmDefGeo = d => { if (BM && !d.geo && (!d.karte || d.karte === DEMO_MAP)) { const g = BM_GEO_DEF(), m = d.meta || {}; g.h = Math.round(g.w * (m.rasterRows || 20) / (m.rasterCols || 20)); d.geo = g; d.geoUpd = d.geoUpd || '2026-11-27T00:00:00.000Z'; } return d; };
 function blankData() {
   return {
     meta: { verband: 'Inf DD RS Kp 14-1/1', kdt: 'Hptm Dossenbach | Einh BO', beilage: '', tag: isoDay(new Date()), version: 1, stand: null,
       startH: 5, endH: 24, rasterCols: 20, rasterRows: 20, gelb: 85, rot: 70, karteOpac: 60,
       systemTypen: ['Führung','Fz','VBR','LMg','Breacher','SMW','Funk','Mun','Betr.Stoff'], betreuer: ['DOJ','HUJ','PUR','STM','CAM','SNJ'], ausbThemen: [], ausbStoff: JSON.parse(JSON.stringify(STOFF_INF)), dsid: 'ds' + uid() + uid(), fresh: true },
     zuege: [], personen: [], systeme: {}, termine: [], auftraege: [], lage: [], antraege: [], linien: [], ausb: [], pend: [], lektionen: [], lbew: [], kader: [], hkader: [], glStore: [],
-    karte: null, karteW: 1000, karteH: 1000, karteGeo: null, geo: null, geoUpd: '', tomb: {}
+    karte: null, karteW: 1000, karteH: 1000, karteGeo: null, geo: BM ? BM_GEO_DEF() : null, geoUpd: BM ? '2026-11-27T00:00:00.000Z' : '', tomb: {}
   };
 }
 /* Gruppenführer: nicht in der Ausbildungskontrolle (Stoffplan Infanterist gilt für die AdA) */
@@ -882,7 +890,7 @@ function demoData() {
   const d = blankData();
   d.meta.tag = '2026-10-19';
   defaultStructure(d);
-  d.karte = DEMO_MAP; d.karteW = DEMO_MAP_W; d.karteH = DEMO_MAP_H;
+  d.karte = DEMO_MAP; d.karteW = DEMO_MAP_W; d.karteH = DEMO_MAP_H; bmDefGeo(d);
   const Z = n => d.zuege.find(z => z.name === n);
   const G = (zn, gn) => Z(zn).gruppen.find(g => g.name === gn).id;
   const S = Z('Servizio').id, A = Z('Ambos').id, B = Z('Bivio').id, C = Z('Canale').id;
@@ -1050,6 +1058,7 @@ function migrate(d) {
   ['zuege','personen','termine','auftraege','lage','antraege','linien','ausb','pend','lektionen','lbew','kader','hkader','glStore'].forEach(k => { if (!Array.isArray(d[k])) d[k] = []; });
   if (!d.systeme) d.systeme = {};
   if (!d.tomb) d.tomb = {};
+  bmDefGeo(d);
   (d.termine || []).forEach(x => { if (x.kategorie === 'Auftrag/Ausbildung' || x.kategorie === 'Auftrag') x.kategorie = 'Ausbildung'; else if (x.kategorie === 'Entscheidpunkt') x.kategorie = 'Besonderes'; });
   (d.lage || []).forEach(l => { if (l.partei !== 'Rot' && l.partei !== 'Blau') l.partei = 'Rot'; });
   if (!Array.isArray(d.meta.ausbStoff) || !d.meta.ausbStoff.length) d.meta.ausbStoff = JSON.parse(JSON.stringify(STOFF_INF));
@@ -1726,7 +1735,7 @@ function mapSVG(items, opt = {}) {
   if (SC) { vx = SC.x; vy = SC.y; vw = SC.w; vh = SC.h; k = SC.w / W; }
   const sw = Math.max(W, H) / 900 * k;
   let s = `<svg class="map" xmlns="http://www.w3.org/2000/svg" viewBox="${vx} ${vy} ${vw} ${vh}" preserveAspectRatio="xMidYMid meet" ${opt.id ? 'id="' + opt.id + '"' : ''} style="${opt.style || ''}">`;
-  const op = Math.max(.1, Math.min(1, (D.meta.karteOpac ?? 60) / 100));
+  const op = BM ? .6 : Math.max(.1, Math.min(1, (D.meta.karteOpac ?? 60) / 100));
   if (SC) s += `<rect x="${vx}" y="${vy}" width="${vw}" height="${vh}" fill="#ececec"/>`;
   const scrG = SC && D.geo ? (() => { const g = D.geo, b = geoBox(g); return { e: b.emin + (vx + vw / 2) / W * g.w, n: b.nmax - (vy + vh / 2) / H * g.h, w: vw / W * g.w, h: vh / H * g.h, layer: g.layer }; })() : null;
   if (D.geo) s += `<g class="map-bg" opacity="${op}">${geoBackground(W, H, scrG || (V && V.g))}</g>`;
@@ -1747,7 +1756,7 @@ function mapSVG(items, opt = {}) {
   if (D.geo) s += scaleSVG(W, H, SC ? fs * .75 : fs, { x: vx, y: vy, w: vw, h: vh, k, lbl: SC && SC.lbl });
   if (SC && SC.db) { const d = SC.db; s += `<g pointer-events="none"><rect x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="#c00" fill-opacity=".06" stroke="#c00" stroke-width="${sw * 3}" stroke-dasharray="${sw * 12} ${sw * 6}"/><text x="${d.x + fs * .4}" y="${d.y - fs * .4}" font-family="Arial" font-weight="700" font-size="${fs}" fill="#c00" stroke="#fff" stroke-width="${fs * .2}" paint-order="stroke">${esc(d.lbl)}</text></g>`; }
   if (D.geo) s += `<text x="${vx + vw - fs * .3}" y="${vy + vh - fs * .3}" text-anchor="end" font-family="Arial" font-size="${fs * .6}" fill="#000" stroke="#fff" stroke-width="${fs * .15}" paint-order="stroke">© swisstopo</text>`;
-  if (opt.lines !== false) { (D.linien || []).filter(opt.linF || (() => true)).map(l => placeLin(l)).filter(Boolean).forEach(l => { s += linieSVG(l, W, H, Math.min(vw, vh) / 20, sw, opt.hlLine === l.id); }); }
+  if (opt.lines !== false) { (D.linien || []).filter(opt.linF || (() => true)).map(l => placeLin(l)).filter(Boolean).forEach(l => { s += linieSVG(l, W, H, Math.min(vw, vh) / 20, sw, opt.hlLine === l.id || !!(opt.hlSet && opt.hlSet.includes(l.id))); }); }
   if (opt.draft) s += `<g id="draft-live" pointer-events="none">${draftSVG(opt.draft, opt.id === 'lage-map' ? ui.drawCur : null)}</g>`;
   const OFF = [[0, 0], [-0.26, -0.24], [0.26, -0.24], [-0.26, 0.24], [0.26, 0.24], [0, -0.3], [0, 0.3]];
   const count = {};
@@ -1762,7 +1771,7 @@ function mapSVG(items, opt = {}) {
       x = (p.c + 0.5 + o[0]) * cw; y = (p.r + 0.5 + o[1]) * ch;
     }
     const code = lageCode(l);
-    const hl = opt.hl === l.id ? `<circle cx="${x}" cy="${y}" r="${m * 1.25}" fill="none" stroke="#f0a400" stroke-width="${sw * 4}"/>` : '';
+    const hl = opt.hl === l.id || (opt.hlSet && opt.hlSet.includes(l.id)) ? `<circle cx="${x}" cy="${y}" r="${m * 1.25}" fill="none" stroke="#f0a400" stroke-width="${sw * 4}"/>` : '';
     s += `<g data-lage="${esc(l.id)}">${hl}<g opacity=".8">${sigAt(l, x, y, SG)}</g><title>${esc(code + ' ' + sigName(l.sig) + ' ' + (l.bezeichnung || ''))}</title></g>`;
   });
   s += '</svg>';
@@ -2972,6 +2981,7 @@ function viewAuftraege() {
 
 /* ---- Lage ---- */
 const SIG_GRP_DONE = { 'p-irr': 1, 'p-text': 1, 'p-fix': 1, 'p-posten': 1, 'p-einr': 1, 'p-sperre': 1, 'p-pers': 1, 'p-waffe': 1, 'p-pzfz': 1, 'p-fz': 1, 'p-hind': 1, 'p-ied': 1 };
+const palMode = () => ui.draw || ui.palFn === 'line' ? 'line' : ui.palFn === 'unit' ? 'unit' : 'sig';
 function sigPalette() {
   const tgt = ui.sigTarget && D.lage.find(l => l.id === ui.sigTarget);
   const cur = tgt ? { partei: tgt.partei, sig: normSig(tgt.sig) } : { partei: newLagePartei, sig: normSig(ui.sigTpl) };
@@ -2982,14 +2992,15 @@ function sigPalette() {
   const linBtn = linBtn0.replace('sigbtn on', ui.draw && ui.draw.typ === 'pfeil' ? 'sigbtn' : 'sigbtn on');
   const pb = fn => { const u = SIG_POINT_MAP[fn]; return u ? btn(fn, u[1], null, !ui.draw && cur.sig.fn === fn) : ''; };
   const grp = (t, inner) => inner ? `<div class="siggrp"><div class="siggrp-t">${t}</div><div class="siggrid">${inner}</div></div>` : '';
-  const grid = `<div class="siglbl2" style="margin-top:12px;border-top:1px solid var(--line);padding-top:8px">Taktische Zeichen</div><div class="siggrps">`
-    + (tgt ? '' : grp('Linien, Flächen, Pfeile', linBtn + pfBtn))
-    + grp('Formationen', btn('unit', 'Formation', { fn: 'unit', mods: [] }, !isPt && !ui.draw) + pb('p-irr'))
-    + grp('Text', pb('p-text'))
+  const pm = BM && !tgt ? palMode() : '', gOn = k => !pm || pm === k;
+  const grid = `<div class="siglbl2" style="margin-top:12px;border-top:1px solid var(--line);padding-top:8px">${pm === 'line' ? 'Art' : pm === 'unit' ? 'Formationstyp' : 'Taktische Zeichen'}</div><div class="siggrps">`
+    + (tgt || !gOn('line') ? '' : grp(pm ? 'Linien, Flächen, Pfeile' : 'Linien, Flächen, Pfeile', linBtn + pfBtn))
+    + (gOn('unit') ? grp('Formationen', btn('unit', 'Formation', { fn: 'unit', mods: [] }, !isPt && !ui.draw) + pb('p-irr')) : '')
+    + (gOn('sig') ? grp('Text', pb('p-text'))
     + grp('Führung, Posten, Einrichtungen', pb('p-fix') + btn('p-einr', 'Posten / Einrichtung', null, !ui.draw && (cur.sig.fn === 'p-einr' || cur.sig.fn === 'p-posten')))
     + grp('Personen, Waffen, Fahrzeuge', pb('p-pers') + pb('p-waffe') + pb('p-pzfz') + pb('p-fz'))
     + grp('Hindernisse und Ladungen', pb('p-hind') + pb('p-ied'))
-    + grp('Weitere', SIG_POINTS.filter(u => !SIG_PT_HIDDEN[u[0]] && !SIG_GRP_DONE[u[0]]).map(u => pb(u[0])).join('')) + '</div>';
+    + grp('Weitere', SIG_POINTS.filter(u => !SIG_PT_HIDDEN[u[0]] && !SIG_GRP_DONE[u[0]]).map(u => pb(u[0])).join('')) : '') + '</div>';
   if (ui.draw && !tgt && ui.draw.typ === 'pfeil') { const dr = ui.draw;
     return `<div class="sigpal"><div class="sigpal-head"><b>Angriffspfeil</b> <span class="hint">Klick 1 = Spitze, 2 = Ende der Pfeilspitze, 3 = Breite (Rand des Pfeils), dann Verlauf bis zum Pfeilende.</span></div>
     <div class="sigrow part"><span class="siglbl">Partei</span>${PARTEIEN.map(p => `<button class="sigpart${(dr.partei || 'Blau') === p ? ' on' : ''}" data-pfeilpartei="${p}" style="--pc:${P_COL[p]}">${sigIcon({ fn: 'none' }, p, 22)} ${esc(P_LABEL[p])}</button>`).join('')}</div>
@@ -3004,7 +3015,7 @@ function sigPalette() {
     ${typ === 'grenze' ? `<div class="siglbl2">Hierarchie</div><div class="sigchips">${GRENZ_EBENEN.map(m => `<button class="sigchip${dr.ebene === m[0] ? ' on' : ''}" data-linebene="${m[0]}" title="${esc(m[1])}">${esc(m[1].replace(/^\S+ /, ''))}</button>`).join('')}</div>` : `<div class="siglbl2">Name</div><input id="lin-name" style="width:160px" placeholder="${typ === 'zz' ? 'Nr, z.B. 1' : typ === 'az' ? 'Name, z.B. Nord' : 'Name, z.B. ROT'}" value="${esc(dr.name || '')}">`}
     ${grid}</div>`; }
   return `<div class="sigpal${tgt ? ' editing' : ''}">
-    <div class="sigpal-head">${tgt ? `<b>Signatur von ${esc(lageCode(tgt))} ${esc(tgt.bezeichnung || '')}</b> <span class="hint">Änderungen wirken sofort. Klick in die Karte versetzt den Eintrag.</span> <button class="small primary" id="sig-done">Fertig</button>` : '<b>Signatur für neue Einträge</b> <span class="hint">Auswählen, dann in die Karte klicken.</span>'}</div>
+    <div class="sigpal-head">${tgt ? `<b>Signatur von ${esc(lageCode(tgt))} ${esc(tgt.bezeichnung || '')}</b> <span class="hint">Änderungen wirken sofort. ${BM ? "Doppelklick / lang tippen in die Karte" : "Klick in die Karte"} versetzt den Eintrag.</span> <button class="small primary" id="sig-done">Fertig</button>` : '<b>Signatur für neue Einträge</b> <span class="hint">Auswählen, dann in die Karte klicken.</span>'}</div>
     <div class="sigrow part"><span class="siglbl">Partei</span>${PARTEIEN.map(p => `<button class="sigpart${cur.partei === p ? ' on' : ''}" data-sigpartei="${p}" style="--pc:${P_COL[p]}">${sigIcon({ fn: 'none' }, p, 22)} ${esc(P_LABEL[p])}</button>`).join('')}</div>
     <div class="sigrow"><span class="siglbl"></span><span class="sigprev">${sigIcon(cur.sig.fn === 'p-text' ? { fn: 'p-text' } : cur.sig, cur.partei, 52, '', tgt ? tgt.nr : 8)} <span class="hint">${esc(sigName(cur.sig))}</span></span></div>
     ${cur.sig.fn === 'p-irr' ? `<div class="siglbl2">Grösse (Verbandsstruktur)</div><div class="sigchips">${SIG_SIZES.map(m => `<button class="sigchip${(cur.sig.size || '') === m[0] ? ' on' : ''}" data-sigsize="${m[0] || '-'}" title="${esc(m[1])}">${esc(m[0] ? m[1].replace(/^\S+ /, '') : '–')}</button>`).join('')}</div><div class="siglbl2">Name</div><input id="sig-txt" style="width:100%;max-width:320px" placeholder="Name der Gruppe" value="${esc(cur.sig.txt || '')}">` : ''}
@@ -3031,7 +3042,7 @@ const opacCtl = () => `<label class="hint opac" style="margin:0" title="Deckkraf
 function grenzToolbar() {
   const dr = ui.draw;
   if (dr) return `<div class="grenz-bar drawing"><b>${esc((LINIEN_TYP.find(e => e[0] === dr.typ) || ['', ''])[1])}:</b> <span>${dr.typ === 'pfeil' ? ['Pfeilspitze klicken.', 'Ende der Pfeilspitze klicken (Länge der Spitze).', 'Rand des Pfeils klicken (Breite).', 'Verlauf bis zum Pfeilende klicken.'][Math.min(dr.pts.length, 3)] + (dr.pts.length > 3 ? ` (${dr.pts.length - 3} Punkte Verlauf)` : '') : `Punkte in die Karte klicken (${dr.pts.length} gesetzt). Klick auf den ersten Punkt schliesst die Linie.`}</span>
-    <button class="small primary" id="grenz-ok"${dr.pts.length < linMin(dr.typ) ? ' disabled' : ''}>Abschliessen</button><button class="small" id="grenz-undo"${dr.pts.length ? '' : ' disabled'}>Letzten Punkt entfernen</button><button class="small" id="grenz-cancel">${dr.pts.length ? 'Verwerfen' : 'Linie beenden'}</button><span style="flex:1"></span><button class="small danger" id="karte-leeren" title="Alle Signaturen und Linien von der Lagekarte löschen">🗑 Karte leeren</button></div>`;
+    <button class="small primary" id="grenz-ok"${dr.pts.length < linMin(dr.typ) ? ' disabled' : ''}>Abschliessen</button><button class="small" id="grenz-undo"${dr.pts.length ? '' : ' disabled'}>Letzten Punkt entfernen</button><button class="small" id="grenz-cancel">${dr.pts.length ? 'Verwerfen' : 'Linie beenden'}</button>${BM ? '' : '<span style="flex:1"></span><button class="small danger" id="karte-leeren" title="Alle Signaturen und Linien von der Lagekarte löschen">🗑 Karte leeren</button>'}</div>`;
   return `<div class="grenz-bar"><span style="flex:1"></span><button class="small" id="lb-export" title="Aktuelles Lagebild (Karte, Ausschnitt, Signaturen, Linien) als JSON-Datei speichern">⤓ Lagebild speichern</button><button class="small" id="lb-import" title="Gespeichertes Lagebild laden: ersetzt Signaturen, Linien und Kartenausschnitt"${isAdm() ? '' : ' disabled'}>⤒ Lagebild laden</button><input type="file" id="file-lagebild" accept=".json,application/json" hidden><button class="small danger" id="karte-leeren" title="Alle Signaturen und Linien von der Lagekarte löschen">🗑 Karte leeren</button></div>`;
 }
 
@@ -3175,6 +3186,8 @@ document.addEventListener('change', ev => {
 function lageSettings() {
   const m = D.meta, dis = isAdm() ? '' : ' disabled';
   const f = (k, l, extra = '') => `<label>${l}<input data-meta="${k}" type="number" value="${esc(m[k])}" ${extra}${dis}></label>`;
+  if (BM) return `<div class="lage-set">${isAdm() ? '' : zvPanel()}${!isKp() && kmode(roleZug()) === 'eigen' ? '' : `<div class="ls-h">Führungsraster${isAdm() ? '' : ' Kp'}</div>
+    <div class="ls-2">${f('rasterCols', 'Spalten (A …)', 'min="4" max="26"')}${f('rasterRows', 'Zeilen (1 …)', 'min="4" max="40"')}</div>`}</div>`;
   return `<div class="lage-set"><div class="ls-t">Karte und Raster</div>
     ${isAdm() ? '' : zvPanel()}${!isKp() && kmode(roleZug()) === 'eigen' ? '' : `${isAdm() ? '' : '<div class="ls-h">Kartengrundlage Kp</div>'}
     ${geoPanel()}
@@ -3186,7 +3199,9 @@ function lageSettings() {
   </div>`;
 }
 const MT_I = {
-  search: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>',
+  lbsave: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 4h13l3 3v13H4z"/><path d="M8 4v5h8V4M8 20v-6h8v6"/></svg>',
+  lbload: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 7h6l2 2h10v10H3z"/><path d="M12 17v-6M9 13.5l3-3 3 3"/></svg>',
+  search: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 22s-7-7.2-7-12.5a7 7 0 0 1 14 0C19 14.8 12 22 12 22z"/><circle cx="12" cy="9.5" r="2.6" fill="currentColor"/></svg>',
   upload: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>',
   raster: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>',
   unit: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3l9 9-9 9-9-9z" fill="#f08080" stroke="#000" stroke-width="1.6"/></svg>',
@@ -3199,8 +3214,8 @@ function lageCan() { const adm = isAdm(), z = adm ? null : roleZug(), m = z ? km
 function mapTools() {
   const c = lageCan(), pop = ui.lagePop || '';
   const ic = (k, title, extra = '') => `<button class="map-ic${pop === k || (k === 'sig' && ui.palOpen && !ui.draw && !ui.palFn) || (k === 'unit' && ui.palOpen && ui.palFn === 'unit' && !ui.draw) || (k === 'line' && ui.draw) || (k === 'druck' && ui.dbMode) ? ' on' : ''}" data-maptool="${k}" title="${title}" ${extra}>${MT_I[k]}</button>`;
-  let h = `<div class="map-tools">${c.search ? ic('search', 'Ort für den Kartenausschnitt suchen') : ''}${c.upload ? ic('upload', 'Karte hochladen (Bilddatei)') + '<input type="file" id="file-karte" accept="image/*" hidden>' : ''}${ic('raster', 'Führungsraster und Karte einstellen')}
-    <span class="map-sep"></span>${ic('unit', 'Formation hinzufügen')}${ic('line', 'Linie hinzufügen')}${ic('sig', 'Sonstige Signatur hinzufügen')}${c.druck ? '<span class="map-sep"></span>' + ic('druck', 'Druckbereich festlegen') : ''}</div>`;
+  let h = `<div class="map-tools">${c.search ? ic('search', 'Ort für den Kartenausschnitt suchen') : ''}${c.upload ? ic('upload', BM ? 'Karte: Kartentyp, offline speichern, eigene Karte hochladen' : 'Karte hochladen (Bilddatei)') + '<input type="file" id="file-karte" accept="image/*" hidden>' : ''}${ic('raster', BM ? 'Führungsraster einstellen' : 'Führungsraster und Karte einstellen')}
+    <span class="map-sep"></span>${ic('unit', 'Formation hinzufügen')}${ic('line', 'Linie hinzufügen')}${ic('sig', BM ? 'Weitere Signaturen hinzufügen' : 'Sonstige Signatur hinzufügen')}${c.druck ? '<span class="map-sep"></span>' + ic('druck', 'Druckbereich festlegen') : ''}${BM ? '<span class="map-sep"></span>' + ic('lbsave', 'Lagebild speichern (JSON-Datei)') + (isAdm() ? ic('lbload', 'Lagebild laden (ersetzt Signaturen, Linien und Ausschnitt)') : '') + '<input type="file" id="file-lagebild" accept=".json,application/json" hidden>' : ''}</div>`;
   if (pop === 'search' && c.search) {
     const id = c.adm ? 'geo' : 'zr', q = c.adm ? ui.geoQ : ui.zrQ, msg = c.adm ? ui.geoMsg : ui.zrMsg, res = (c.adm ? ui.geoResults : ui.zrResults) || [];
     h += `<div class="map-pop"><div class="map-pop-h"><b>Ort suchen</b><button class="small" data-maptool="search" title="Schliessen">✕</button></div><div class="sigrow" style="flex-wrap:nowrap"><input id="${id}-q" placeholder="Ort, Flurname oder Koordinaten" value="${esc(q || '')}" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('${id}-search').click()}"><button id="${id}-search" class="small primary">Suchen</button></div>
@@ -3208,7 +3223,15 @@ function mapTools() {
       ${res.length ? `<div class="sigchips">${res.map(r => `<button class="sigchip" data-${c.adm ? 'geopick' : 'zrpick'}="${r.E},${r.N}" title="${fmtLV(r.E)} / ${fmtLV(r.N)}">${esc(r.label)}</button>`).join('')}</div>` : ''}
       <p class="hint" style="margin:4px 0 0">Der Druckbereich springt an den gefundenen Ort.</p></div>`;
   }
-  if (pop === 'raster') h += `<div class="map-pop map-pop-set"><div class="map-pop-h"><b>Führungsraster und Karte</b><button class="small" data-maptool="raster" title="Schliessen">✕</button></div>${lageSettings()}</div>`;
+  if (pop === 'karte' && c.upload) { const g = D.geo, saved = g && D.karte && sameGeo(D.karteGeo, g);
+    h += `<div class="map-pop"><div class="map-pop-h"><b>Karte</b><button class="small" data-maptool="upload" title="Schliessen">✕</button></div>
+      ${g ? `<div class="ls-h" style="margin-top:0">swisstopo</div><label class="hint" style="margin:0 0 6px;display:block">Kartentyp ${sel(g.layer || GEO_LAYERS[0][0], GEO_LAYERS, 'id="geo-layer"')}</label>
+      <div class="sigrow"><button class="small${saved ? '' : ' primary'}" id="geo-offline">⤓ Druckbereich offline speichern</button><span class="hint" style="margin:0">${saved ? '✓ gespeichert' : 'für den Einsatz ohne Internet'}</span></div>
+      ${ui.geoMsg ? `<div class="hint" style="margin:2px 0 6px">${esc(ui.geoMsg)}</div>` : ''}` : ''}
+      <div class="ls-h">Eigene Karte</div><div class="sigrow"><button class="small" id="kp-upload">Bilddatei hochladen …</button>${D.karte && !D.geo ? '<button id="btn-karte-del" class="small danger">entfernen</button>' : ''}</div>
+      ${g ? `<p class="hint" style="margin:2px 0 6px">Ersetzt die swisstopo-Karte. Zurück zu swisstopo: Ort suchen (🔍).</p>` : ''}
+</div>`; }
+  if (pop === 'raster') h += `<div class="map-pop map-pop-set"><div class="map-pop-h"><b>${BM ? 'Führungsraster' : 'Führungsraster und Karte'}</b><button class="small" data-maptool="raster" title="Schliessen">✕</button></div>${lageSettings()}</div>`;
   return h;
 }
 // Bildschirmansicht (ui.mv, Einheiten des Rahmens) und Vorschlag Druckbereich
@@ -3243,10 +3266,13 @@ document.addEventListener('click', ev => {
   const b = ev.target.closest && ev.target.closest('button'); if (!b) return;
   const t = b.dataset.maptool;
   if (t === 'search' || t === 'raster') { ui.lagePop = ui.lagePop === t ? '' : t; render(); if (ui.lagePop === 'search') setTimeout(() => { const i = $('#geo-q') || $('#zr-q'); if (i) i.focus(); }, 0); return; }
-  if (t === 'upload') { const f = $('#file-karte'); if (f) f.click(); return; }
+  if (t === 'lbsave') { exportLagebild(); return; }
+  if (t === 'lbload') { if (isAdm()) $('#file-lagebild').click(); return; }
+  if (t === 'upload') { if (BM) { ui.lagePop = ui.lagePop === 'karte' ? '' : 'karte'; render(); return; } const f = $('#file-karte'); if (f) f.click(); return; }
+  if (b.id === 'kp-upload') { const f = $('#file-karte'); if (f) f.click(); return; }
   if (t === 'unit') { ui.lagePop = ''; const on = ui.palOpen && ui.palFn === 'unit' && !ui.draw; ui.draw = null; ui.palOpen = !on; ui.palFn = on ? null : 'unit'; render(); if (!on) { const x = $('.map-pal [data-sigfn="unit"]'); if (x && !x.classList.contains('on')) x.click(); } return; }
   if (t === 'line') { ui.lagePop = ''; if (ui.draw) { ui.draw = null; ui.palOpen = false; render(); return; } ui.palOpen = true; ui.palFn = 'line'; render(); const x = $('.map-pal [data-siglin]'); if (x) x.click(); return; }
-  if (t === 'sig') { ui.lagePop = ''; const on = ui.palOpen && !ui.palFn && !ui.draw; ui.draw = null; ui.palOpen = !on; ui.palFn = null; render(); return; }
+  if (t === 'sig') { ui.lagePop = ''; const on = ui.palOpen && !ui.palFn && !ui.draw; ui.draw = null; ui.palOpen = !on; ui.palFn = null; render(); if (BM && !on && !ui.sigTarget) { const fn = normSig(ui.sigTpl).fn; if (fn === 'unit' || fn === 'p-irr') { const x = $('.map-pal [data-sigfn]'); if (x) x.click(); } } return; }
   if (t === 'druck') { ui.lagePop = ''; ui.dbMode = !ui.dbMode; render(); return; }
   if (b.id === 'db-ok') { dbApply(); return; }
   if (b.id === 'db-cancel') { ui.dbMode = false; render(); return; }
@@ -3255,20 +3281,39 @@ document.addEventListener('click', ev => {
   if ((b.id === 'geo-search' || b.id === 'zr-search') && geoParseCoord((($('#geo-q') || $('#zr-q')) || {}).value || '')) ui.lagePop = '';
 }, true);
 document.addEventListener('click', ev => { const b = ev.target.closest && ev.target.closest('[data-tab="lage"]'); if (!b) return; setTimeout(() => { const m = document.querySelector('.lage-full'); if (m) window.scrollTo(0, Math.max(0, m.getBoundingClientRect().top + scrollY - 6)); }, 60); });
+// BM: prüfen, ob swisstopo erreichbar ist; sonst Karte hochladen anbieten
+function mapProbe() {
+  const g = D.geo; if (!g || (D.karte && sameGeo(D.karteGeo, g))) { if (ui.mapOffline) { ui.mapOffline = false; render(); } return; }
+  const key = [g.e, g.n, g.w, g.layer].join(','); if (ui.probeKey === key) return; ui.probeKey = key;
+  const done = off => { if (ui.mapOffline !== off) { ui.mapOffline = off; render(); } };
+  if (navigator.onLine === false) { done(true); return; }
+  const t = wmtsTiles(g, 1400).tiles[0]; if (!t) return;
+  const im = new Image(); const to = setTimeout(() => done(true), 6000);
+  im.onload = () => { clearTimeout(to); done(false); }; im.onerror = () => { clearTimeout(to); done(true); }; im.src = t.url + '?p=' + Date.now();
+}
+window.addEventListener('online', () => { ui.probeKey = null; if (currentTab === 'lage') render(); });
+window.addEventListener('offline', () => { ui.probeKey = null; if (currentTab === 'lage') render(); });
+document.addEventListener('click', ev => { const b = ev.target.closest && ev.target.closest('button'); if (!b) return;
+  if (b.id === 'sel-del') { selDelete(); return; }
+  if (b.id === 'sel-close') { ui.sel = []; render(); return; }
+  if (b.id === 'off-upload') { const f = $('#file-karte'); if (f) f.click(); return; }
+  if (b.id === 'off-retry') { ui.probeKey = null; ui.mapOffline = false; render(); return; } });
 let lageRzT = null; window.addEventListener('resize', () => { if (currentTab !== 'lage') return; clearTimeout(lageRzT); lageRzT = setTimeout(() => { ui.mapAr = null; render(); }, 200); });
 function viewLage() {
   const mz = isKp() ? null : roleZug();
   if (ui.sigTarget || ui.draw) ui.palOpen = true;
-  const LM = inFrame(mz, () => ({ ar: (mapDims().W / mapDims().H).toFixed(4), svg: mapSVG(D.lage.filter(l => l.aktiv !== false && visLage(l)), { id: 'lage-map', linF: visLin, hl: ui.sigTarget || armedLage, draft: ui.draw, hlLine: ui.hlLine, view: zugView(mz), screen: lageScreen(mz) }) }));
+  const LM = inFrame(mz, () => ({ ar: (mapDims().W / mapDims().H).toFixed(4), svg: mapSVG(D.lage.filter(l => l.aktiv !== false && visLage(l)), { id: 'lage-map', linF: visLin, hl: ui.sigTarget || armedLage, hlSet: BM ? (ui.sel || []) : null, draft: ui.draw, hlLine: ui.hlLine, view: zugView(mz), screen: lageScreen(mz) }) }));
   return `<div class="card lage-card">
     
-    ${armedLage ? '<div class="toolbar"><span class="ovf-note">Position setzen: in die Karte klicken</span> <button class="small" id="lage-disarm">abbrechen</button></div>' : ''}
+    ${armedLage ? '<div class="toolbar"><span class="ovf-note">Position setzen: ' + (BM ? 'Doppelklick oder lang tippen in die Karte' : 'in die Karte klicken') + '</span> <button class="small" id="lage-disarm">abbrechen</button></div>' : ''}
     <div class="lage-full"><div class="mapbox${ui.draw ? ' drawing' : ''}${ui.palOpen ? ' pal-open' : ''}">${LM.svg}${mapTools()}
-      ${ui.palOpen ? `<div class="map-pal"><div class="map-pop-h"><b>${ui.sigTarget ? 'Signatur bearbeiten' : ui.draw ? 'Linie zeichnen' : 'Signatur wählen, dann in die Karte tippen'}</b><button class="small" id="pal-close" title="Schliessen">✕</button></div>${sigPalette()}</div>` : ''}
+      ${ui.palOpen ? `<div class="map-pal"><div class="map-pop-h"><b>${ui.sigTarget ? 'Signatur bearbeiten' : ui.draw ? 'Linie zeichnen' : BM && palMode() === 'unit' ? 'Formation wählen, dann Doppelklick / lang tippen in die Karte' : BM && palMode() === 'line' ? 'Linie wählen' : BM ? 'Signatur wählen, dann Doppelklick / lang tippen in die Karte' : 'Signatur wählen, dann in die Karte tippen'}</b><button class="small" id="pal-close" title="Schliessen">✕</button></div>${sigPalette()}</div>` : ''}
       ${ui.draw ? `<div class="map-bottom">${grenzToolbar()}</div>` : ''}
+      ${BM && !ui.palOpen && !ui.draw && (ui.sel || []).length ? selPanel() : ''}
+      ${BM && ui.mapOffline && D.geo ? `<div class="map-offline"><b>Keine Verbindung zu swisstopo</b><p>Ohne Internet kann die Online-Karte nicht geladen werden. Lade eine Karte als Bilddatei hoch (z.B. Foto oder Scan der Landeskarte).</p><div class="row-actions">${isAdm() ? '<button class="primary" id="off-upload">Karte hochladen …</button>' : ''}<button id="off-retry">Erneut versuchen</button></div></div>` : ''}
       ${ui.dbMode ? `<div class="map-bottom db-bar"><span>${ui.dbProp ? 'Karte verschieben und zoomen, bis der rote Rahmen den Druckbereich zeigt.' : 'Druckbereich nicht verfügbar.'}</span><button class="small primary" id="db-ok"${ui.dbProp ? '' : ' disabled'}>Übernehmen</button><button class="small" id="db-cancel">Abbrechen</button></div>` : ''}
-    </div>${ui.draw ? '' : grenzToolbar()}</div>
-    <div style="margin-top:14px">
+    </div>${ui.draw || BM ? '' : grenzToolbar()}</div>
+    ${BM ? '</div>' : `<div style="margin-top:14px">
     <div>${editTable('lage', D.lage.filter(visLage), [
       { key: 'sigcol', label: 'Sig', type: 'html', html: r => `<button class="small sigedit${ui.sigTarget === r.id ? ' on' : ''}" data-sigtarget="${esc(r.id)}" title="${esc(sigName(r.sig))} – Signatur bearbeiten">${sigIcon(r.sig, r.partei, 28, '', r.nr)}</button>` },
       { key: 'partei', label: 'Partei', type: 'select', options: PARTEIEN.map(p => [p, P_LABEL[p]]), w: '105px' }, { key: 'feld', label: 'Feld', w: '65px', ph: 'K7' },
@@ -3290,8 +3335,41 @@ function viewLage() {
       { key: 'typ', label: 'Art', type: 'select', options: LINIEN_TYP.slice(1), w: '230px' }, { key: 'name', label: 'Name', ph: 'z.B. ROT' },
       { key: 'quelle', label: 'Erfasst von', type: 'select', elem: true, options: () => elementOptions(), w: '150px' },
       { key: 'zeig', label: '', type: 'html', html: r => `<button class="small" data-hlline="${esc(r.id)}" title="Auf der Karte hervorheben">${ui.hlLine === r.id ? '◉' : '◎'}</button>` }
-    ]) : '<p class="hint">Noch keine Phasenlinien. Unter der Karte «Phasenlinie» wählen, Namen eingeben (z.B. ROT), «Linie einzeichnen» klicken und die Punkte setzen.</p>'}</div></div>`;
+    ]) : '<p class="hint">Noch keine Phasenlinien. Unter der Karte «Phasenlinie» wählen, Namen eingeben (z.B. ROT), «Linie einzeichnen» klicken und die Punkte setzen.</p>'}</div></div>`}`;
 }
+/* BM: Auswahl auf der Karte (Klick, Ctrl/Cmd-Klick = mehrere), Löschen, Angaben bei Formationen */
+const selItems = () => (ui.sel || []).map(id => { const l = D.lage.find(x => x.id === id); if (l) return { k: 'lage', r: l }; const n = (D.linien || []).find(x => x.id === id); return n ? { k: 'linien', r: n } : null; }).filter(Boolean);
+const isForm = l => { const f = normSig(l.sig).fn; return f === 'unit' || f === 'p-irr'; };
+function selPanel() {
+  const it = selItems(); if (!it.length) { ui.sel = []; return ''; }
+  const del = it.some(x => canEdit(x.k, x.r)) ? `<button class="small danger" id="sel-del">🗑 ${it.length > 1 ? it.length + ' Signaturen löschen' : 'Löschen'}</button>` : '';
+  const close = `<button class="small" id="sel-close" title="Auswahl aufheben">✕</button>`;
+  if (it.length > 1) return `<div class="map-info"><div class="map-pop-h"><b>${it.length} Signaturen ausgewählt</b>${close}</div><p class="hint" style="margin:0 0 8px">Ctrl / Cmd + Klick fügt weitere hinzu oder entfernt sie.</p><div class="sigrow">${del}</div></div>`;
+  const { k, r } = it[0], ok = canEdit(k, r);
+  if (k === 'linien') { const nm = (LINIEN_TYP.find(e => e[0] === (r.typ || 'grenze')) || ['', 'Linie'])[1];
+    return `<div class="map-info"><div class="map-pop-h"><b>${esc(nm)}${r.name ? ' ' + esc(r.name) : ''}</b>${close}</div><div class="sigrow">${del}</div></div>`; }
+  const a = key => `data-tbl="lage" data-id="${esc(r.id)}" data-key="${key}"${ok ? '' : ' disabled'}`;
+  const head = `<div class="map-pop-h"><b style="display:flex;align-items:center;gap:6px">${sigIcon(r.sig, r.partei, 30, '', r.nr)} ${esc(lageCode(r))} ${esc(sigName(r.sig))}</b>${close}</div>`;
+  const act = `<div class="sigrow">${ok ? `<button class="small" data-sigtarget="${esc(r.id)}">Signatur bearbeiten</button>` : ''}${del}</div>`;
+  if (!isForm(r)) return `<div class="map-info">${head}${act}</div>`;
+  return `<div class="map-info">${head}
+    <div class="mi-grid"><label>Partei${sel(r.partei, PARTEIEN.map(p => [p, P_LABEL[p]]), a('partei'))}</label><label>Feld<input value="${esc(r.feld || '')}" disabled></label>
+    <label class="mi-w">Bezeichnung<input ${a('bezeichnung')} value="${esc(r.bezeichnung || '')}"></label>
+    <label class="mi-w">Tätigkeit<input ${a('taetigkeit')} value="${esc(r.taetigkeit || '')}"></label>
+    <label>Zeit<input type="datetime-local" ${a('zeit')} value="${esc(r.zeit || '')}"></label><label>Quelle${sel(r.quelle, elementOptions(), a('quelle'))}</label>
+    <label>Betrifft${sel(r.betrifft, elementOptions(), a('betrifft'))}</label><label class="mi-chk"><input type="checkbox" ${a('aktiv')} ${r.aktiv !== false ? 'checked' : ''}> aktiv</label>
+    <label class="mi-w">Bemerkungen<textarea rows="3" ${a('bem')} placeholder="z.B. Absicht, Beobachtung, Stärke">${esc(r.bem || '')}</textarea></label></div>
+    ${act}</div>`;
+}
+function selDelete() {
+  const it = selItems().filter(x => canEdit(x.k, x.r)); if (!it.length) return;
+  if (it.length > 1 && !confirm(it.length + ' Signaturen löschen?')) return;
+  const ids = new Set(it.map(x => x.r.id)); ids.forEach(id => tombstone(id));
+  D.lage = D.lage.filter(r => !ids.has(r.id)); D.linien = (D.linien || []).filter(r => !ids.has(r.id));
+  ui.sel = []; ui.sigTarget = null; touch(); render();
+}
+document.addEventListener('keydown', ev => { if (!BM || currentTab !== 'lage' || !(ui.sel || []).length) return; const tg = ev.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
+  if (ev.key === 'Delete' || ev.key === 'Backspace') { ev.preventDefault(); selDelete(); } else if (ev.key === 'Escape') { ui.sel = []; render(); } });
 function nextNr(partei) { return D.lage.filter(l => l.partei === partei).reduce((m, l) => Math.max(m, +l.nr || 0), 0) + 1; }
 function nowLocal() { const d = new Date(); return D.meta.tag + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 /* Ausschnitt mit der Maus ziehen: kurzer Klick setzt weiterhin Signaturen */
@@ -3328,7 +3406,7 @@ function bindMapPan(svg) {
     st = { x: ev.clientX, y: ev.clientY, on: false, id: ev.pointerId }; panned = false;
   });
   svg.addEventListener('pointermove', ev => {
-    if (!st || ev.pointerId !== st.id) return; const dx = ev.clientX - st.x, dy = ev.clientY - st.y;
+    if (!st || ev.pointerId !== st.id) return; if (svg._lp) { st = null; return; } const dx = ev.clientX - st.x, dy = ev.clientY - st.y;
     if (!st.on && Math.hypot(dx, dy) > 6) { st.on = true; try { svg.setPointerCapture(st.id); } catch (e) {} svg.classList.add('panning'); }
     if (st.on) svg.style.transform = `translate(${dx}px,${dy}px)`;
   });
@@ -3368,8 +3446,9 @@ function bindLageMap() {
   svg.addEventListener('mousemove', ev => { if (ui.draw && ui.draw.typ === 'pfeil') live(ev); });
   svg.addEventListener('mouseleave', () => live(null));
   bindMapPan(svg);
+  if (BM) mapProbe();
   const box = svg.closest('.mapbox'); if (box) { const r = box.getBoundingClientRect(), ar = r.width / Math.max(1, r.height); if (r.width > 50) ui.mapBoxW = r.width; if (r.width > 50 && Math.abs(ar - (ui.mapAr || 0)) / ar > .02) { ui.mapAr = ar; ui.mv = null; setTimeout(render, 0); } }
-  svg.addEventListener('click', ev => inFrame(isKp() ? null : roleZug(), () => {
+  const place = ev => inFrame(isKp() ? null : roleZug(), () => {
     const pt = svg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
     const p = pt.matrixTransform(svg.getScreenCTM().inverse());
     const { W, H } = mapDims();
@@ -3391,7 +3470,25 @@ function bindLageMap() {
       D.lage.push(withRahmen(FR, NEW({ id: 'l' + uid(), partei: newLagePartei, nr: nextNr(newLagePartei), feld, bezeichnung: '', anzahl: '', mittel: '', taetigkeit: '', zeit: nowLocal(), quelle: myEl(), betrifft: isKp() ? 'kp' : ROLE, aktiv: true, x: p.x / W, y: p.y / H, sig: normSig(ui.sigTpl) })));
     }
     touch(); render();
-  }));
+  });
+  // BM: einfacher Klick/Tipp verschiebt nur die Karte; Signatur setzen per Doppelklick oder langem Tippen
+  svg.addEventListener('click', ev => { if (BM && !ui.draw) { if (ui.palOpen || armedLage || ui.sigTarget) return;
+      let g = ev.target.closest && ev.target.closest('[data-lage],[data-linie]');
+      if (!g) { let best = 1e9; svg.querySelectorAll('[data-lage]').forEach(e => { const q = e.getBoundingClientRect(), pad = 8; if (ev.clientX < q.left - pad || ev.clientX > q.right + pad || ev.clientY < q.top - pad || ev.clientY > q.bottom + pad) return; const d = Math.hypot(ev.clientX - (q.left + q.right) / 2, ev.clientY - (q.top + q.bottom) / 2); if (d < best) { best = d; g = e; } }); }
+      const id = g && (g.dataset.lage || g.dataset.linie), cur = ui.sel || [];
+      if (!id) { if (cur.length && !(ev.ctrlKey || ev.metaKey)) { ui.sel = []; render(); } return; }
+      ui.sel = ev.ctrlKey || ev.metaKey ? (cur.includes(id) ? cur.filter(x => x !== id) : cur.concat(id)) : (cur.length === 1 && cur[0] === id ? [] : [id]); render(); return; }
+    place(ev); });
+  if (BM) {
+    const want = () => !ui.draw && (armedLage || ui.sigTarget || ui.palOpen);
+    svg.addEventListener('dblclick', ev => { if (!want()) return; ev.preventDefault(); place(ev); });
+    let lp = null; const lpStop = () => { if (lp) { clearTimeout(lp.t); lp = null; } };
+    svg.addEventListener('pointerdown', ev => { lpStop(); if (ev.button !== 0 || !want() || ev.pointerType === 'mouse') return; const x = ev.clientX, y = ev.clientY, id = ev.pointerId;
+      lp = { x, y, id, t: setTimeout(() => { lp = null; svg._lp = true; try { navigator.vibrate && navigator.vibrate(30); } catch (e) {} place({ clientX: x, clientY: y }); setTimeout(() => { svg._lp = false; }, 400); }, 550) }; });
+    svg.addEventListener('pointermove', ev => { if (lp && (ev.pointerId !== lp.id || Math.hypot(ev.clientX - lp.x, ev.clientY - lp.y) > 8)) lpStop(); });
+    svg.addEventListener('pointerup', lpStop); svg.addEventListener('pointercancel', lpStop);
+    svg.addEventListener('contextmenu', ev => { if (want()) ev.preventDefault(); });
+  }
 }
 
 /* ---- Anträge ---- */
@@ -3447,7 +3544,7 @@ document.addEventListener('click', ev => {
   const hd = ev.target.closest('[data-setday]'); if (hd) { D.meta.tag = hd.dataset.setday; touch(); render(); return; }
   const b = ev.target.closest('button'); if (!b) return;
   if (b.dataset.pendtermin) { const tm = D.termine.find(x => x.id === b.dataset.pendtermin); if (tm) { currentTab = 'termine'; if (tm.datum) D.meta.tag = tm.datum; ui.editTermin = tm.id; render(); window.scrollTo(0, 0); } return; }
-  if (b.dataset.tab) { currentTab = b.dataset.tab; armedLage = null; ui.editTermin = null; ui.sigTarget = null; ui.draw = null; render(); window.scrollTo(0, 0); return; }
+  if (b.dataset.tab) { currentTab = b.dataset.tab; armedLage = null; ui.sel = []; ui.editTermin = null; ui.sigTarget = null; ui.draw = null; render(); window.scrollTo(0, 0); return; }
   if (b.dataset.del) {
     const arr = TABLES[b.dataset.del](); const i = arr.findIndex(r => r.id === b.dataset.id);
     if (i >= 0 && !canEdit(b.dataset.del, arr[i])) return;
@@ -3455,7 +3552,7 @@ document.addEventListener('click', ev => {
   }
   if (b.dataset.termmode) { ui.termMode = b.dataset.termmode; ui.editTermin = null; render(); return; }
   if (b.dataset.hlline) { ui.hlLine = ui.hlLine === b.dataset.hlline ? null : b.dataset.hlline; render(); return; }
-  if (b.dataset.sigtarget) { ui.sigTarget = ui.sigTarget === b.dataset.sigtarget ? null : b.dataset.sigtarget; armedLage = null; render(); return; }
+  if (b.dataset.sigtarget) { ui.sel = []; ui.sigTarget = ui.sigTarget === b.dataset.sigtarget ? null : b.dataset.sigtarget; armedLage = null; render(); return; }
   if (b.dataset.sigfn || b.dataset.sigpartei || b.dataset.sigmod || b.dataset.sigpm || b.dataset.sigcap || b.dataset.sigsize || b.dataset.sigst || b.dataset.sigwt) {
     if (ui.draw && !b.closest('.sigpal.editing')) ui.draw = null;
     const apply = o => { if (b.dataset.sigfn) { if (o.fn !== b.dataset.sigfn) { o.pm = ''; o.cap = ''; o.wt = ''; o.txt = ''; if (b.dataset.sigfn === 'unit') o.mods = []; else { o.size = ''; o.st = ''; } } o.fn = b.dataset.sigfn; } if (b.dataset.sigsize) o.size = b.dataset.sigsize === '-' ? '' : b.dataset.sigsize; if (b.dataset.sigst) o.st = b.dataset.sigst === '-' ? '' : b.dataset.sigst; if (b.dataset.sigpm) o.pm = b.dataset.sigpm === '-' ? '' : b.dataset.sigpm; if (b.dataset.sigcap) o.cap = b.dataset.sigcap === '-' ? '' : b.dataset.sigcap; if (b.dataset.sigwt) o.wt = b.dataset.sigwt === '-' ? '' : b.dataset.sigwt; if (b.dataset.sigmod) { if (o.fn !== 'unit') { o.fn = 'unit'; o.mods = []; } const m = b.dataset.sigmod; const excl = { kpfix: 'kpmob', kpmob: 'kpfix' }[m]; o.mods = o.mods.includes(m) ? o.mods.filter(x => x !== m) : [...o.mods.filter(x => x !== excl), m]; } };
