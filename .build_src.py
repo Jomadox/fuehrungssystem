@@ -5,11 +5,13 @@ libs='<script>'+open('libs/qrcode.min.js',encoding='utf-8').read()+'</script>\n<
 t=t.replace('<!--__QRLIBS__-->',libs)
 b=open('demo_map.b64').read().strip()
 m=t.replace('"__DEMO_MAP__"','"data:image/jpeg;base64,'+b+'"').replace('__DEMO_MAP_W__','1474').replace('__DEMO_MAP_H__','1600')
-open('app/Fuehrungssystem.html','w',encoding='utf-8').write(m)
+# Ab 27.11.2026 (Befehl Joshua): Kp, BM und Grfhr sind EIN System (Gesamtsystem aus template.html, BM als Referenz).
+# Rollen: Kp Kdt, Zfhr <Zug>, Grfhr (eigene Ansicht mit Gruppenpaket). Grfhr.html und die Web-App starten als Grfhr.
 # BM-Version: wie Kp Kdt, zusätzlich Kaderselektion
 mb=tb.replace('<!--__QRLIBS__-->',libs).replace('"__DEMO_MAP__"','"data:image/jpeg;base64,'+b+'"').replace('__DEMO_MAP_W__','1474').replace('__DEMO_MAP_H__','1600')
-open('app/Fuehrungssystem_BM.html','w',encoding='utf-8').write(mb.replace('/*__BM_MODE__*/false','true').replace('<title>Führungssystem Kp</title>','<title>Führungssystem BM</title>'))
-g=t.replace('"__DEMO_MAP__"','"data:image/jpeg;base64,'+b+'"').replace('__DEMO_MAP_W__','1474').replace('__DEMO_MAP_H__','1600').replace('/*__GR_MODE__*/false','true').replace('<title>Führungssystem Kp</title>','<title>Führungssystem Grfhr</title>')
+mb=mb.replace('/*__BM_MODE__*/false','true').replace('<title>Führungssystem Kp</title>','<title>Führungssystem</title>')
+open('app/Fuehrungssystem.html','w',encoding='utf-8').write(mb)
+g=mb.replace('/*__GR_MODE__*/false','true').replace('<title>Führungssystem</title>','<title>Führungssystem Grfhr</title>')
 open('app/Grfhr.html','w',encoding='utf-8').write(g)
 # Web-App (PWA) für iPhone/Android: index.html + manifest + Service Worker + Icons
 import os, hashlib

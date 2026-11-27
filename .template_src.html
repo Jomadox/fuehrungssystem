@@ -827,11 +827,11 @@ table.mx th,table.mx td{padding:4px 3px}.mx-dot{display:inline-block;width:14px;
       <li><b>Einmalig:</b> Kopfdaten (direkt unter dem Titel), Kp Kdo, Züge, Gruppen und Personal (Einsatzgliederung) erfassen. Karte und Raster im Register Lagekarte einstellen.</li>
       <li><b>Täglich:</b> oben den Tag wählen. Termine (Synchromatrix) und Lage (Lagekarte) je <b>einmal</b> erfassen und dem richtigen Element zuordnen (Kp, Zug oder Gruppe).</li>
       <li><b>Status:</b> Die Grfhr melden, Zfhr oder Fw tragen den Status pro Person und System ein (Statusübersicht). Summen und Ampeln entstehen automatisch.</li>
-      <li><b>Grfhr:</b> Symbol «QR» rechts oben. Der Zfhr sendet jeder Gruppe ihr Paket (Zeitplan, Status, Lage, Ausbildungsstand) als QR-Code oder als Datei mit Karte (z.B. Threema) an die Grfhr-Version (Datei «Grfhr.html» auf dem Handy). Die Rückmeldung des Grfhr (Status und Ausbildungskontrolle) liest er dort wieder ein.</li>
+      <li><b>Grfhr:</b> Symbol «QR» rechts oben. Der Zfhr sendet jeder Gruppe ihr Paket (Zeitplan, Status, Lage, Ausbildungsstand) als QR-Code oder als Datei mit Karte (z.B. Threema) an das Gerät des Grfhr (Rolle «Grfhr», Datei «Grfhr.html» oder Web-App). Die Rückmeldung des Grfhr (Status und Ausbildungskontrolle) liest er dort wieder ein.</li>
       <li><b>Drucken:</b> Druck-Symbol rechts oben. Kp Kdt wählt «Tagesbefehl» (A3) oder «Wochenarbeitsplan» (A3). Ein Zfhr erhält automatisch sein Paket: Zfhr-Dokument und je Gruppe ein Grfhr-Dokument (alles A4). Jede Stufe erhält nur, was sie betrifft. Befehl und Anträge werden im Ausdruck von Hand ergänzt.</li>
     </ol>
     <b>Rollen</b>
-    <p class="hint" style="margin:2px 0 8px">Die Rolle dieses Geräts wählst du oben neben dem Tag. Der Kp Kdt bearbeitet alles. Ein Zfhr bearbeitet nur seinen Zug: Termine seines Zuges und seiner Gruppen, Personal und Systeme seiner Gruppen, eigene Lagemeldungen. Alles andere sieht er nur (🔒).</p>
+    <p class="hint" style="margin:2px 0 8px">Die Rolle dieses Geräts wählst du oben neben dem Tag. Der Kp Kdt bearbeitet alles. Ein Zfhr bearbeitet nur seinen Zug: Termine seines Zuges und seiner Gruppen, Personal und Systeme seiner Gruppen, eigene Lagemeldungen. Alles andere sieht er nur (🔒). Rolle «Grfhr» öffnet die Gruppenansicht (Zeitplan, Lage, Status, Meldung, Ausbildung) mit dem Gruppenpaket des Zfhr; zurück mit ⇄.</p>
     <b>Abgleich über einen gemeinsamen Ordner (automatisch)</b>
     <p class="hint" style="margin:2px 0 8px">Rechts oben neben «Druck» auf «📁 Ordner verbinden» klicken. Alle Geräte wählen denselben Ordner, z.B. auf einem Netzlaufwerk oder in einem synchronisierten Teams-/OneDrive-Ordner. Jede Rolle schreibt ihre eigene Datei (z.B. «Fuehrung_Kp.json», «Fuehrung_Zug_Ambos.json») und liest die der anderen. Abgleich jede Minute und nach jeder Änderung, «⟳ Abgleichen» löst ihn sofort aus. Bei gleichzeitigen Änderungen am selben Eintrag gilt die jüngste. Funktioniert in Microsoft Edge und Google Chrome.</p>
     <b>Abgleich per Datei (manuell)</b>
@@ -855,11 +855,14 @@ table.mx th,table.mx td{padding:4px 3px}.mx-dot{display:inline-block;width:14px;
 <script>
 "use strict";
 /* ===================== Grundlagen ===================== */
-const GR_MODE = /*__GR_MODE__*/false; // Grfhr-Version (eigene Datei Grfhr.html)
+const MODE_KEY = 'fuehrungssystem_modus_v1'; // Gesamtsystem: Rolle Grfhr = eigene Ansicht mit Gruppenpaket
+const GR_MODE = (() => { try { const m = localStorage.getItem(MODE_KEY); return m ? m === 'gr' : /*__GR_MODE__*/false; } catch (e) { return /*__GR_MODE__*/false; } })();
+const setModus = m => { try { localStorage.setItem(MODE_KEY, m); } catch (e) {} location.reload(); };
 const BM = /*__BM_MODE__*/false; // Berufsmilitär: wie Kp Kdt, zusätzlich Kaderselektion
 const UOS = /*__UOS_MODE__*/false; // UOS: eine Klasse (Struktur eines Zuges) mit drei Gruppen, ohne Rollen
 document.querySelectorAll(UOS ? 'details[data-help="ausbildung"]' : 'details[data-help="lektionen"]').forEach(d => d.remove()); if (!BM) document.querySelectorAll('details[data-help="kader"]').forEach(d => d.remove()); // Hilfe: nur der passende Reiter
 const LS_KEY = GR_MODE ? 'fuehrungssystem_grfhr_v1' : UOS ? 'fuehrungssystem_uos_v1' : BM ? 'fuehrungssystem_bm_v1' : 'fuehrungssystem_kp_v1';
+if (BM && !GR_MODE) try { const o = localStorage.getItem('fuehrungssystem_kp_v1'); if (!localStorage.getItem(LS_KEY) && o) localStorage.setItem(LS_KEY, o); } catch (e) {} // Daten der bisherigen Kp-Version übernehmen
 const DEMO_MAP = "__DEMO_MAP__";
 const DEMO_MAP_W = __DEMO_MAP_W__, DEMO_MAP_H = __DEMO_MAP_H__;
 const KAT = ['Ausbildung','Logistik','Sanität','Rapport','Meldung','Besonderes'];
@@ -903,7 +906,7 @@ const ROLE_KEY = UOS ? 'fuehrungssystem_uos_rolle_v1' : 'fuehrungssystem_rolle_v
 let ROLE = (() => { try { return localStorage.getItem(ROLE_KEY) || 'kp'; } catch (e) { return 'kp'; } })();
 const isKp = () => !UOS && ROLE === 'kp';
 const isAdm = () => isKp() || UOS; // darf alles bearbeiten (Kp Kdt, in der UOS der Klassenlehrer)
-const uosRole = () => { if (UOS && D && D.zuege && D.zuege[0]) ROLE = D.zuege[0].id; if (BM) ROLE = 'kp'; };
+const uosRole = () => { if (UOS && D && D.zuege && D.zuege[0]) ROLE = D.zuege[0].id; };
 const roleZug = () => isKp() ? null : (D.zuege.find(z => z.id === ROLE) || null);
 const roleName = () => isKp() ? 'Kp Kdt' : 'Zfhr ' + (roleZug() ? roleZug().name : '(Zug fehlt)');
 const nowISO = () => new Date().toISOString();
@@ -2102,20 +2105,20 @@ function renderTabs() {
   const dr = DRUCK.filter(([k]) => isKp() && (k === 'p-kp' || k === 'p-woche'));
   $('#druck-menu').innerHTML = '<div class="dm-t">Druckansicht</div>' + dr.map(([k, l]) => `<button data-druckview="${k}" class="${k === currentTab ? 'on' : ''}">${l}</button>`).join('');
   $('#btn-druckmenu').classList.toggle('on', currentTab.startsWith('p-'));
-  $('#tabs').innerHTML = `<button class="tabs-burger" title="Menü" aria-label="Menü">☰</button><button class="tabs-top">↑ Nach oben (Export, Import, Druck)</button>` + TABS.map(([k, l]) => k === 'sep' ? '<span class="sep"></span>' : `<button data-tab="${k}" class="${k === currentTab ? 'on' : ''} ${k.startsWith('p-') ? 'print-tab' : ''}">${l}${k === 'pend' && pendOpen().length ? ` <span class="tab-badge">${pendOpen().length}</span>` : ''}</button>`).join('');
+  $('#tabs').innerHTML = `<button class="tabs-burger" title="Menü" aria-label="Menü">☰</button><button class="tabs-top">↑ Nach oben (Export, Import, Druck)</button>` + TABS.filter(([k]) => k !== 'kader' || isKp()).map(([k, l]) => k === 'sep' ? '<span class="sep"></span>' : `<button data-tab="${k}" class="${k === currentTab ? 'on' : ''} ${k.startsWith('p-') ? 'print-tab' : ''}">${l}${k === 'pend' && pendOpen().length ? ` <span class="tab-badge">${pendOpen().length}</span>` : ''}</button>`).join('');
   syncTabs();
 }
 function renderHeader() {
   uosRole();
   const bn = $('#btn-new'); if (bn) bn.hidden = !isAdm();
-  { const rs0 = $('#role-sel'); if (rs0 && (UOS || BM)) rs0.hidden = true; }
+  { const rs0 = $('#role-sel'); if (rs0 && UOS) rs0.hidden = true; }
   const hs = $('#hdr-sync'); if (hs) { const fsOk = 'showDirectoryPicker' in window, info = syncInfo();
     const I = d => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
     hs.innerHTML = !fsOk ? `<button class="ico" disabled title="Ordnerzugriff nur in Edge oder Chrome. Sonst Abgleich per Export/Import.">${I('<path d="M3 6h6l2 2h10v11H3z"/>')}</button>`
       : syncDir ? `<button id="btn-sync" class="ico on-sync" title="Jetzt abgleichen. ${esc(info)}">${I('<path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/>')}</button><button id="btn-folder" class="ico" title="Ordner «${esc(syncDir.name || '')}» verbunden. Klicken = anderen Ordner wählen (trennen: im ?)">${I('<path d="M3 6h6l2 2h10v11H3z"/>')}</button>`
       : `<button id="btn-folder" class="ico" title="Ordner verbinden: gemeinsamer Ordner für den automatischen Abgleich">${I('<path d="M3 6h6l2 2h10v11H3z"/>')}</button>`; }
   [['verband', D.meta.verband]].forEach(([k, v]) => { const i = $('#hm-' + k); if (!i) return; i.disabled = !isAdm(); if (document.activeElement !== i) i.value = v ?? ''; i.style.width = Math.max(k === 'version' ? 3 : 4, String(i.value).length + 1) + 'ch'; });
-  const rs = $('#role-sel'); if (rs && document.activeElement !== rs) rs.innerHTML = [['kp', 'Kp Kdt'], ...D.zuege.map(z => [z.id, 'Zfhr ' + z.name])].map(([v, l]) => `<option value="${esc(v)}"${v === ROLE ? ' selected' : ''}>${esc(l)}</option>`).join('');
+  const rs = $('#role-sel'); if (rs && document.activeElement !== rs) rs.innerHTML = [['kp', 'Kp Kdt'], ...D.zuege.map(z => [z.id, 'Zfhr ' + z.name]), ...(BM ? [['__gr', 'Grfhr']] : [])].map(([v, l]) => `<option value="${esc(v)}"${v === ROLE ? ' selected' : ''}>${esc(l)}</option>`).join('');
   $('#hdr-tag').value = D.meta.tag;
 }
 function render() {
@@ -2124,6 +2127,7 @@ function render() {
   if (GR_MODE) return grRender();
   _elCache = null;
   try { syncAutoPend(); } catch (e) {}
+  if (currentTab === 'kader' && !isKp()) currentTab = 'pend';
   if (BM) document.body.classList.toggle('lage-fs', currentTab === 'lage');
   renderTabs(); renderHeader();
   const v = $('#view');
@@ -3976,6 +3980,7 @@ function onField(ev) {
     case 'sel-grfhr': ui.grfhrGr = t.value; render(); break;
     case 'file-import': importData(t.files[0]); t.value = ''; break;
     case 'role-sel': {
+      if (t.value === '__gr') { if (confirm('Rolle dieses Geräts auf «Grfhr» ändern?')) setModus('gr'); else t.value = ROLE; break; }
       const nv = t.value, name = nv === 'kp' ? 'Kp Kdt' : 'Zfhr ' + (zugOf(nv) || {}).name;
       if (!confirm('Rolle dieses Geräts auf «' + name + '» ändern?')) { t.value = ROLE; break; }
       ROLE = nv; try { localStorage.setItem(ROLE_KEY, ROLE); } catch (e) {}
@@ -4519,7 +4524,7 @@ function grRender() {
   const r = D.gr && grOf(D.gr.gid), n = D.gr ? grDirtyN() : 0;
   if (!['zeit', 'status', 'lage', 'ausb', 'mdg'].includes(ui.grTab)) ui.grTab = 'zeit';
   $('#gr-head').innerHTML = `<div class="grh-t"><b>${r ? 'Grfhr ' + esc(grLbl(r.z, r.g)) : 'Grfhr'}</b><small>${D.gr ? (D.gr.demo ? 'Beispieldaten' : 'Paket vom ' + esc(fmtTs(D.gr.recv))) : 'noch keine Daten'}</small></div>
-    <button id="gr-recv" title="Gruppenpaket des Zfhr empfangen">⇩ Empfangen</button>${D.gr ? `<button id="gr-send" class="primary" title="Rückmeldung an den Zfhr">⇧ Senden${n ? ` <span class="tab-badge">${n}</span>` : ''}</button>` : ''}`;
+    ${BM ? '<button id="gr-role" title="Rolle wechseln (Kp Kdt / Zfhr)">⇄</button>' : ''}<button id="gr-recv" title="Gruppenpaket des Zfhr empfangen">⇩ Empfangen</button>${D.gr ? `<button id="gr-send" class="primary" title="Rückmeldung an den Zfhr">⇧ Senden${n ? ` <span class="tab-badge">${n}</span>` : ''}</button>` : ''}`;
   $('#gr-tabs').innerHTML = [['zeit', 'Zeitplan', '🕑'], ['lage', 'Lage', '⌖'], ['status', 'Status', '✚'], ['mdg', 'Meldung', '✉'], ['ausb', 'Ausbildung', '✓']].map(([k, l, i]) => `<button data-gtab="${k}" class="${k === ui.grTab ? 'on' : ''}"><span>${i}</span>${l}</button>`).join('');
   const v = $('#view');
   if (!r) { v.innerHTML = `<div class="gcard"><h2 style="margin:0 0 6px">Noch keine Daten</h2><p>Dein Zfhr zeigt dir im Führungssystem unter <b>QR</b> das Gruppenpaket. Tippe auf <b>⇩ Empfangen</b> und scanne den QR-Code, oder lade die Datei, die er dir geschickt hat (z.B. über Threema).</p>
@@ -4707,6 +4712,7 @@ window.addEventListener('click', async ev => {
   if (id === 'qr-scan-rm') { stop(); qrScanUI('Rückmeldung Grfhr scannen', 'Grfhr: «⇧ Senden › QR anzeigen». Kamera auf seinen Bildschirm halten, bis alle Teile gelesen sind.', qrReceive); return; }
   if (id === 'qr-file-rm') { stop(); qrScanUI('Rückmeldung Grfhr laden', 'Datei der Rückmeldung wählen (oder QR scannen).', qrReceive); $('#qr-file-in').click(); return; }
   if (!GR_MODE) return;
+  if (id === 'gr-role') { if (confirm('Rolle wechseln? Danach wählst du oben Kp Kdt oder Zfhr.')) setModus('fs'); return; }
   if (id === 'gr-recv' || id === 'gr-recv2') { stop(); qrScanUI('Gruppenpaket empfangen', 'Zfhr: Führungssystem › QR › «QR anzeigen». Kamera auf seinen Bildschirm halten, bis alle Teile gelesen sind. Oder die Datei vom Zfhr laden (z.B. aus Threema).', qrReceive); return; }
   if (id === 'gr-send') { stop(); grSend(); return; }
   if (id === 'gr-send-qr') { stop(); const rm = buildRm(); (D.mdg || []).forEach(m => m.sent = true); save(); await qrShow(rm, 'Rückmeldung ' + D.gr.zName + ' ' + D.gr.gName, 'Zfhr: Führungssystem › QR › «Rückmeldung übernehmen › QR scannen».'); return; }
