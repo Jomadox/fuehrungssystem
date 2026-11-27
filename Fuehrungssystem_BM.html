@@ -784,6 +784,7 @@ table.mx th,table.mx td{padding:4px 3px}.mx-dot{display:inline-block;width:14px;
 .eg-grip,.rk-grip{cursor:grab;color:#c00!important;font-size:18px}
 .app-head .hdr-new-ic{color:#c00!important}
 .gl-bm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px}.gl-bm>label{display:flex;align-items:center;gap:6px;flex:1 1 auto;min-width:0}.gl-bm select{min-width:0;flex:1;max-width:360px}
+.calh-day .calh-lbl{display:flex;align-items:center;justify-content:space-between;gap:4px}.cal-extadd{width:22px;height:22px;padding:0;border-radius:50%;border:1px solid #c00;background:#fff;color:#c00;font-weight:700;font-size:15px;line-height:1;cursor:pointer;flex:0 0 auto}.cal-extadd:hover{background:#c00;color:#fff}
 </style>
 </head>
 <body>
@@ -1080,6 +1081,7 @@ function uosDemo() {
 }
 /* Verband-Hilfen */
 const extList = () => (D && D.meta && Array.isArray(D.meta.extern)) ? D.meta.extern : [];
+const extOn = (x, d) => !x.tag || x.tag === d;
 const isExt = id => !!id && extList().some(x => x.id === id);
 function elements() {
   const list = [{ id: 'kp', type: 'kp', name: 'Kp', short: 'Kp', zugId: null }];
@@ -1192,7 +1194,7 @@ function rowsKp(day) {
   const it = dayItems(day), rows = [];
   if (!UOS) rows.push({ label: 'Kompanie', items: it.filter(x => isMain(x.t) && x.t.element === 'kp') });
   D.zuege.forEach(z => rows.push({ label: z.name, items: it.filter(x => isMain(x.t) && (x.t.element === z.id || el(x.t.element).zugId === z.id && x.t.element !== z.id)).map(x => withPrefix(x, x.t.element !== z.id ? el(x.t.element).short : '')) }));
-  extList().forEach(x => rows.push({ label: x.name, items: it.filter(y => isMain(y.t) && y.t.element === x.id) }));
+  extList().filter(x => extOn(x, day)).forEach(x => rows.push({ label: x.name, items: it.filter(y => isMain(y.t) && y.t.element === x.id) }));
   CROSS.forEach(([k, lbl]) => rows.push({ label: lbl, items: it.filter(x => x.t.kategorie === k).map(x => withPrefix(x, x.t.element !== 'kp' ? el(x.t.element).name : '')) }));
   return rows;
 }
@@ -1210,7 +1212,7 @@ function rowsWeek(day) {
   const it = dayItems(day), rows = [];
   if (!UOS) rows.push({ label: 'Kompanie', items: it.filter(x => isMain(x.t) && x.t.element === 'kp') });
   D.zuege.forEach(z => rows.push({ label: z.name, items: it.filter(x => isMain(x.t) && (x.t.element === z.id || el(x.t.element).zugId === z.id && x.t.element !== z.id)).map(x => withPrefix(x, x.t.element !== z.id ? el(x.t.element).short : '')) }));
-  extList().forEach(x => rows.push({ label: x.name, items: it.filter(y => isMain(y.t) && y.t.element === x.id) }));
+  extList().filter(x => extOn(x, day)).forEach(x => rows.push({ label: x.name, items: it.filter(y => isMain(y.t) && y.t.element === x.id) }));
   const pf = x => withPrefix(x, x.t.element !== 'kp' ? el(x.t.element).name : '');
   rows.push({ label: 'Log / San', items: it.filter(x => x.t.kategorie === 'Logistik' || x.t.kategorie === 'Sanität').map(pf) });
   rows.push({ label: 'Rap / Mdg', items: it.filter(x => x.t.kategorie === 'Rapport' || x.t.kategorie === 'Meldung').map(pf) });
@@ -2216,7 +2218,7 @@ document.addEventListener('click', ev => {
   const b = ev.target.closest && ev.target.closest('button'); if (!b || !b.closest('#view')) return;
   const ext = () => (D.meta.extern = extList().slice());
   if (b.dataset.extadd) { const n = prompt('Name der zusätzlichen Zeile (Verband oder Detachement), z.B. «Det Log», «Nachbarkompanie», «Instruktoren»:', ''); if (!n || !n.trim()) return;
-    ext().push({ id: 'ex' + uid(), name: n.trim() }); D.meta.upd = nowISO(); _elCache = null; touch(); render(); return; }
+    ext().push(Object.assign({ id: 'ex' + uid(), name: n.trim() }, /^\d{4}-/.test(b.dataset.extadd) ? { tag: b.dataset.extadd } : {})); D.meta.upd = nowISO(); _elCache = null; touch(); render(); return; }
   if (b.dataset.extren) { const x = extList().find(y => y.id === b.dataset.extren); if (!x) return; const n = prompt('Neuer Name:', x.name); if (!n || !n.trim()) return;
     D.meta.extern = extList().map(y => y.id === x.id ? Object.assign({}, y, { name: n.trim() }) : y); D.meta.upd = nowISO(); _elCache = null; touch(); render(); return; }
   if (b.dataset.extdel) { const x = extList().find(y => y.id === b.dataset.extdel); if (!x) return; const tm = D.termine.filter(t => t.element === x.id);
@@ -2892,7 +2894,7 @@ function calLanes() {
   const f = isKp() ? (ui.calFilter || 'all') : ROLE;
   const lanes = UOS ? [] : [{ id: 'kp', name: 'Kp' }];
   D.zuege.forEach(z => { if (f === 'all' || f === z.id) { lanes.push({ id: z.id, name: UOS ? 'Klasse ' + z.name : z.name }); if (!isKp()) z.gruppen.forEach(g => lanes.push({ id: g.id, name: UOS ? g.name : grLbl(z, g), gr: true })); } });
-  extList().forEach(x => lanes.push({ id: x.id, name: x.name, ext: true }));
+  extList().forEach(x => lanes.push({ id: x.id, name: x.name, ext: true, tag: x.tag || '' }));
   return lanes;
 }
 const laneOf = id => { const e = el(id); if (e.type === 'ext') return id; if (e.type === 'kp') return UOS && D.zuege[0] ? D.zuege[0].id : 'kp'; if (!isKp() && e.type === 'gr' && inZug(id)) return id; return e.zugId || 'kp'; };
@@ -2912,8 +2914,8 @@ function viewKalender(seg) {
   let body = '';
   days.forEach(d => {
     const dayIt = dayItems(d).filter(x => x.e > s0 && x.s < e0 || (x.t.kategorie === 'Entscheidpunkt' && x.s >= s0 && x.s < e0));
-    body += `<div class="calh-day${d === D.meta.tag ? ' on' : ''}" data-setday="${d}" title="Als Tag für die Druckansichten wählen"><div class="calh-lbl">${esc(fmtDay(d).split(',')[0])} ${fmtDayShort(d)}</div><div class="calh-ticks" style="width:${TW}px">${ticks}</div></div>`;
-    lanes.forEach(ln => {
+    body += `<div class="calh-day${d === D.meta.tag ? ' on' : ''}" data-setday="${d}" title="Als Tag für die Druckansichten wählen"><div class="calh-lbl">${esc(fmtDay(d).split(',')[0])} ${fmtDayShort(d)}${BM && isKp() ? `<button class="cal-extadd" data-extadd="${d}" title="Zusätzlicher Verband / Det nur für diesen Tag">+</button>` : ''}</div><div class="calh-ticks" style="width:${TW}px">${ticks}</div></div>`;
+    lanes.forEach(ln => { if (ln.ext && !extOn(ln, d)) return;
       const items = layoutDay(dayIt.filter(x => laneOf(x.t.element) === ln.id), it => (it.e - it.s) / 60 * HOUR_W < 90 ? 270 : 20); // kurze Termine: Platz für die Beschriftung daneben
       const nc = items.reduce((m, x) => Math.max(m, x.ncol), 1);
       let evs = '';
@@ -2943,7 +2945,7 @@ function viewKalender(seg) {
     <div class="toolbar">${seg}<button id="cal-prev" class="small">◂ Woche</button><button id="cal-next" class="small">Woche ▸</button>
       <label>Tage ${sel(ui.calDays || 7, [[7, 'Mo–So'], [5, 'Mo–Fr'], [1, 'nur gewählter Tag']], 'id="cal-days"')}</label>
       ${UOS ? '' : `<label>Züge ${sel(ui.calFilter || 'all', fOpts, 'id="cal-filter"')}</label>`}
-      <button class="small" data-extadd="1" title="Zusätzliche Zeile für einen Verband oder ein Detachement (z.B. Det Log, Nachbarkompanie, Instruktoren)">+ Verband / Det</button><span style="flex:1"></span>${BM ? pgTools('sync', pgIc('exp', 'Termine exportieren (Datei)', 'id="tm-export"') + (isAdm() ? pgIc('imp', 'Termine importieren: ersetzt alle Termine der Synchromatrix', 'id="tm-import"') + '<input type="file" id="file-termine" accept=".json,application/json" hidden>' + pgIc('trash', 'Termine leeren: alle Termine löschen (inkl. Aufträge und Anträge)', 'id="btn-clear-ops"', 'danger') : '')) : `<button class="small" id="tm-export" title="Nur die Termine der Synchromatrix als JSON-Datei speichern">⤓ Termine speichern</button>${isAdm() ? '<button class="small" id="tm-import" title="Gespeicherte Termine laden: ersetzt alle Termine der Synchromatrix">⤒ Termine laden</button><input type="file" id="file-termine" accept=".json,application/json" hidden>' : ''}${isAdm() ? '<button class="small danger" id="btn-clear-ops" title="Alle Termine löschen (inkl. Aufträge und Anträge)">Termine leeren</button>' : ''}`}</div>
+      ${BM ? '' : '<button class="small" data-extadd="1" title="Zusätzliche Zeile für einen Verband oder ein Detachement (z.B. Det Log, Nachbarkompanie, Instruktoren)">+ Verband / Det</button>'}<span style="flex:1"></span>${BM ? pgTools('sync', pgIc('exp', 'Termine exportieren (Datei)', 'id="tm-export"') + (isAdm() ? pgIc('imp', 'Termine importieren: ersetzt alle Termine der Synchromatrix', 'id="tm-import"') + '<input type="file" id="file-termine" accept=".json,application/json" hidden>' + pgIc('trash', 'Termine leeren: alle Termine löschen (inkl. Aufträge und Anträge)', 'id="btn-clear-ops"', 'danger') : '')) : `<button class="small" id="tm-export" title="Nur die Termine der Synchromatrix als JSON-Datei speichern">⤓ Termine speichern</button>${isAdm() ? '<button class="small" id="tm-import" title="Gespeicherte Termine laden: ersetzt alle Termine der Synchromatrix">⤒ Termine laden</button><input type="file" id="file-termine" accept=".json,application/json" hidden>' : ''}${isAdm() ? '<button class="small danger" id="btn-clear-ops" title="Alle Termine löschen (inkl. Aufträge und Anträge)">Termine leeren</button>' : ''}`}</div>
     <div id="cal-host"><div class="cal-wrap"><div class="calh" id="cal" style="--hw:${HOUR_W}px;width:${TW + LBL_W}px">
       ${body}</div></div></div>
     <div class="sm-legend" style="font-size:12px;margin-top:8px"><span><i class="k-auftrag"></i>Ausbildung</span><span><i class="k-log"></i>Logistik</span><span><i class="k-san"></i>Sanität</span><span><i class="k-rap"></i>Rapport</span><span><i class="k-mdg"></i>Meldung</span><span><i class="k-bes"></i>Besonderes</span></div>
