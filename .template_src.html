@@ -1767,7 +1767,7 @@ function mapSVG(items, opt = {}) {
   if (SC) { vx = SC.x; vy = SC.y; vw = SC.w; vh = SC.h; k = SC.w / W; }
   const sw = Math.max(W, H) / 900 * k;
   let s = `<svg class="map" xmlns="http://www.w3.org/2000/svg" viewBox="${vx} ${vy} ${vw} ${vh}" preserveAspectRatio="xMidYMid meet" ${opt.id ? 'id="' + opt.id + '"' : ''} style="${opt.style || ''}">`;
-  const op = BM ? .6 : Math.max(.1, Math.min(1, (D.meta.karteOpac ?? 60) / 100));
+  const op = BM ? .5 : Math.max(.1, Math.min(1, (D.meta.karteOpac ?? 60) / 100));
   if (SC) s += `<rect x="${vx}" y="${vy}" width="${vw}" height="${vh}" fill="#ececec"/>`;
   const scrG = SC && D.geo ? (() => { const g = D.geo, b = geoBox(g); return { e: b.emin + (vx + vw / 2) / W * g.w, n: b.nmax - (vy + vh / 2) / H * g.h, w: vw / W * g.w, h: vh / H * g.h, layer: g.layer }; })() : null;
   if (D.geo) s += `<g class="map-bg" opacity="${op}">${geoBackground(W, H, scrG || (V && V.g))}</g>`;
@@ -1776,7 +1776,7 @@ function mapSVG(items, opt = {}) {
   let g = ''; const rOn = !BM || !!D.meta.rasterOn;
   if (rOn) for (let i = 1; i < C; i++) g += `<line x1="${i * cw}" y1="0" x2="${i * cw}" y2="${H}"/>`;
   if (rOn) for (let j = 1; j < R; j++) g += `<line x1="0" y1="${j * ch}" x2="${W}" y2="${j * ch}"/>`;
-  if (SC) s += `<path d="M${vx} ${vy}h${vw}v${vh}h${-vw}Z M${PA.x} ${PA.y}v${PA.h}h${PA.w}v${-PA.h}Z" fill="#fff" fill-opacity=".42" fill-rule="evenodd" pointer-events="none"/>`;
+  if (SC && !BM) s += `<path d="M${vx} ${vy}h${vw}v${vh}h${-vw}Z M${PA.x} ${PA.y}v${PA.h}h${PA.w}v${-PA.h}Z" fill="#fff" fill-opacity=".42" fill-rule="evenodd" pointer-events="none"/>`;
   s += `<g stroke="#000" stroke-opacity=".55" stroke-width="${sw}">${g}</g>${SC && BM ? '' : `<rect x="0" y="0" width="${W}" height="${H}" fill="none" stroke="#000" stroke-width="${sw * 2}"/>`}`;
   if (SC && V) s += `<rect x="${PA.x}" y="${PA.y}" width="${PA.w}" height="${PA.h}" fill="none" stroke="#c00" stroke-width="${sw * 2.5}"/>`;
   const fs = SC ? vw * .016 : Math.min(cw, ch) * 0.32 * Math.sqrt(k), inX = x => x >= vx && x <= vx + vw, inY = y => y >= vy && y <= vy + vh;
