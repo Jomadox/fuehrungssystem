@@ -860,7 +860,7 @@ const GR_MODE = (() => { try { const m = localStorage.getItem(MODE_KEY); return 
 const setModus = m => { try { localStorage.setItem(MODE_KEY, m); } catch (e) {} location.reload(); };
 const BM = /*__BM_MODE__*/false; // Berufsmilitär: wie Kp Kdt, zusätzlich Kaderselektion
 const UOS = /*__UOS_MODE__*/false; // UOS: eine Klasse (Struktur eines Zuges) mit drei Gruppen, ohne Rollen
-document.querySelectorAll(UOS ? 'details[data-help="ausbildung"]' : 'details[data-help="lektionen"]').forEach(d => d.remove()); if (!BM) document.querySelectorAll('details[data-help="kader"]').forEach(d => d.remove()); // Hilfe: nur der passende Reiter
+document.querySelectorAll(UOS ? 'details[data-help="ausbildung"]' : BM ? 'details[data-help="kein"]' : 'details[data-help="lektionen"]').forEach(d => d.remove()); if (!BM) document.querySelectorAll('details[data-help="kader"]').forEach(d => d.remove()); // Hilfe: nur der passende Reiter
 const LS_KEY = GR_MODE ? 'fuehrungssystem_grfhr_v1' : UOS ? 'fuehrungssystem_uos_v1' : BM ? 'fuehrungssystem_bm_v1' : 'fuehrungssystem_kp_v1';
 if (BM && !GR_MODE) try { const o = localStorage.getItem('fuehrungssystem_kp_v1'); if (!localStorage.getItem(LS_KEY) && o) localStorage.setItem(LS_KEY, o); } catch (e) {} // Daten der bisherigen Kp-Version übernehmen
 const DEMO_MAP = "__DEMO_MAP__";
@@ -2070,7 +2070,7 @@ function pagesWeek() {
 
 /* ===================== Oberfläche ===================== */
 const TABS = [
-  ['pend','Pendenzen'],['verband','Einsatzgliederung'],['termine','Synchromatrix'],['lage','Lagekarte'],['systeme','Statusübersicht'],UOS ? ['lektionen','Beurteilung'] : ['ausbildung','Ausbildungskontrolle'], ...(BM ? [['kader','Kaderselektion']] : []), // Befehl/Anträge nur noch im Ausdruck (Handeintrag)
+  ['pend','Pendenzen'],['verband','Einsatzgliederung'],['termine','Synchromatrix'],['lage','Lagekarte'],['systeme','Statusübersicht'],UOS ? ['lektionen','Beurteilung'] : ['ausbildung','Ausbildungskontrolle'], ...(BM ? [['lektionen','Beurteilung'], ['kader','Kaderselektion']] : []), // Befehl/Anträge nur noch im Ausdruck (Handeintrag)
 ];
 const DRUCK = [['p-kp', 'Tagesbefehl'], ['p-zug', 'Zfhr'], ['p-gr', 'Grfhr'], ['p-woche', 'Wochenarbeitsplan']];
 function syncTabs() {
@@ -2098,7 +2098,7 @@ document.addEventListener('click', ev => {
 window.addEventListener('scroll', syncTabs, { passive: true }); window.addEventListener('resize', syncTabs);
 function renderTabs() {
   if (UOS && currentTab === 'ausbildung') currentTab = 'lektionen';
-  if (!UOS && currentTab === 'lektionen') currentTab = 'ausbildung';
+  if (!UOS && !BM && currentTab === 'lektionen') currentTab = 'ausbildung';
   if (!BM && currentTab === 'kader') currentTab = 'pend';
   if (!isKp() && (currentTab === 'p-kp' || currentTab === 'p-woche' || currentTab === 'p-zug' || currentTab === 'p-gr')) currentTab = 'p-zfhr';
   if (isKp() && (currentTab === 'p-zfhr' || currentTab === 'p-zug' || currentTab === 'p-gr')) currentTab = 'p-kp';
