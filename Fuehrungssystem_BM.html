@@ -769,6 +769,15 @@ table.mx select.mx-sel.mx-ok{border-color:transparent;color:#9a9a9a;background:t
 table.mx select.mx-sel.mx-na{border-color:transparent;background:transparent;color:#c4c4c4}
 table.mx input.mx-bem{width:72px!important;min-width:0!important;height:auto!important;min-height:0!important;font-size:12px;padding:2px 5px!important;border-color:transparent;background:transparent}table.mx input.mx-bem:hover,table.mx input.mx-bem:focus,table.mx input.mx-bem:not(:placeholder-shown){border-color:var(--line);background:#fff}
 table.mx th,table.mx td{padding:4px 3px}.mx-dot{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle}table.mx select.mx-sel{padding:2px 6px!important}
+/* BM: Seiten ohne Rahmen, Werkzeuge als Icons */
+:root{--bg:#fff}body{background:#fff}
+#view>.card,#view>details.card{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;padding:8px 4px!important;margin-bottom:8px}
+#view>.card+.card{border-top:1px solid var(--line)!important;padding-top:16px!important}
+.pg-tools{display:inline-flex;align-items:center;gap:4px;margin-left:auto}
+.pg-ic{width:36px;height:36px;padding:0!important;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:9px;background:#fff;color:#1d1d1d;cursor:pointer}
+.pg-ic:hover{background:#f3f3f3}.pg-ic.on{background:#1d1d1d;color:#fff;border-color:#1d1d1d}.pg-ic.danger{color:#c00}
+.pg-set .grid-form{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}.pg-set .grid-form label{display:flex!important;flex-direction:column;align-items:stretch!important;text-align:left;gap:4px;margin:0}
+.pg-set{flex:1 1 100%;border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:6px 0 12px;background:#fafafa}.pg-set-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -2735,7 +2744,20 @@ function viewAusbildung() {
   h += `</tbody><tfoot><tr><td class="ak-n"><b>Total erfüllt</b></td>${cells((o, kb) => { const n = sol.filter(x => ausbGet(x.p.id, key(o)) === 'ok').length, R = sol.filter(x => ausbGet(x.p.id, key(o)) !== 'np').length; return `<td class="ak-sum${n === R ? ' full' : ''}${kb ? ' ak-kb' : ''}">${n}/${R}</td>`; })}<td></td></tr></tfoot></table></div></div>`;
   return h;
 }
+const PG_I = {
+  gear: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  reset: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>',
+  exp: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M4 14v6h16v-6"/></svg>',
+  imp: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 14v6h16v-6"/></svg>'
+};
+const _pgSet = {};
+const pgIc = (ico, title, attr, cls = '') => `<button class="pg-ic${cls ? ' ' + cls : ''}" title="${esc(title)}" ${attr}>${PG_I[ico]}</button>`;
+// Seitenkopf rechts: Icons + Zahnrad für die Einstellungen (Panel klappt darunter auf)
+function pgTools(key, icons) { const st = _pgSet[key], on = ui.pgSet === key;
+  return `<div class="pg-tools">${icons || ''}${st ? pgIc('gear', st.title, `data-pgset="${key}"`, on ? 'on' : '') : ''}</div>${st && on ? `<div class="pg-set"><div class="pg-set-h"><b>${esc(st.title)}</b><button class="small" data-pgset="${key}">✕</button></div><div class="grid-form">${st.inner}</div></div>` : ''}`; }
 function setPanel(key, title, info, inner) {
+  if (BM) { _pgSet[key] = { title, inner }; return ''; }
   return `<details class="card karte-set"${ui['set_' + key] ? ' open' : ''} ontoggle="ui['set_${key}']=this.open"><summary><b>${title}</b> <span class="hint" style="margin:0">${esc(info)}</span></summary><div class="grid-form">${inner}</div></details>`;
 }
 const metaF = (k, l, type = 'text', extra = '') => `<label>${l}<input data-meta="${k}" type="${type}" value="${esc(D.meta[k])}" ${extra}${isAdm() ? '' : ' disabled'}></label>`;
@@ -2782,7 +2804,7 @@ function viewSystemeMx() {
   const zl = z => z.gruppen.length, zS = z => sumStatus(z.gruppen.map(g => grStatus(g.id)));
   const ampTxt = a => a === 'na' ? '–' : a;
   let h = setPanel('status', 'Einstellungen Statusübersicht', `Ampel gelb < ${D.meta.gelb} %, rot < ${D.meta.rot} % · ${st.length} Systemtypen`, metaF('gelb', 'Ampel gelb unter % einsatzfähig', 'number', 'min="0" max="100"') + metaF('rot', 'Ampel rot unter % einsatzfähig', 'number', 'min="0" max="100"') + metaL('systemTypen', 'Systemtypen (mit Komma getrennt)'));
-  h += `<div class="card"><div class="mx-head"><h2 style="margin:0">Statusübersicht</h2><span style="flex:1"></span><span class="hint" style="margin:0">Gruppe anklicken = Soldaten anzeigen</span>${isAdm() ? '<button class="small danger" id="btn-reset-status" title="Alle Personen einsatzfähig, alle Systeme ok">Status zurücksetzen</button>' : ''}</div>
+  h += `<div class="card"><div class="mx-head"><h2 style="margin:0">Statusübersicht</h2><span style="flex:1"></span><span class="hint" style="margin:0">Gruppe anklicken = Soldaten anzeigen</span>${pgTools('status', isAdm() ? pgIc('reset', 'Status zurücksetzen: alle Personen einsatzfähig, alle Systeme ok', 'id="btn-reset-status"', 'danger') : '')}</div>
   <div class="tbl-wrap"><table class="mx"><thead><tr><th class="mx-l" rowspan="2"></th>${zs.map(z => { const t = zS(z); return `<th class="mx-z" colspan="${zl(z)}"><span>${esc(z.name)}</span> <span class="pill amp-${t.amp}">${t.ef}/${t.best}</span></th>`; }).join('')}</tr>
   <tr>${grs.map((x, i) => `<th class="mx-g${x.g.id === selG ? ' on' : ''}${i && grs[i - 1].z !== x.z ? ' mx-zb' : ''}"><button data-statsel="${x.g.id}" title="Soldaten von ${esc(x.g.name)} anzeigen">${esc(x.g.name)}</button></th>`).join('')}</tr></thead><tbody>`;
   const row = (lbl, fn, cls = '') => `<tr class="${cls}"><th class="mx-l">${lbl}</th>${grs.map((x, i) => `<td class="${x.g.id === selG ? 'on ' : ''}${i && grs[i - 1].z !== x.z ? 'mx-zb' : ''}">${fn(x)}</td>`).join('')}</tr>`;
@@ -2912,7 +2934,7 @@ function viewKalender(seg) {
     <div class="toolbar">${seg}<button id="cal-prev" class="small">◂ Woche</button><button id="cal-next" class="small">Woche ▸</button>
       <label>Tage ${sel(ui.calDays || 7, [[7, 'Mo–So'], [5, 'Mo–Fr'], [1, 'nur gewählter Tag']], 'id="cal-days"')}</label>
       ${UOS ? '' : `<label>Züge ${sel(ui.calFilter || 'all', fOpts, 'id="cal-filter"')}</label>`}
-      <span class="hint">Zeitraster ${pad(D.meta.startH)}–${pad(D.meta.endH)} Uhr</span><button class="small" data-extadd="1" title="Zusätzliche Zeile für einen Verband oder ein Detachement (z.B. Det Log, Nachbarkompanie, Instruktoren)">+ Verband / Det</button><span style="flex:1"></span><button class="small" id="tm-export" title="Nur die Termine der Synchromatrix als JSON-Datei speichern">⤓ Termine speichern</button>${isAdm() ? '<button class="small" id="tm-import" title="Gespeicherte Termine laden: ersetzt alle Termine der Synchromatrix">⤒ Termine laden</button><input type="file" id="file-termine" accept=".json,application/json" hidden>' : ''}${isAdm() ? '<button class="small danger" id="btn-clear-ops" title="Alle Termine löschen (inkl. Aufträge und Anträge)">Termine leeren</button>' : ''}</div>
+      <span class="hint">Zeitraster ${pad(D.meta.startH)}–${pad(D.meta.endH)} Uhr</span><button class="small" data-extadd="1" title="Zusätzliche Zeile für einen Verband oder ein Detachement (z.B. Det Log, Nachbarkompanie, Instruktoren)">+ Verband / Det</button><span style="flex:1"></span>${BM ? pgTools('sync', pgIc('exp', 'Termine exportieren (Datei)', 'id="tm-export"') + (isAdm() ? pgIc('imp', 'Termine importieren: ersetzt alle Termine der Synchromatrix', 'id="tm-import"') + '<input type="file" id="file-termine" accept=".json,application/json" hidden>' + pgIc('trash', 'Termine leeren: alle Termine löschen (inkl. Aufträge und Anträge)', 'id="btn-clear-ops"', 'danger') : '')) : `<button class="small" id="tm-export" title="Nur die Termine der Synchromatrix als JSON-Datei speichern">⤓ Termine speichern</button>${isAdm() ? '<button class="small" id="tm-import" title="Gespeicherte Termine laden: ersetzt alle Termine der Synchromatrix">⤒ Termine laden</button><input type="file" id="file-termine" accept=".json,application/json" hidden>' : ''}${isAdm() ? '<button class="small danger" id="btn-clear-ops" title="Alle Termine löschen (inkl. Aufträge und Anträge)">Termine leeren</button>' : ''}`}</div>
     <div id="cal-host"><div class="cal-wrap"><div class="calh" id="cal" style="--hw:${HOUR_W}px;width:${TW + LBL_W}px">
       ${body}</div></div></div>
     <div class="sm-legend" style="font-size:12px;margin-top:8px"><span><i class="k-auftrag"></i>Ausbildung</span><span><i class="k-log"></i>Logistik</span><span><i class="k-san"></i>Sanität</span><span><i class="k-rap"></i>Rapport</span><span><i class="k-mdg"></i>Meldung</span><span><i class="k-bes"></i>Besonderes</span></div>
@@ -3765,6 +3787,7 @@ document.addEventListener('click', ev => {
     render(); window.scrollTo(0, 0); return; }
   if (b.dataset.pset) { const [pid, k, v] = b.dataset.pset.split('|'), p = D.personen.find(x => x.id === pid); if (!p || !canEdit('personen', p)) return; p[k] = v; stamp(p); touch(); render(); return; }
   if (b.dataset.egtog) { const o = ui.egOpen || (ui.egOpen = {}); o[b.dataset.egtog] = !o[b.dataset.egtog]; render(); return; }
+  if (b.dataset.pgset) { ui.pgSet = ui.pgSet === b.dataset.pgset ? null : b.dataset.pgset; render(); return; }
   if (b.dataset.statsel) { ui.statSel = ui.statSel === b.dataset.statsel ? null : b.dataset.statsel; render(); return; }
   if (b.dataset.statgr) { const o = ui.statOpen || (ui.statOpen = {}); o[b.dataset.statgr] = !(o[b.dataset.statgr] ?? !isKp()); render(); return; }
   if (b.dataset.addperson) { const g = b.dataset.addperson; if (!inZug(g)) return; D.personen.push(NEW({ id: 'p' + uid(), gruppeId: g, funktion: '', grad: '', name: '', mittel: '', status: 'einsatzfähig', mat: 'ok', mun: 'ok', bem: '' })); touch(); render(); setTimeout(() => { const l = [...document.querySelectorAll('.stat-sub input[data-key="funktion"]')].filter(i => (D.personen.find(p => p.id === i.dataset.id) || {}).gruppeId === g).pop(); if (l) l.focus(); }, 0); return; }
