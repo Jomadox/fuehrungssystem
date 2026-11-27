@@ -727,6 +727,24 @@ body.grmode.gr-mini.gr-open #gr-head{position:fixed;top:0;left:0;right:0}
   .mapbox .map-pop{right:56px;left:6px;width:auto;top:54px}
   .mapbox .map-pal,.mapbox .map-info{left:6px;right:56px;top:auto;bottom:6px;width:auto;max-width:none}
   .mapbox .map-bottom,.mapbox.pal-open .map-bottom{left:6px;right:56px}.mapbox.pal-open .map-bottom{bottom:calc(45% + 12px)}.mapbox.pal-open.drawing .map-bottom{bottom:6px}}
+/* BM Handy: verschachtelte Listen */
+.mob-card h2{margin-bottom:6px}.mob-crumb{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:0 0 10px;font-size:14px}.mob-crumb>span{color:var(--muted)}
+.mob-cb{border:0;background:none;padding:2px 0;color:#c00;font-weight:600;font-size:14px;text-decoration:underline}
+.mob-list{display:flex;flex-direction:column;gap:6px}
+.mob-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;min-height:56px;font-size:15px;box-sizing:border-box}
+.mob-item .mi-t{flex:1;display:flex;flex-direction:column;min-width:0}.mob-item .mi-t small{color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mob-item .mi-go{font-size:22px;color:var(--muted);line-height:1}.mob-item .pill{font-size:12.5px;padding:3px 9px;white-space:nowrap}
+.mob-h{font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 6px}
+.mob-sum{display:flex;align-items:center;gap:8px;margin:0 0 6px}
+.mob-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mob-form label{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted);min-width:0}.mob-form .mf-w{grid-column:1/-1}
+.mob-form input,.mob-form select,.mob-form textarea{width:100%;box-sizing:border-box;font-size:16px;min-height:44px}
+.mob-chips{display:flex;flex-wrap:wrap;gap:6px}.mob-chip{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px;min-height:44px}.mob-chip.on{background:#1d1d1d;color:#fff;border-color:#1d1d1d}
+.mob-back{min-height:44px;padding:0 16px}
+.mob-kat{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:#fff}.mob-kat summary{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px;font-size:15px;cursor:pointer}
+.mob-ak{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:#fff;padding:10px 12px;font-size:14px;line-height:1.3}
+.mob-ak .ma-s{flex:0 0 38px;height:30px;border-radius:8px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--muted)}
+.mob-ak.mak-ok .ma-s{background:#2e7d32;border-color:#2e7d32;color:#fff}.mob-ak.mak-np .ma-s{background:#eee;color:#888}
+.zug-card .eg-tog{border:0;padding:4px 0 8px;min-height:0}.zug-card.eg-zu>:not(.eg-tog){display:none}.zug-card.eg-zu .eg-tog{padding:4px 0}
 </style>
 </head>
 <body>
@@ -2118,7 +2136,8 @@ function viewVerband() {
   const allGr = []; D.zuege.filter(z => inZug(z.id)).forEach(z => z.gruppen.forEach(g => allGr.push([g.id, grLbl(z, g)])));
   const kd = isAdm() ? '' : ' disabled';
   if (!ui.persGr || !grOf(ui.persGr)) ui.persGr = allGr.length ? allGr[0][0] : null;
-  const zc = D.zuege.filter(z => inZug(z.id)).map(z => `<div class="zug-card"><div class="zh"><b>Zug</b><input data-zug="${z.id}" data-k="name" value="${esc(z.name)}" style="width:130px"${kd}><label class="zl"><span>Zfhr</span><input data-zug="${z.id}" data-k="fuehrer" value="${esc(z.fuehrer)}" placeholder="Grad Name" style="width:180px"></label><label class="zl"><span>${STV_LBL}</span><input data-zug="${z.id}" data-k="stv" value="${esc(z.stv || '')}" placeholder="Grad Name" style="width:180px"></label>${UOS ? `<label class="zl"><span>Fz</span><input data-zug="${z.id}" data-k="fz" value="${esc(z.fz || '')}" placeholder="Fahrzeuge der Klasse" style="width:180px"></label>` : ''}
+  const mob = isMob(), egO = ui.egOpen || (ui.egOpen = {}), zIn = z => !mob || egO[z.id] || (!isKp() && D.zuege.filter(x => inZug(x.id)).length === 1);
+  const zc = D.zuege.filter(z => inZug(z.id)).map(z => `<div class="zug-card${zIn(z) ? '' : ' eg-zu'}">${mob ? `<button class="mob-item eg-tog" data-egtog="${z.id}"><span class="mi-t"><b>${esc(z.name)}</b><small>${esc([z.fuehrer, z.gruppen.length + ' Gruppen', D.personen.filter(p => z.gruppen.some(g => g.id === p.gruppeId)).length + ' AdA'].filter(Boolean).join(' · '))}</small></span><span class="mi-go">${zIn(z) ? '▾' : '▸'}</span></button>` : ''}<div class="zh"><b>Zug</b><input data-zug="${z.id}" data-k="name" value="${esc(z.name)}" style="width:130px"${kd}><label class="zl"><span>Zfhr</span><input data-zug="${z.id}" data-k="fuehrer" value="${esc(z.fuehrer)}" placeholder="Grad Name" style="width:180px"></label><label class="zl"><span>${STV_LBL}</span><input data-zug="${z.id}" data-k="stv" value="${esc(z.stv || '')}" placeholder="Grad Name" style="width:180px"></label>${UOS ? `<label class="zl"><span>Fz</span><input data-zug="${z.id}" data-k="fz" value="${esc(z.fz || '')}" placeholder="Fahrzeuge der Klasse" style="width:180px"></label>` : ''}
       ${isAdm() ? `<button class="small" data-addgr="${z.id}">+ Gruppe</button>${UOS ? '' : `<button class="small danger" data-delzug="${z.id}">Zug löschen</button>`}` : ''}</div>
       <div class="gr-list" data-egz="${z.id}">${z.gruppen.map(g => { const mem = D.personen.filter(p => p.gruppeId === g.id); const ed = inZug(g.id); const ro = ed ? '' : ' disabled';
         return `<div class="gr-item" data-egg="${g.id}"><div class="gr-h">${isAdm() ? `<span class="eg-grip" data-egdrag="g" data-id="${g.id}" title="Gruppe in einen anderen Zug ziehen">⠿</span>` : ''}<input data-gr="${g.id}" data-k="name" value="${esc(g.name)}"${kd}><input data-gr="${g.id}" data-k="fuehrer" value="${esc(g.fuehrer)}" placeholder="Grfhr" style="width:150px">${UOS ? `</div><div class="gr-h"><input data-gr="${g.id}" data-k="fz" value="${esc(g.fz || '')}" placeholder="Fz der Gruppe" title="Fahrzeug der Gruppe" style="flex:1">` : ''}${isAdm() ? `<button class="small danger" data-delgr="${g.id}" title="Gruppe löschen">✕</button>` : ''}</div>
@@ -2622,7 +2641,23 @@ function ausbSetMany(pids, th) {
   ok.forEach(pid => { const id = ausbId(pid, th); let r = D.ausb.find(x => x.id === id); if (!r) { r = NEW({ id, pid, thema: th, st: '' }); D.ausb.push(r); } if (r.st !== val) { r.st = val; stamp(r); } });
   touch(); render();
 }
+function viewAusbildungMob() {
+  const d = mobDrill('akM', 'Ausbildungskontrolle'), { z, g, p } = d, all = STOFF_INF, key = o => String(o.nr), kats = [...new Set(all.map(o => o.kat))];
+  const pct = list => { const r = list.reduce((a, x) => { all.forEach(o => { const t = ausbGet(x.id, key(o)); if (t !== 'np') { a.R++; if (t === 'ok') a.n++; } }); return a; }, { n: 0, R: 0 }); return r.R ? Math.round(100 * r.n / r.R) : 0; };
+  const mem = g => D.personen.filter(x => x.gruppeId === g.id && !noAusb(x)), badge = v => `<span class="pill amp-${v >= 100 ? 'gruen' : v >= 50 ? 'gelb' : 'na'}">${v}%</span>`;
+  let h = `<div class="card mob-card"><h2>Ausbildungskontrolle</h2>${d.crumb}`;
+  if (!z) h += `<div class="mob-list">${d.zs.map(z => { const ps = z.gruppen.flatMap(mem); return mobItem(`data-mobnav="akM|z:${z.id}"`, esc(z.name), ps.length + ' AdA', badge(pct(ps))); }).join('')}</div>`;
+  else if (!g) h += `<div class="mob-list">${z.gruppen.map(g => { const ps = mem(g); return mobItem(`data-mobnav="akM|g:${g.id}"`, esc(g.name), ps.length + ' AdA', badge(pct(ps))); }).join('')}</div>`;
+  else if (!p) h += `<div class="mob-list">${mem(g).map(x => mobItem(`data-mobnav="akM|p:${x.id}"`, esc(nameNV(x) || 'Name fehlt'), esc(x.funktion || ''), badge(pct([x])))).join('') || '<p class="hint">Keine Soldaten in dieser Gruppe.</p>'}</div>`;
+  else { const ed = inZug(g.id), open = ui.akKat || (ui.akKat = {});
+    h += `<div class="mob-sum">${badge(pct([p]))} <span class="hint" style="margin:0">Antippen: ✓ erfüllt › nicht pflichtig › offen</span></div>`;
+    h += kats.map(k => { const L = all.filter(o => o.kat === k), n = L.filter(o => ausbGet(p.id, key(o)) === 'ok').length, R = L.filter(o => ausbGet(p.id, key(o)) !== 'np').length;
+      return `<details class="mob-kat"${open[k] ? ' open' : ''} ontoggle="ui.akKat[${esc(JSON.stringify(k))}]=this.open"><summary><b>${esc(k)}</b><span class="pill amp-${n === R ? 'gruen' : 'na'}">${n}/${R}</span></summary>${L.map(o => { const t = ausbGet(p.id, key(o)), m = AUSB_ST.find(x => x[0] === t) || AUSB_ST[0];
+        return `<button class="mob-ak mak-${t || "leer"}" ${ed ? `data-ausb="${esc(p.id)}" data-ausbth="${esc(key(o))}"` : 'disabled'}><span class="ma-s">${t === 'np' ? 'n.p.' : m[1]}</span><span><b>${esc(o.nr)}</b> ${esc(o.titel)}</span></button>`; }).join('')}</details>`; }).join(''); }
+  return h + (d.back ? `<div class="row-actions">${d.back}</div>` : '') + '</div>';
+}
 function viewAusbildung() {
+  if (isMob()) return viewAusbildungMob();
   const all = STOFF_INF, kats = [...new Set(all.map(o => o.kat))];
   if (!isKp()) ui.ausbZug = ROLE;
   else if (!ui.ausbZug || (ui.ausbZug !== 'all' && !zugOf(ui.ausbZug))) ui.ausbZug = (D.zuege[0] || {}).id || 'all';
@@ -2662,7 +2697,43 @@ function setPanel(key, title, info, inner) {
 }
 const metaF = (k, l, type = 'text', extra = '') => `<label>${l}<input data-meta="${k}" type="${type}" value="${esc(D.meta[k])}" ${extra}${isAdm() ? '' : ' disabled'}></label>`;
 const metaL = (k, l) => `<label>${l}<input data-meta-list="${k}" value="${esc((D.meta[k] || []).join(', '))}"${isAdm() ? '' : ' disabled'}></label>`;
+const isMob = () => BM && !!(window.matchMedia && matchMedia('(max-width:700px)').matches);
+let _mobLast = null; window.addEventListener('resize', () => { const m = isMob(); if (_mobLast !== null && m !== _mobLast) render(); _mobLast = m; });
+/* BM Handy: verschachtelte Auswahl Zug › Gruppe › Soldat */
+function mobDrill(key, title) {
+  const m = ui[key] || (ui[key] = {}), zs = D.zuege.filter(z => inZug(z.id));
+  if (!isKp() && zs.length === 1) m.z = zs[0].id;
+  const z = zs.find(x => x.id === m.z) || null, g = z && z.gruppen.find(x => x.id === m.g) || null, p = g && D.personen.find(x => x.id === m.p && x.gruppeId === g.id) || null;
+  if (!z) { m.z = null; m.g = null; m.p = null; } else if (!g) { m.g = null; m.p = null; } else if (!p) m.p = null;
+  const cr = [[isKp() || zs.length > 1 ? 'r' : null, isKp() ? 'Kp' : 'Zug'], z && [g ? 'z' : null, z.name], g && [p ? 'g' : null, g.name], p && [null, nameNV(p) || p.funktion || 'Soldat']].filter(Boolean);
+  const crumb = `<div class="mob-crumb">${(z ? cr : [[null, title]]).map(([k, l], i, a) => k ? `<button class="mob-cb" data-mobnav="${key}|${k}">${esc(l)}</button>` : `<b>${esc(l)}</b>`).join('<span>›</span>')}</div>`;
+  return { m, zs, z, g, p, crumb, back: z ? `<button class="mob-back" data-mobnav="${key}|${p ? 'g' : g ? 'z' : 'r'}">‹ zurück</button>` : '' };
+}
+const mobItem = (attr, main, sub, right) => `<button class="mob-item" ${attr}><span class="mi-t"><b>${main}</b>${sub ? `<small>${sub}</small>` : ''}</span>${right || ''}<span class="mi-go">›</span></button>`;
+const P_ST_SHORT = { 'einsatzfähig': 'einsatzfähig', 'abwesend': 'abwesend', 'verletzt (selbständig)': 'verletzt, selbst.', 'verletzt (nicht selbständig)': 'verletzt, nicht selbst.' };
+const pAmp = p => p.status === 'einsatzfähig' ? (p.mat === 'Mangel' || p.mun === 'Mangel' ? 'gelb' : 'gruen') : p.status === 'abwesend' ? 'gelb' : 'rot';
+function viewSystemeMob() {
+  const d = mobDrill('stM', 'Statusübersicht'), { z, g, p } = d, st = D.meta.systemTypen;
+  let h = `<div class="card mob-card"><h2>Statusübersicht</h2>${d.crumb}`;
+  if (!z) { h += `<div class="mob-list">${d.zs.map(z => { const s = sumStatus(z.gruppen.map(g => grStatus(g.id)));
+      return mobItem(`data-mobnav="stM|z:${z.id}"`, esc(z.name), esc([z.fuehrer, z.gruppen.length + ' Gruppen'].filter(Boolean).join(' · ')), `<span class="pill amp-${s.amp}">${s.ef}/${s.best}</span>`); }).join('')}</div>`; }
+  else if (!g) { h += `<div class="mob-list">${z.gruppen.map(g => { const s = grStatus(g.id), ex = [s.abw ? s.abw + ' abw' : '', s.verl ? s.verl + ' verl' : '', s.mat ? 'Mat ' + s.mat : '', s.mun ? 'Mun ' + s.mun : '', ...st.map((t, i) => s.sys[i] !== 'ok' && s.sys[i] !== 'n/a' ? t + ' ' + s.sys[i] : '')].filter(Boolean).join(', ');
+      return mobItem(`data-mobnav="stM|g:${g.id}"`, esc(g.name), esc(ex || g.fuehrer || 'alles ok'), `<span class="pill amp-${s.amp}">${s.ef}/${s.best}</span>`); }).join('')}</div>`; }
+  else if (!p) { const s = grStatus(g.id), sys = D.systeme[g.id] || (D.systeme[g.id] = {}), sd = inZug(g.id) ? '' : ' disabled', ps = D.personen.filter(x => x.gruppeId === g.id);
+    h += `<div class="mob-sum"><span class="pill amp-${s.amp}">${s.amp === 'na' ? '–' : s.amp}</span> <b>${s.ef}/${s.best} einsatzfähig</b></div>
+    <div class="mob-h">Soldaten</div><div class="mob-list">${ps.map(x => mobItem(`data-mobnav="stM|p:${x.id}"`, esc(nameNV(x) || 'Name fehlt'), esc([x.grad, x.funktion, x.mat === 'Mangel' ? 'Mat Mangel' : '', x.mun === 'Mangel' ? 'Mun Mangel' : ''].filter(Boolean).join(' · ')), `<span class="pill amp-${pAmp(x)}">${esc(P_ST_SHORT[x.status] || x.status || '–')}</span>`)).join('') || '<p class="hint">Noch keine Soldaten.</p>'}</div>
+    ${sd ? '' : `<div class="row-actions"><button class="small" data-addperson="${g.id}">+ Soldat</button></div>`}
+    <div class="mob-h">Systeme</div><div class="mob-form">${st.map(t => `<label>${esc(t)}${sel(sys[t] || 'ok', S_STATUS, `data-sys="${g.id}" data-t="${esc(t)}"${sd}`)}</label>`).join('')}<label class="mf-w">Bemerkung<input data-sys="${g.id}" data-t="bem" value="${esc(sys.bem || '')}"${sd}></label></div>`; }
+  else { const ok = canEdit('personen', p), a = k => `data-tbl="personen" data-id="${esc(p.id)}" data-key="${k}"${ok ? '' : ' disabled'}`, chips = (k, opts) => `<div class="mob-chips">${opts.map(o => `<button class="mob-chip${(p[k] || opts[0]) === o ? ' on' : ''}" data-pset="${esc(p.id)}|${k}|${esc(o)}"${ok ? '' : ' disabled'}>${esc(P_ST_SHORT[o] || o)}</button>`).join('')}</div>`;
+    h += `<div class="mob-h">Status</div>${chips('status', P_STATUS)}
+    <div class="mob-form"><label>Material${chips('mat', ['ok', 'Mangel'])}</label><label>Munition${chips('mun', ['ok', 'Mangel'])}</label>
+    <label>Grad<input ${a('grad')} value="${esc(p.grad || '')}"></label><label>Funktion<input ${a('funktion')} value="${esc(p.funktion || '')}"></label>
+    <label class="mf-w">Name<input ${a('name')} value="${esc(p.name || '')}"></label><label class="mf-w">Mittel / Waffe<input ${a('mittel')} value="${esc(p.mittel || '')}"></label>
+    <label class="mf-w">Bemerkung<textarea rows="3" ${a('bem')}>${esc(p.bem || '')}</textarea></label></div>`; }
+  return h + (d.back ? `<div class="row-actions">${d.back}</div>` : '') + '</div>';
+}
 function viewSysteme() {
+  if (isMob()) return viewSystemeMob();
   const st = D.meta.systemTypen, open = ui.statOpen || (ui.statOpen = {});
   const ncol = st.length + 5;
   const allIds = D.zuege.flatMap(z => z.gruppen.map(g => g.id));
@@ -2725,6 +2796,7 @@ function calLanes() {
 }
 const laneOf = id => { const e = el(id); if (e.type === 'ext') return id; if (e.type === 'kp') return UOS && D.zuege[0] ? D.zuege[0].id : 'kp'; if (!isKp() && e.type === 'gr' && inZug(id)) return id; return e.zugId || 'kp'; };
 function calShownDays() {
+  if (!ui.calDays && isMob()) ui.calDays = 1;
   const all = calDays(), n = ui.calDays || 7;
   if (n === 1) return [D.meta.tag];
   return all.slice(0, n);
@@ -3599,6 +3671,11 @@ document.addEventListener('click', ev => {
   if (b.dataset.ausb) { const pid = b.dataset.ausb, t = b.dataset.ausbth, id = ausbId(pid, t); let r = D.ausb.find(x => x.id === id);
     if (!r) { r = NEW({ id, pid, thema: t, st: '' }); D.ausb.push(r); } if (!canEdit('ausb', r)) return;
     r.st = r.st === 'ok' ? 'np' : r.st === 'np' ? '' : 'ok'; stamp(r); touch(); render(); return; }
+  if (b.dataset.mobnav) { const [k, v] = b.dataset.mobnav.split('|'), m = ui[k] || (ui[k] = {}), [lv, id] = v.split(':');
+    if (lv === 'r') { m.z = m.g = m.p = null; } else if (lv === 'z') { if (id) m.z = id; m.g = m.p = null; } else if (lv === 'g') { if (id) m.g = id; m.p = null; } else if (lv === 'p') m.p = id;
+    render(); window.scrollTo(0, 0); return; }
+  if (b.dataset.pset) { const [pid, k, v] = b.dataset.pset.split('|'), p = D.personen.find(x => x.id === pid); if (!p || !canEdit('personen', p)) return; p[k] = v; stamp(p); touch(); render(); return; }
+  if (b.dataset.egtog) { const o = ui.egOpen || (ui.egOpen = {}); o[b.dataset.egtog] = !o[b.dataset.egtog]; render(); return; }
   if (b.dataset.statgr) { const o = ui.statOpen || (ui.statOpen = {}); o[b.dataset.statgr] = !(o[b.dataset.statgr] ?? !isKp()); render(); return; }
   if (b.dataset.addperson) { const g = b.dataset.addperson; if (!inZug(g)) return; D.personen.push(NEW({ id: 'p' + uid(), gruppeId: g, funktion: '', grad: '', name: '', mittel: '', status: 'einsatzfähig', mat: 'ok', mun: 'ok', bem: '' })); touch(); render(); setTimeout(() => { const l = [...document.querySelectorAll('.stat-sub input[data-key="funktion"]')].filter(i => (D.personen.find(p => p.id === i.dataset.id) || {}).gruppeId === g).pop(); if (l) l.focus(); }, 0); return; }
   if (b.dataset.addmember) { if (!inZug(b.dataset.addmember)) return; D.personen.push(NEW({ id: 'p' + uid(), gruppeId: b.dataset.addmember, funktion: '', grad: '', name: '', mittel: '', status: 'einsatzfähig', mat: 'ok', mun: 'ok', bem: '' })); touch(); render(); setTimeout(() => { const l = [...document.querySelectorAll(`.gm-r input[data-key="grad"]`)].filter(i => D.personen.find(p => p.id === i.dataset.id && p.gruppeId === b.dataset.addmember)).pop(); if (l) l.focus(); }, 0); return; }
