@@ -1656,6 +1656,16 @@ function scaleSVG(W, H, fs, v) {
     <rect x="${x0}" y="${y0}" width="${px / 2}" height="${h}" fill="#000"/><rect x="${x0 + px / 2}" y="${y0}" width="${px / 2}" height="${h}" fill="#fff" stroke="#000" stroke-width="${fs * .05}"/>
     <text x="${x0 + px + fs * .25}" y="${y0 + h}" font-family="Arial" font-size="${fs * .6}" fill="#000">${lbl}</text></g>`;
 }
+// BM Bildschirm: angezeigter Massstab (96 dpi), klein und schlicht
+function scaleMini(W, vx, vy, vw, vh) {
+  const bw = ui.mapBoxW || 1000, u = vw / bw, mpp = vw / W * D.geo.w / bw, sc = mpp / 0.0254 * 96;
+  const e = Math.pow(10, Math.floor(Math.log10(sc)) - 1), scR = Math.round(sc / e) * e;
+  const len = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000, 20000].reduce((a, x) => x / mpp <= 90 ? x : a, 1), px = len / mpp * u;
+  const x0 = vx + 10 * u, y0 = vy + vh - 10 * u, t = 1.4 * u, f = 11 * u, lb = len >= 1000 ? len / 1000 + ' km' : len + ' m';
+  const halo = `stroke="#fff" stroke-width="${3 * u}" paint-order="stroke"`;
+  return `<g class="map-scale" pointer-events="none" font-family="Arial" fill="#000"><path d="M${x0} ${y0 - 4 * u}V${y0}H${x0 + px}V${y0 - 4 * u}" fill="none" stroke="#fff" stroke-width="${t + 2.4 * u}" stroke-linejoin="round"/><path d="M${x0} ${y0 - 4 * u}V${y0}H${x0 + px}V${y0 - 4 * u}" fill="none" stroke="#000" stroke-width="${t}"/>
+    <text x="${x0}" y="${y0 - 6 * u}" font-size="${f}" ${halo}>${fmtScale(scR)}</text><text x="${x0 + px + 4 * u}" y="${y0 + 1 * u}" font-size="${f * .9}" ${halo}>${lb}</text></g>`;
+}
 // Druckansicht: Massstab für die Kartenbreite im Ausdruck (Kp A3 250 mm, Zfhr/Grfhr A4 165 mm), auf 500 gerundet
 function updateMapScales() {
   document.querySelectorAll('#view svg.map:not(#lage-map) .map-scale').forEach(sc => { const pw = sc.closest('.page.a4') ? MAP_PRINT_W_GR : MAP_PRINT_W; const t = sc.querySelector('.map-scale-n'); if (t) t.textContent = fmtScale(Math.round(+sc.dataset.geow / pw / 500) * 500); });
@@ -1786,7 +1796,8 @@ function mapSVG(items, opt = {}) {
   for (let i = 0; i < C; i++) { const x = i * cw + cw / 2; if (inX(x)) lb += `<rect x="${x - fs * 0.6}" y="${ly + fs * 0.15}" width="${fs * 1.2}" height="${fs * 1.15}" fill="#fff" fill-opacity=".85"/><text x="${x}" y="${ly + fs * 1.05}" text-anchor="middle">${colLetter(i)}</text>`; }
   for (let j = 0; j < R; j++) { const y = j * ch + ch / 2; if (inY(y)) lb += `<rect x="${lx + fs * 0.1}" y="${y - fs * 0.6}" width="${fs * 1.5}" height="${fs * 1.15}" fill="#fff" fill-opacity=".85"/><text x="${lx + fs * 0.85}" y="${y + fs * 0.36}" text-anchor="middle">${j + 1}</text>`; }
   if (rOn) s += `<g font-family="Arial" font-weight="700" font-size="${fs}" fill="#000">${lb}</g>`;
-  if (D.geo) s += scaleSVG(W, H, SC ? fs * .75 : fs, { x: vx, y: vy, w: vw, h: vh, k, lbl: SC && SC.lbl });
+  if (D.geo && SC && BM) s += scaleMini(W, vx, vy, vw, vh);
+  else if (D.geo) s += scaleSVG(W, H, SC ? fs * .75 : fs, { x: vx, y: vy, w: vw, h: vh, k, lbl: SC && SC.lbl });
   if (SC && SC.db) { const d = SC.db; s += `<g pointer-events="none"><rect x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="#c00" fill-opacity=".06" stroke="#c00" stroke-width="${sw * 3}" stroke-dasharray="${sw * 12} ${sw * 6}"/><text x="${d.x + fs * .4}" y="${d.y - fs * .4}" font-family="Arial" font-weight="700" font-size="${fs}" fill="#c00" stroke="#fff" stroke-width="${fs * .2}" paint-order="stroke">${esc(d.lbl)}</text></g>`; }
   if (D.geo) s += `<text x="${vx + vw - fs * .3}" y="${vy + vh - fs * .3}" text-anchor="end" font-family="Arial" font-size="${fs * .6}" fill="#000" stroke="#fff" stroke-width="${fs * .15}" paint-order="stroke">© swisstopo</text>`;
   if (opt.lines !== false) { (D.linien || []).filter(opt.linF || (() => true)).map(l => placeLin(l)).filter(Boolean).forEach(l => { s += linieSVG(l, W, H, Math.min(vw, vh) / 20, sw, opt.hlLine === l.id || !!(opt.hlSet && opt.hlSet.includes(l.id))); }); }
@@ -3069,7 +3080,7 @@ function viewAuftraege() {
 
 /* ---- Lage ---- */
 const SIG_GRP_DONE = { 'p-irr': 1, 'p-text': 1, 'p-fix': 1, 'p-posten': 1, 'p-einr': 1, 'p-sperre': 1, 'p-pers': 1, 'p-waffe': 1, 'p-pzfz': 1, 'p-fz': 1, 'p-hind': 1, 'p-ied': 1 };
-const palMode = () => ui.draw || ui.palFn === 'line' ? 'line' : ui.palFn === 'unit' ? 'unit' : 'sig';
+const palMode = () => ui.draw || ui.palFn === 'line' ? 'line' : ui.palFn === 'unit' ? 'unit' : ui.palFn === 'text' ? 'text' : 'sig';
 function sigPalette() {
   const tgt = ui.sigTarget && D.lage.find(l => l.id === ui.sigTarget);
   const cur = tgt ? { partei: tgt.partei, sig: normSig(tgt.sig) } : { partei: newLagePartei, sig: normSig(ui.sigTpl) };
@@ -3081,10 +3092,12 @@ function sigPalette() {
   const pb = fn => { const u = SIG_POINT_MAP[fn]; return u ? btn(fn, u[1], null, !ui.draw && cur.sig.fn === fn) : ''; };
   const grp = (t, inner) => inner ? `<div class="siggrp"><div class="siggrp-t">${t}</div><div class="siggrid">${inner}</div></div>` : '';
   const pm = BM && !tgt ? palMode() : '', gOn = k => !pm || pm === k;
+  const gridOff = pm === 'text';
   const grid = `<div class="siglbl2" style="margin-top:12px;border-top:1px solid var(--line);padding-top:8px">${pm === 'line' ? 'Art' : pm === 'unit' ? 'Formationstyp' : 'Taktische Zeichen'}</div><div class="siggrps">`
     + (tgt || !gOn('line') ? '' : grp(pm ? 'Linien, Flächen, Pfeile' : 'Linien, Flächen, Pfeile', linBtn + pfBtn))
     + (gOn('unit') ? grp('Formationen', btn('unit', 'Formation', { fn: 'unit', mods: [] }, !isPt && !ui.draw) + pb('p-irr')) : '')
-    + (gOn('sig') ? grp('Text', pb('p-text'))
+    + (gOn('text') && !pm ? grp('Text', pb('p-text')) : '')
+    + (gOn('sig') ? ''
     + grp('Führung, Posten, Einrichtungen', pb('p-fix') + btn('p-einr', 'Posten / Einrichtung', null, !ui.draw && (cur.sig.fn === 'p-einr' || cur.sig.fn === 'p-posten')))
     + grp('Personen, Waffen, Fahrzeuge', pb('p-pers') + pb('p-waffe') + pb('p-pzfz') + pb('p-fz'))
     + grp('Hindernisse und Ladungen', pb('p-hind') + pb('p-ied'))
@@ -3115,7 +3128,7 @@ function sigPalette() {
     ${cur.sig.fn === 'p-text' ? `<div class="siglbl2">Text</div><input id="sig-txt" style="width:100%;max-width:320px" placeholder="z.B. Schlüsselgelände, Brücke gesprengt" value="${esc(cur.sig.txt || '')}">` : ''}
     ${cur.sig.fn === 'p-waffe' ? `<div class="siglbl2">Gewicht</div><div class="sigchips">${WAFF_WT.map(m => `<button class="sigchip${(cur.sig.wt || '') === m[0] ? ' on' : ''}" data-sigwt="${m[0] || '-'}">${esc(m[1])}</button>`).join('')}</div>` : ''}
     ${cur.sig.fn === 'p-fix' ? `<div class="siglbl2">Führungspunkt (Kappe)</div><div class="sigchips">${FIX_CAP.map(m => `<button class="sigchip${(cur.sig.cap || '') === m[0] ? ' on' : ''}" data-sigcap="${m[0] || '-'}" title="${esc(m[1])}">${esc(CAP_ABBR[m[0]] || m[1])}</button>`).join('')}</div>` : ''}
-    ${grid}
+    ${gridOff ? '' : grid}
   </div>`;
 }
 document.addEventListener('click', ev => { const b = ev.target.closest && ev.target.closest('[data-sigsub]'); if (!b) return; ui.sigSub = ui.sigSub === b.dataset.sigsub ? '' : b.dataset.sigsub; render(); });
@@ -3287,6 +3300,7 @@ function lageSettings() {
   </div>`;
 }
 const MT_I = {
+  text: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6V4h14v2M12 4v16M9 20h6"/></svg>',
   clear: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#c00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>',
   lbsave: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M4 14v6h16v-6"/></svg>',
   lbload: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 14v6h16v-6"/></svg>',
@@ -3302,9 +3316,9 @@ function lageCan() { const adm = isAdm(), z = adm ? null : roleZug(), m = z ? km
   return { adm, z, m, search: adm || m === 'eigen', upload: adm, druck: adm ? !!D.geo : (m === 'aus' || (m === 'eigen' && !!(z.rahmen && z.rahmen.geo))) }; }
 function mapTools() {
   const c = lageCan(), pop = ui.lagePop || '';
-  const ic = (k, title, extra = '') => `<button class="map-ic${pop === k || (k === 'sig' && ui.palOpen && !ui.draw && !ui.palFn) || (k === 'unit' && ui.palOpen && ui.palFn === 'unit' && !ui.draw) || (k === 'line' && ui.draw) || (k === 'druck' && ui.dbMode) ? ' on' : ''}" data-maptool="${k}" title="${title}" ${extra}>${MT_I[k]}</button>`;
+  const ic = (k, title, extra = '') => `<button class="map-ic${pop === k || (k === 'sig' && ui.palOpen && !ui.draw && !ui.palFn) || (k === 'unit' && ui.palOpen && ui.palFn === 'unit' && !ui.draw) || (k === 'text' && ui.palOpen && ui.palFn === 'text' && !ui.draw) || (k === 'line' && ui.draw) || (k === 'druck' && ui.dbMode) ? ' on' : ''}" data-maptool="${k}" title="${title}" ${extra}>${MT_I[k]}</button>`;
   let h = `<div class="map-tools">${c.search ? ic('search', 'Ort für den Kartenausschnitt suchen') : ''}${c.upload ? ic('upload', BM ? 'Karte: Kartentyp, offline speichern, eigene Karte hochladen' : 'Karte hochladen (Bilddatei)') + '<input type="file" id="file-karte" accept="image/*" hidden>' : ''}${BM && isAdm() ? '' : ic('raster', BM ? 'Führungsraster einstellen' : 'Führungsraster und Karte einstellen')}
-    <span class="map-sep"></span>${ic('unit', 'Formation hinzufügen')}${ic('line', 'Linie hinzufügen')}${ic('sig', BM ? 'Weitere Signaturen hinzufügen' : 'Sonstige Signatur hinzufügen')}${c.druck || (BM && isAdm()) ? '<span class="map-sep"></span>' + ic('druck', BM ? 'Druckbereich und Führungsraster' : 'Druckbereich festlegen') : ''}${BM ? '<span class="map-sep"></span>' + ic('lbsave', 'Lagebild exportieren (Datei)') + (isAdm() ? ic('lbload', 'Lagebild importieren (ersetzt Signaturen, Linien und Ausschnitt)') : '') + '<input type="file" id="file-lagebild" accept=".json,application/json" hidden>' + '<span class="map-sep"></span>' + ic('clear', 'Karte leeren: alle Signaturen und Linien löschen') : ''}</div>`;
+    <span class="map-sep"></span>${ic('unit', 'Formation hinzufügen')}${ic('line', 'Linie hinzufügen')}${ic('sig', BM ? 'Weitere Signaturen hinzufügen' : 'Sonstige Signatur hinzufügen')}${BM ? ic('text', 'Text auf die Karte setzen') : ''}${c.druck || (BM && isAdm()) ? '<span class="map-sep"></span>' + ic('druck', BM ? 'Druckbereich und Führungsraster' : 'Druckbereich festlegen') : ''}${BM ? '<span class="map-sep"></span>' + ic('lbsave', 'Lagebild exportieren (Datei)') + (isAdm() ? ic('lbload', 'Lagebild importieren (ersetzt Signaturen, Linien und Ausschnitt)') : '') + '<input type="file" id="file-lagebild" accept=".json,application/json" hidden>' + '<span class="map-sep"></span>' + ic('clear', 'Karte leeren: alle Signaturen und Linien löschen') : ''}</div>`;
   if (pop === 'search' && c.search) {
     const id = c.adm ? 'geo' : 'zr', q = c.adm ? ui.geoQ : ui.zrQ, msg = c.adm ? ui.geoMsg : ui.zrMsg, res = (c.adm ? ui.geoResults : ui.zrResults) || [];
     h += `<div class="map-pop"><div class="map-pop-h"><b>Ort suchen</b><button class="small" data-maptool="search" title="Schliessen">✕</button></div><div class="sigrow" style="flex-wrap:nowrap"><input id="${id}-q" placeholder="Ort, Flurname oder Koordinaten" value="${esc(q || '')}" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('${id}-search').click()}"><button id="${id}-search" class="small primary">Suchen</button></div>
@@ -3355,6 +3369,7 @@ document.addEventListener('click', ev => {
   const b = ev.target.closest && ev.target.closest('button'); if (!b) return;
   const t = b.dataset.maptool;
   if (t === 'search' || t === 'raster') { ui.lagePop = ui.lagePop === t ? '' : t; render(); if (ui.lagePop === 'search') setTimeout(() => { const i = $('#geo-q') || $('#zr-q'); if (i) i.focus(); }, 0); return; }
+  if (t === 'text') { ui.lagePop = ''; const on = ui.palOpen && ui.palFn === 'text' && !ui.draw; ui.draw = null; ui.palOpen = !on; ui.palFn = on ? null : 'text'; render(); if (!on) { const fn = normSig(ui.sigTpl).fn; if (fn !== 'p-text') { ui.sigTpl = Object.assign(normSig(ui.sigTpl), { fn: 'p-text', mods: [], size: '', st: '', pm: '', cap: '' }); render(); } setTimeout(() => { const i = $('#sig-txt'); if (i) i.focus(); }, 0); } return; }
   if (t === 'clear') { karteLeeren(); return; }
   if (t === 'lbsave') { exportLagebild(); return; }
   if (t === 'lbload') { if (isAdm()) $('#file-lagebild').click(); return; }
@@ -3362,7 +3377,7 @@ document.addEventListener('click', ev => {
   if (b.id === 'kp-upload') { const f = $('#file-karte'); if (f) f.click(); return; }
   if (t === 'unit') { ui.lagePop = ''; const on = ui.palOpen && ui.palFn === 'unit' && !ui.draw; ui.draw = null; ui.palOpen = !on; ui.palFn = on ? null : 'unit'; render(); if (!on) { const x = $('.map-pal [data-sigfn="unit"]'); if (x && !x.classList.contains('on')) x.click(); } return; }
   if (t === 'line') { ui.lagePop = ''; if (ui.draw) { ui.draw = null; ui.palOpen = false; render(); return; } ui.palOpen = true; ui.palFn = 'line'; render(); const x = $('.map-pal [data-siglin]'); if (x) x.click(); return; }
-  if (t === 'sig') { ui.lagePop = ''; const on = ui.palOpen && !ui.palFn && !ui.draw; ui.draw = null; ui.palOpen = !on; ui.palFn = null; render(); if (BM && !on && !ui.sigTarget) { const fn = normSig(ui.sigTpl).fn; if (fn === 'unit' || fn === 'p-irr') { const x = $('.map-pal [data-sigfn]'); if (x) x.click(); } } return; }
+  if (t === 'sig') { ui.lagePop = ''; const on = ui.palOpen && !ui.palFn && !ui.draw; ui.draw = null; ui.palOpen = !on; ui.palFn = null; render(); if (BM && !on && !ui.sigTarget) { const fn = normSig(ui.sigTpl).fn; if (fn === 'unit' || fn === 'p-irr' || fn === 'p-text') { const x = $('.map-pal [data-sigfn]'); if (x) x.click(); } } return; }
   if (t === 'druck') { ui.lagePop = ''; ui.dbMode = !ui.dbMode; render(); return; }
   if (b.id === 'db-ok') { dbApply(); return; }
   if (b.id === 'db-cancel') { ui.dbMode = false; render(); return; }
@@ -3402,7 +3417,7 @@ function viewLage() {
     
     ${armedLage ? '<div class="toolbar"><span class="ovf-note">Position setzen: ' + (BM ? 'Doppelklick oder lang tippen in die Karte' : 'in die Karte klicken') + '</span> <button class="small" id="lage-disarm">abbrechen</button></div>' : ''}
     <div class="lage-full"><div class="mapbox${ui.draw ? ' drawing' : ''}${ui.palOpen ? ' pal-open' : ''}">${LM.svg}${mapTools()}
-      ${ui.palOpen ? `<div class="map-pal"><div class="map-pop-h"><b>${ui.sigTarget ? 'Signatur bearbeiten' : ui.draw ? 'Linie zeichnen' : BM && palMode() === 'unit' ? 'Formation wählen, dann Doppelklick / lang tippen in die Karte' : BM && palMode() === 'line' ? 'Linie wählen' : BM ? 'Signatur wählen, dann Doppelklick / lang tippen in die Karte' : 'Signatur wählen, dann in die Karte tippen'}</b><button class="small" id="pal-close" title="Schliessen">✕</button></div>${sigPalette()}</div>` : ''}
+      ${ui.palOpen ? `<div class="map-pal"><div class="map-pop-h"><b>${ui.sigTarget ? 'Signatur bearbeiten' : ui.draw ? 'Linie zeichnen' : BM && palMode() === 'unit' ? 'Formation wählen, dann Doppelklick / lang tippen in die Karte' : BM && palMode() === 'line' ? 'Linie wählen' : BM && palMode() === 'text' ? 'Text eingeben, dann Doppelklick / lang tippen in die Karte' : BM ? 'Signatur wählen, dann Doppelklick / lang tippen in die Karte' : 'Signatur wählen, dann in die Karte tippen'}</b><button class="small" id="pal-close" title="Schliessen">✕</button></div>${sigPalette()}</div>` : ''}
       ${ui.draw ? `<div class="map-bottom">${grenzToolbar()}</div>` : ''}
       ${BM && !ui.palOpen && !ui.draw && (ui.sel || []).length ? selPanel() : ''}
       ${BM && ui.mapOffline && D.geo ? `<div class="map-offline"><b>Keine Verbindung zu swisstopo</b><p>Ohne Internet kann die Online-Karte nicht geladen werden. Lade eine Karte als Bilddatei hoch (z.B. Foto oder Scan der Landeskarte).</p><div class="row-actions">${isAdm() ? '<button class="primary" id="off-upload">Karte hochladen …</button>' : ''}<button id="off-retry">Erneut versuchen</button></div></div>` : ''}
