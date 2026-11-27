@@ -717,6 +717,16 @@ body.grmode.gr-mini.gr-open #gr-head{position:fixed;top:0;left:0;right:0}
 .map-info{position:absolute;top:56px;right:8px;z-index:6;width:320px;max-width:calc(100% - 84px);max-height:calc(100% - 64px);overflow:auto;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.22);padding:8px 10px;box-sizing:border-box}
 .mi-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;margin:4px 0 8px}.mi-grid label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:2px;min-width:0}.mi-grid .mi-w{grid-column:1/-1}.mi-grid input,.mi-grid select,.mi-grid textarea{width:100%;box-sizing:border-box;font-size:14px}.mi-grid .mi-chk{flex-direction:row;align-items:center;gap:6px;color:var(--ink)}.mi-grid .mi-chk input{width:auto}
 @media (max-width:700px){.map-info{left:56px;right:6px;top:auto;bottom:6px;width:auto;max-width:none;max-height:55%}}
+.db-raster{display:flex;gap:8px;align-items:center;flex-wrap:wrap;flex:1 1 100%;padding-bottom:6px;border-bottom:1px solid var(--line)}.db-raster label{display:flex;align-items:center;gap:4px}.db-raster input[type=number]{width:58px}.db-chk{font-weight:600}
+/* BM: Icon-Leiste rechts unter dem Menü, Fenster links */
+.mapbox .map-tools{left:auto;right:8px;top:58px}
+.mapbox .map-pop{left:auto;right:72px;top:58px;max-height:calc(100% - 66px)}
+.mapbox .map-pal,.mapbox .map-info{right:auto;left:8px;top:8px;max-width:calc(100% - 84px)}
+.mapbox .map-bottom{left:8px;right:72px}.mapbox.pal-open .map-bottom{left:316px;right:72px}
+@media (max-width:700px){.mapbox .map-tools{right:6px;top:54px}
+  .mapbox .map-pop{right:56px;left:6px;width:auto;top:54px}
+  .mapbox .map-pal,.mapbox .map-info{left:6px;right:56px;top:auto;bottom:6px;width:auto;max-width:none}
+  .mapbox .map-bottom,.mapbox.pal-open .map-bottom{left:6px;right:56px}.mapbox.pal-open .map-bottom{bottom:calc(45% + 12px)}.mapbox.pal-open.drawing .map-bottom{bottom:6px}}
 </style>
 </head>
 <body>
@@ -1741,18 +1751,18 @@ function mapSVG(items, opt = {}) {
   if (D.geo) s += `<g class="map-bg" opacity="${op}">${geoBackground(W, H, scrG || (V && V.g))}</g>`;
   else if (D.karte) s += `<image class="map-bg" opacity="${op}" href="${D.karte}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none"/>`;
   else s += `<rect x="0" y="0" width="${W}" height="${H}" fill="#fff"/><text x="${W / 2}" y="${H / 2}" text-anchor="middle" font-size="${W / 30}" fill="#999">Keine Karte geladen (Lagekarte › Karte und Raster einstellen)</text>`;
-  let g = '';
-  for (let i = 1; i < C; i++) g += `<line x1="${i * cw}" y1="0" x2="${i * cw}" y2="${H}"/>`;
-  for (let j = 1; j < R; j++) g += `<line x1="0" y1="${j * ch}" x2="${W}" y2="${j * ch}"/>`;
+  let g = ''; const rOn = !(BM && D.meta.rasterOff);
+  if (rOn) for (let i = 1; i < C; i++) g += `<line x1="${i * cw}" y1="0" x2="${i * cw}" y2="${H}"/>`;
+  if (rOn) for (let j = 1; j < R; j++) g += `<line x1="0" y1="${j * ch}" x2="${W}" y2="${j * ch}"/>`;
   if (SC) s += `<path d="M${vx} ${vy}h${vw}v${vh}h${-vw}Z M${PA.x} ${PA.y}v${PA.h}h${PA.w}v${-PA.h}Z" fill="#fff" fill-opacity=".42" fill-rule="evenodd" pointer-events="none"/>`;
   s += `<g stroke="#000" stroke-opacity=".55" stroke-width="${sw}">${g}</g><rect x="0" y="0" width="${W}" height="${H}" fill="none" stroke="#000" stroke-width="${sw * 2}"/>`;
   if (SC && V) s += `<rect x="${PA.x}" y="${PA.y}" width="${PA.w}" height="${PA.h}" fill="none" stroke="#c00" stroke-width="${sw * 2.5}"/>`;
   const fs = SC ? vw * .016 : Math.min(cw, ch) * 0.32 * Math.sqrt(k), inX = x => x >= vx && x <= vx + vw, inY = y => y >= vy && y <= vy + vh;
-  const lx = SC ? Math.max(vx + vw * 64 / (ui.mapBoxW || 1000), 0) : vx, ly = SC ? Math.max(vy, 0) : vy;
+  const lx = SC && !BM ? Math.max(vx + vw * 64 / (ui.mapBoxW || 1000), 0) : SC ? Math.max(vx, 0) : vx, ly = SC ? Math.max(vy, 0) : vy;
   let lb = '';
   for (let i = 0; i < C; i++) { const x = i * cw + cw / 2; if (inX(x)) lb += `<rect x="${x - fs * 0.6}" y="${ly + fs * 0.15}" width="${fs * 1.2}" height="${fs * 1.15}" fill="#fff" fill-opacity=".85"/><text x="${x}" y="${ly + fs * 1.05}" text-anchor="middle">${colLetter(i)}</text>`; }
   for (let j = 0; j < R; j++) { const y = j * ch + ch / 2; if (inY(y)) lb += `<rect x="${lx + fs * 0.1}" y="${y - fs * 0.6}" width="${fs * 1.5}" height="${fs * 1.15}" fill="#fff" fill-opacity=".85"/><text x="${lx + fs * 0.85}" y="${y + fs * 0.36}" text-anchor="middle">${j + 1}</text>`; }
-  s += `<g font-family="Arial" font-weight="700" font-size="${fs}" fill="#000">${lb}</g>`;
+  if (rOn) s += `<g font-family="Arial" font-weight="700" font-size="${fs}" fill="#000">${lb}</g>`;
   if (D.geo) s += scaleSVG(W, H, SC ? fs * .75 : fs, { x: vx, y: vy, w: vw, h: vh, k, lbl: SC && SC.lbl });
   if (SC && SC.db) { const d = SC.db; s += `<g pointer-events="none"><rect x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="#c00" fill-opacity=".06" stroke="#c00" stroke-width="${sw * 3}" stroke-dasharray="${sw * 12} ${sw * 6}"/><text x="${d.x + fs * .4}" y="${d.y - fs * .4}" font-family="Arial" font-weight="700" font-size="${fs}" fill="#c00" stroke="#fff" stroke-width="${fs * .2}" paint-order="stroke">${esc(d.lbl)}</text></g>`; }
   if (D.geo) s += `<text x="${vx + vw - fs * .3}" y="${vy + vh - fs * .3}" text-anchor="end" font-family="Arial" font-size="${fs * .6}" fill="#000" stroke="#fff" stroke-width="${fs * .15}" paint-order="stroke">© swisstopo</text>`;
@@ -3214,8 +3224,8 @@ function lageCan() { const adm = isAdm(), z = adm ? null : roleZug(), m = z ? km
 function mapTools() {
   const c = lageCan(), pop = ui.lagePop || '';
   const ic = (k, title, extra = '') => `<button class="map-ic${pop === k || (k === 'sig' && ui.palOpen && !ui.draw && !ui.palFn) || (k === 'unit' && ui.palOpen && ui.palFn === 'unit' && !ui.draw) || (k === 'line' && ui.draw) || (k === 'druck' && ui.dbMode) ? ' on' : ''}" data-maptool="${k}" title="${title}" ${extra}>${MT_I[k]}</button>`;
-  let h = `<div class="map-tools">${c.search ? ic('search', 'Ort für den Kartenausschnitt suchen') : ''}${c.upload ? ic('upload', BM ? 'Karte: Kartentyp, offline speichern, eigene Karte hochladen' : 'Karte hochladen (Bilddatei)') + '<input type="file" id="file-karte" accept="image/*" hidden>' : ''}${ic('raster', BM ? 'Führungsraster einstellen' : 'Führungsraster und Karte einstellen')}
-    <span class="map-sep"></span>${ic('unit', 'Formation hinzufügen')}${ic('line', 'Linie hinzufügen')}${ic('sig', BM ? 'Weitere Signaturen hinzufügen' : 'Sonstige Signatur hinzufügen')}${c.druck ? '<span class="map-sep"></span>' + ic('druck', 'Druckbereich festlegen') : ''}${BM ? '<span class="map-sep"></span>' + ic('lbsave', 'Lagebild speichern (JSON-Datei)') + (isAdm() ? ic('lbload', 'Lagebild laden (ersetzt Signaturen, Linien und Ausschnitt)') : '') + '<input type="file" id="file-lagebild" accept=".json,application/json" hidden>' : ''}</div>`;
+  let h = `<div class="map-tools">${c.search ? ic('search', 'Ort für den Kartenausschnitt suchen') : ''}${c.upload ? ic('upload', BM ? 'Karte: Kartentyp, offline speichern, eigene Karte hochladen' : 'Karte hochladen (Bilddatei)') + '<input type="file" id="file-karte" accept="image/*" hidden>' : ''}${BM && isAdm() ? '' : ic('raster', BM ? 'Führungsraster einstellen' : 'Führungsraster und Karte einstellen')}
+    <span class="map-sep"></span>${ic('unit', 'Formation hinzufügen')}${ic('line', 'Linie hinzufügen')}${ic('sig', BM ? 'Weitere Signaturen hinzufügen' : 'Sonstige Signatur hinzufügen')}${c.druck || (BM && isAdm()) ? '<span class="map-sep"></span>' + ic('druck', BM ? 'Druckbereich und Führungsraster' : 'Druckbereich festlegen') : ''}${BM ? '<span class="map-sep"></span>' + ic('lbsave', 'Lagebild speichern (JSON-Datei)') + (isAdm() ? ic('lbload', 'Lagebild laden (ersetzt Signaturen, Linien und Ausschnitt)') : '') + '<input type="file" id="file-lagebild" accept=".json,application/json" hidden>' : ''}</div>`;
   if (pop === 'search' && c.search) {
     const id = c.adm ? 'geo' : 'zr', q = c.adm ? ui.geoQ : ui.zrQ, msg = c.adm ? ui.geoMsg : ui.zrMsg, res = (c.adm ? ui.geoResults : ui.zrResults) || [];
     h += `<div class="map-pop"><div class="map-pop-h"><b>Ort suchen</b><button class="small" data-maptool="search" title="Schliessen">✕</button></div><div class="sigrow" style="flex-wrap:nowrap"><input id="${id}-q" placeholder="Ort, Flurname oder Koordinaten" value="${esc(q || '')}" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('${id}-search').click()}"><button id="${id}-search" class="small primary">Suchen</button></div>
@@ -3311,7 +3321,7 @@ function viewLage() {
       ${ui.draw ? `<div class="map-bottom">${grenzToolbar()}</div>` : ''}
       ${BM && !ui.palOpen && !ui.draw && (ui.sel || []).length ? selPanel() : ''}
       ${BM && ui.mapOffline && D.geo ? `<div class="map-offline"><b>Keine Verbindung zu swisstopo</b><p>Ohne Internet kann die Online-Karte nicht geladen werden. Lade eine Karte als Bilddatei hoch (z.B. Foto oder Scan der Landeskarte).</p><div class="row-actions">${isAdm() ? '<button class="primary" id="off-upload">Karte hochladen …</button>' : ''}<button id="off-retry">Erneut versuchen</button></div></div>` : ''}
-      ${ui.dbMode ? `<div class="map-bottom db-bar"><span>${ui.dbProp ? 'Karte verschieben und zoomen, bis der rote Rahmen den Druckbereich zeigt.' : 'Druckbereich nicht verfügbar.'}</span><button class="small primary" id="db-ok"${ui.dbProp ? '' : ' disabled'}>Übernehmen</button><button class="small" id="db-cancel">Abbrechen</button></div>` : ''}
+      ${ui.dbMode ? `<div class="map-bottom db-bar">${BM ? rasterCtl() : ''}<span>${ui.dbProp ? 'Karte verschieben und zoomen, bis der rote Rahmen den Druckbereich zeigt.' : BM ? 'Druckbereich = ganze Karte.' : 'Druckbereich nicht verfügbar.'}</span><button class="small primary" id="db-ok"${ui.dbProp ? '' : ' disabled'}>Übernehmen</button><button class="small" id="db-cancel">Abbrechen</button></div>` : ''}
     </div>${ui.draw || BM ? '' : grenzToolbar()}</div>
     ${BM ? '</div>' : `<div style="margin-top:14px">
     <div>${editTable('lage', D.lage.filter(visLage), [
@@ -3370,6 +3380,8 @@ function selDelete() {
 }
 document.addEventListener('keydown', ev => { if (!BM || currentTab !== 'lage' || !(ui.sel || []).length) return; const tg = ev.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
   if (ev.key === 'Delete' || ev.key === 'Backspace') { ev.preventDefault(); selDelete(); } else if (ev.key === 'Escape') { ui.sel = []; render(); } });
+function rasterCtl() { const m = D.meta, on = !m.rasterOff, dis = isAdm() ? '' : ' disabled';
+  return `<div class="db-raster"><label class="db-chk"><input type="checkbox" id="raster-on"${on ? ' checked' : ''}${dis}> Führungsraster</label>${on ? `<label>Spalten<input data-meta="rasterCols" type="number" min="4" max="26" value="${esc(m.rasterCols)}"${dis}></label><label>Zeilen<input data-meta="rasterRows" type="number" min="4" max="40" value="${esc(m.rasterRows)}"${dis}></label>` : ''}</div>`; }
 function nextNr(partei) { return D.lage.filter(l => l.partei === partei).reduce((m, l) => Math.max(m, +l.nr || 0), 0) + 1; }
 function nowLocal() { const d = new Date(); return D.meta.tag + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 /* Ausschnitt mit der Maus ziehen: kurzer Klick setzt weiterhin Signaturen */
@@ -3695,7 +3707,7 @@ function onField(ev) {
   if (t.dataset.meta) {
     let v = t.value; if (t.type === 'number') v = v === '' ? 0 : +v;
     if (!isAdm()) return;
-    D.meta[t.dataset.meta] = v; D.meta.upd = nowISO(); touch(true); return;
+    D.meta[t.dataset.meta] = v; D.meta.upd = nowISO(); touch(true); if (BM && ev.type === 'change' && /^raster/.test(t.dataset.meta)) render(); return;
   }
   if (t.dataset.metaList && ev.type === 'change') {
     if (!isAdm()) return;
@@ -3750,6 +3762,7 @@ function onField(ev) {
     case 'file-karte': loadKarte(t.files[0]); t.value = ''; break;
     case 'file-lagebild': importLagebild(t.files[0]); t.value = ''; break;
     case 'file-termine': importTermine(t.files[0]); t.value = ''; break;
+    case 'raster-on': if (!isAdm()) break; D.meta.rasterOff = !t.checked; D.meta.upd = nowISO(); touch(); render(); break;
     case 'karte-opac': if (!isAdm()) break; D.meta.karteOpac = +t.value; D.meta.upd = nowISO(); touch(); break;
     case 'tm-komp-add': if (ev.type !== 'change' || !t.value) break; { const tm = D.termine.find(x => x.id === t.dataset.id); if (!tm || !canEdit('termine', tm)) break; const l = parseKomp(tm.kompetenzen); if (!l.includes(t.value)) l.push(t.value); l.sort((x, y) => x - y); tm.kompetenzen = l.join(', '); stamp(tm); touch(); render(); } break;
     case 'ausb-sel-clear': if (ui.ausbSel) ui.ausbSel.clear(); render(); break;
@@ -3883,7 +3896,7 @@ function loadKarte(file) {
 }
 /* ===================== Zusammenführen und Ordner-Abgleich ===================== */
 const ARRS = ['termine', 'auftraege', 'lage', 'antraege', 'personen', 'zuege', 'linien', 'ausb', 'pend', 'lektionen', 'lbew', 'kader', 'hkader', 'glStore'];
-const SHARED_META = ['verband', 'kdt', 'beilage', 'version', 'startH', 'endH', 'rasterCols', 'rasterRows', 'gelb', 'rot', 'systemTypen', 'betreuer', 'ausbThemen', 'ausbStoff', 'kdtStv', 'karteOpac', 'extern', 'glAktiv'];
+const SHARED_META = ['verband', 'kdt', 'beilage', 'version', 'startH', 'endH', 'rasterCols', 'rasterRows', 'gelb', 'rot', 'systemTypen', 'betreuer', 'ausbThemen', 'ausbStoff', 'kdtStv', 'karteOpac', 'extern', 'glAktiv', 'rasterOff'];
 const clone = o => JSON.parse(JSON.stringify(o));
 function mergeData(a, b) {
   const out = Object.assign({}, a);
