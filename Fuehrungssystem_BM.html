@@ -1752,7 +1752,7 @@ function mapSVG(items, opt = {}) {
   if (D.geo) s += `<g class="map-bg" opacity="${op}">${geoBackground(W, H, scrG || (V && V.g))}</g>`;
   else if (D.karte) s += `<image class="map-bg" opacity="${op}" href="${D.karte}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none"/>`;
   else s += `<rect x="0" y="0" width="${W}" height="${H}" fill="#fff"/><text x="${W / 2}" y="${H / 2}" text-anchor="middle" font-size="${W / 30}" fill="#999">Keine Karte geladen (Lagekarte › Karte und Raster einstellen)</text>`;
-  let g = ''; const rOn = !(BM && D.meta.rasterOff);
+  let g = ''; const rOn = !BM || !!D.meta.rasterOn;
   if (rOn) for (let i = 1; i < C; i++) g += `<line x1="${i * cw}" y1="0" x2="${i * cw}" y2="${H}"/>`;
   if (rOn) for (let j = 1; j < R; j++) g += `<line x1="0" y1="${j * ch}" x2="${W}" y2="${j * ch}"/>`;
   if (SC) s += `<path d="M${vx} ${vy}h${vw}v${vh}h${-vw}Z M${PA.x} ${PA.y}v${PA.h}h${PA.w}v${-PA.h}Z" fill="#fff" fill-opacity=".42" fill-rule="evenodd" pointer-events="none"/>`;
@@ -3381,7 +3381,7 @@ function selDelete() {
 }
 document.addEventListener('keydown', ev => { if (!BM || currentTab !== 'lage' || !(ui.sel || []).length) return; const tg = ev.target.tagName; if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT') return;
   if (ev.key === 'Delete' || ev.key === 'Backspace') { ev.preventDefault(); selDelete(); } else if (ev.key === 'Escape') { ui.sel = []; render(); } });
-function rasterCtl() { const m = D.meta, on = !m.rasterOff, dis = isAdm() ? '' : ' disabled';
+function rasterCtl() { const m = D.meta, on = !!m.rasterOn, dis = isAdm() ? '' : ' disabled';
   return `<div class="db-raster"><label class="db-chk"><input type="checkbox" id="raster-on"${on ? ' checked' : ''}${dis}> Führungsraster</label>${on ? `<label>Spalten<input data-meta="rasterCols" type="number" min="4" max="26" value="${esc(m.rasterCols)}"${dis}></label><label>Zeilen<input data-meta="rasterRows" type="number" min="4" max="40" value="${esc(m.rasterRows)}"${dis}></label>` : ''}</div>`; }
 function nextNr(partei) { return D.lage.filter(l => l.partei === partei).reduce((m, l) => Math.max(m, +l.nr || 0), 0) + 1; }
 function nowLocal() { const d = new Date(); return D.meta.tag + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
@@ -3763,7 +3763,7 @@ function onField(ev) {
     case 'file-karte': loadKarte(t.files[0]); t.value = ''; break;
     case 'file-lagebild': importLagebild(t.files[0]); t.value = ''; break;
     case 'file-termine': importTermine(t.files[0]); t.value = ''; break;
-    case 'raster-on': if (!isAdm()) break; D.meta.rasterOff = !t.checked; D.meta.upd = nowISO(); touch(); render(); break;
+    case 'raster-on': if (!isAdm()) break; D.meta.rasterOn = t.checked; D.meta.upd = nowISO(); touch(); render(); break;
     case 'karte-opac': if (!isAdm()) break; D.meta.karteOpac = +t.value; D.meta.upd = nowISO(); touch(); break;
     case 'tm-komp-add': if (ev.type !== 'change' || !t.value) break; { const tm = D.termine.find(x => x.id === t.dataset.id); if (!tm || !canEdit('termine', tm)) break; const l = parseKomp(tm.kompetenzen); if (!l.includes(t.value)) l.push(t.value); l.sort((x, y) => x - y); tm.kompetenzen = l.join(', '); stamp(tm); touch(); render(); } break;
     case 'ausb-sel-clear': if (ui.ausbSel) ui.ausbSel.clear(); render(); break;
@@ -3897,7 +3897,7 @@ function loadKarte(file) {
 }
 /* ===================== Zusammenführen und Ordner-Abgleich ===================== */
 const ARRS = ['termine', 'auftraege', 'lage', 'antraege', 'personen', 'zuege', 'linien', 'ausb', 'pend', 'lektionen', 'lbew', 'kader', 'hkader', 'glStore'];
-const SHARED_META = ['verband', 'kdt', 'beilage', 'version', 'startH', 'endH', 'rasterCols', 'rasterRows', 'gelb', 'rot', 'systemTypen', 'betreuer', 'ausbThemen', 'ausbStoff', 'kdtStv', 'karteOpac', 'extern', 'glAktiv', 'rasterOff'];
+const SHARED_META = ['verband', 'kdt', 'beilage', 'version', 'startH', 'endH', 'rasterCols', 'rasterRows', 'gelb', 'rot', 'systemTypen', 'betreuer', 'ausbThemen', 'ausbStoff', 'kdtStv', 'karteOpac', 'extern', 'glAktiv', 'rasterOn'];
 const clone = o => JSON.parse(JSON.stringify(o));
 function mergeData(a, b) {
   const out = Object.assign({}, a);
