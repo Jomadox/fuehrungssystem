@@ -1641,7 +1641,7 @@ const WMTS_RES = [4000, 3750, 3500, 3250, 3000, 2750, 2500, 2250, 2000, 1750, 15
 const WMTS_E0 = 2420000, WMTS_N0 = 1350000;
 const GEO_LAYERS = [['ch.swisstopo.pixelkarte-farbe', 'Landeskarte farbig'], ['ch.swisstopo.pixelkarte-grau', 'Landeskarte grau'], ['ch.swisstopo.swissimage', 'Luftbild (SWISSIMAGE)']];
 // Zoomstufen = runde Massstäbe, bezogen auf die Lagekarte im A3-Druck Kp Kdt / Zfhr (Kartenbreite im Druck 250 mm; Grfhr A4: 165 mm)
-const MAP_PRINT_W = 0.25, MAP_PRINT_W_GR = 0.165, GEO_SCALES = [5000, 10000, 15000, 20000, 25000, 50000, 75000, 100000];
+const MAP_PRINT_W = 0.25, MAP_PRINT_W_GR = 0.165, GEO_SCALES = [500, 1000, 2000, 2500, 5000, 10000, 15000, 20000, 25000, 50000, 75000, 100000];
 const fmtScale = n => '1:' + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, "'");
 const GEO_WIDTHS = GEO_SCALES.map(m => [Math.round(m * MAP_PRINT_W), fmtScale(m)]);
 const GEO_DEF_W = Math.round(10000 * MAP_PRINT_W);
@@ -3196,7 +3196,7 @@ function zrSet(z, patch) {
   if (S && S.geo && T.geo) (D.linien || []).filter(l => l.rahmen === z.id).forEach(l => { l.pts = (l.pts || []).map(([x, y]) => convPt(S, T, x, y).map(v => +v.toFixed(5))); stamp(l); });
   z.kmode = 'eigen'; stamp(z); touch(); render();
 }
-const ZR_SCALES = [5000, 10000, 15000, 20000, 25000, 50000];
+const ZR_SCALES = [500, 1000, 2000, 2500, 5000, 10000, 15000, 20000, 25000, 50000];
 async function zrSearch(q) {
   ui.zrResults = null; ui.zrMsg = 'Suche …'; render();
   try {
