@@ -12,7 +12,7 @@ mb=tb.replace('<!--__QRLIBS__-->',libs).replace('"__DEMO_MAP__"','"data:image/jp
 mb=mb.replace('/*__BM_MODE__*/false','true').replace('<title>Führungssystem Kp</title>','<title>Führungssystem</title>')
 open('app/Fuehrungssystem.html','w',encoding='utf-8').write(mb)
 g=mb.replace('/*__GR_MODE__*/false','true').replace('<title>Führungssystem</title>','<title>Führungssystem Grfhr</title>')
-open('app/Grfhr.html','w',encoding='utf-8').write(g)
+# Grfhr.html entfällt (27.11.2026): Grfhr ist eine Rolle im Gesamtsystem
 # Web-App (PWA) für iPhone/Android: index.html + manifest + Service Worker + Icons
 import os, hashlib
 head='<link rel="manifest" href="manifest.webmanifest">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-status-bar-style" content="black">\n<meta name="apple-mobile-web-app-title" content="Führungssystem">\n<meta name="theme-color" content="#1d1d1d">\n<link rel="apple-touch-icon" href="icon-180.png">\n'
