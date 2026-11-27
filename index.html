@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#ffffff">
-<title>Führungssystem Grfhr</title>
+<title>Führungssystem</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="Grfhr">
+<meta name="apple-mobile-web-app-title" content="Führungssystem">
 <meta name="theme-color" content="#1d1d1d">
 <link rel="apple-touch-icon" href="icon-180.png">
 
@@ -839,7 +839,7 @@ table.mx th,table.mx td{padding:4px 3px}.mx-dot{display:inline-block;width:14px;
       <li><b>Drucken:</b> Druck-Symbol rechts oben. Kp Kdt wählt «Tagesbefehl» (A3) oder «Wochenarbeitsplan» (A3). Ein Zfhr erhält automatisch sein Paket: Zfhr-Dokument und je Gruppe ein Grfhr-Dokument (alles A4). Jede Stufe erhält nur, was sie betrifft. Befehl und Anträge werden im Ausdruck von Hand ergänzt.</li>
     </ol>
     <b>Rollen</b>
-    <p class="hint" style="margin:2px 0 8px">Die Rolle dieses Geräts wählst du oben neben dem Tag. Der Kp Kdt bearbeitet alles. Ein Zfhr bearbeitet nur seinen Zug: Termine seines Zuges und seiner Gruppen, Personal und Systeme seiner Gruppen, eigene Lagemeldungen. Alles andere sieht er nur (🔒). Rolle «Grfhr» öffnet die Gruppenansicht (Zeitplan, Lage, Status, Meldung, Ausbildung) mit dem Gruppenpaket des Zfhr; zurück mit ⇄.</p>
+    <p class="hint" style="margin:2px 0 8px">Die Rolle dieses Geräts wählst du oben neben dem Tag. Der Kp Kdt bearbeitet alles. Ein Zfhr bearbeitet nur seinen Zug: Termine seines Zuges und seiner Gruppen, Personal und Systeme seiner Gruppen, eigene Lagemeldungen. Alles andere sieht er nur (🔒). BM sieht zusätzlich die Kaderselektion. Rolle «Grfhr ‹Gruppe›» öffnet die Gruppenansicht (Zeitplan, Lage, Status, Meldung, Ausbildung) mit dem Gruppenpaket des Zfhr; zurück mit ⇄.</p>
     <b>Abgleich über einen gemeinsamen Ordner (automatisch)</b>
     <p class="hint" style="margin:2px 0 8px">Rechts oben neben «Druck» auf «📁 Ordner verbinden» klicken. Alle Geräte wählen denselben Ordner, z.B. auf einem Netzlaufwerk oder in einem synchronisierten Teams-/OneDrive-Ordner. Jede Rolle schreibt ihre eigene Datei (z.B. «Fuehrung_Kp.json», «Fuehrung_Zug_Ambos.json») und liest die der anderen. Abgleich jede Minute und nach jeder Änderung, «⟳ Abgleichen» löst ihn sofort aus. Bei gleichzeitigen Änderungen am selben Eintrag gilt die jüngste. Funktioniert in Microsoft Edge und Google Chrome.</p>
     <b>Abgleich per Datei (manuell)</b>
@@ -865,7 +865,8 @@ table.mx th,table.mx td{padding:4px 3px}.mx-dot{display:inline-block;width:14px;
 "use strict";
 /* ===================== Grundlagen ===================== */
 const MODE_KEY = 'fuehrungssystem_modus_v1'; // Gesamtsystem: Rolle Grfhr = eigene Ansicht mit Gruppenpaket
-const GR_MODE = (() => { try { const m = localStorage.getItem(MODE_KEY); return m ? m === 'gr' : true; } catch (e) { return true; } })();
+const GR_MODE = (() => { try { const m = localStorage.getItem(MODE_KEY); return m ? m === 'gr' : /*__GR_MODE__*/false; } catch (e) { return /*__GR_MODE__*/false; } })();
+const GRPKG_KEY = 'fuehrungssystem_grpkg_v1'; // Übergabe Gruppenpaket beim Rollenwechsel auf Grfhr (gleiches Gerät)
 const setModus = m => { try { localStorage.setItem(MODE_KEY, m); } catch (e) {} location.reload(); };
 const BM = true; // Berufsmilitär: wie Kp Kdt, zusätzlich Kaderselektion
 const UOS = /*__UOS_MODE__*/false; // UOS: eine Klasse (Struktur eines Zuges) mit drei Gruppen, ohne Rollen
@@ -913,11 +914,12 @@ const fmtStand = () => { const s = D.meta.stand; if (!s) return '–'; const d =
 /* ===================== Rollen ===================== */
 const ROLE_KEY = UOS ? 'fuehrungssystem_uos_rolle_v1' : 'fuehrungssystem_rolle_v1';
 let ROLE = (() => { try { return localStorage.getItem(ROLE_KEY) || 'kp'; } catch (e) { return 'kp'; } })();
-const isKp = () => !UOS && ROLE === 'kp';
+const isKp = () => !UOS && (ROLE === 'kp' || ROLE === 'bm'); // BM und Kp Kdt bearbeiten alles
+const isBMr = () => BM && ROLE === 'bm';
 const isAdm = () => isKp() || UOS; // darf alles bearbeiten (Kp Kdt, in der UOS der Klassenlehrer)
 const uosRole = () => { if (UOS && D && D.zuege && D.zuege[0]) ROLE = D.zuege[0].id; };
 const roleZug = () => isKp() ? null : (D.zuege.find(z => z.id === ROLE) || null);
-const roleName = () => isKp() ? 'Kp Kdt' : 'Zfhr ' + (roleZug() ? roleZug().name : '(Zug fehlt)');
+const roleName = () => isBMr() ? 'BM' : isKp() ? 'Kp Kdt' : 'Zfhr ' + (roleZug() ? roleZug().name : '(Zug fehlt)');
 const nowISO = () => new Date().toISOString();
 const NEW = r => { r.upd = nowISO(); r.by = ROLE; return r; };
 const stamp = r => { if (r) { r.upd = nowISO(); r.by = ROLE; } };
@@ -2114,7 +2116,7 @@ function renderTabs() {
   const dr = DRUCK.filter(([k]) => isKp() && (k === 'p-kp' || k === 'p-woche'));
   $('#druck-menu').innerHTML = '<div class="dm-t">Druckansicht</div>' + dr.map(([k, l]) => `<button data-druckview="${k}" class="${k === currentTab ? 'on' : ''}">${l}</button>`).join('');
   $('#btn-druckmenu').classList.toggle('on', currentTab.startsWith('p-'));
-  $('#tabs').innerHTML = `<button class="tabs-burger" title="Menü" aria-label="Menü">☰</button><button class="tabs-top">↑ Nach oben (Export, Import, Druck)</button>` + TABS.filter(([k]) => k !== 'kader').map(([k, l]) => k === 'sep' ? '<span class="sep"></span>' : `<button data-tab="${k}" class="${k === currentTab ? 'on' : ''} ${k.startsWith('p-') ? 'print-tab' : ''}">${l}${k === 'pend' && pendOpen().length ? ` <span class="tab-badge">${pendOpen().length}</span>` : ''}</button>`).join('');
+  $('#tabs').innerHTML = `<button class="tabs-burger" title="Menü" aria-label="Menü">☰</button><button class="tabs-top">↑ Nach oben (Export, Import, Druck)</button>` + TABS.filter(([k]) => k !== 'kader' || isBMr()).map(([k, l]) => k === 'sep' ? '<span class="sep"></span>' : `<button data-tab="${k}" class="${k === currentTab ? 'on' : ''} ${k.startsWith('p-') ? 'print-tab' : ''}">${l}${k === 'pend' && pendOpen().length ? ` <span class="tab-badge">${pendOpen().length}</span>` : ''}</button>`).join('');
   syncTabs();
 }
 function renderHeader() {
@@ -2127,7 +2129,9 @@ function renderHeader() {
       : syncDir ? `<button id="btn-sync" class="ico on-sync" title="Jetzt abgleichen. ${esc(info)}">${I('<path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/>')}</button><button id="btn-folder" class="ico" title="Ordner «${esc(syncDir.name || '')}» verbunden. Klicken = anderen Ordner wählen (trennen: im ?)">${I('<path d="M3 6h6l2 2h10v11H3z"/>')}</button>`
       : `<button id="btn-folder" class="ico" title="Ordner verbinden: gemeinsamer Ordner für den automatischen Abgleich">${I('<path d="M3 6h6l2 2h10v11H3z"/>')}</button>`; }
   [['verband', D.meta.verband]].forEach(([k, v]) => { const i = $('#hm-' + k); if (!i) return; i.disabled = !isAdm(); if (document.activeElement !== i) i.value = v ?? ''; i.style.width = Math.max(k === 'version' ? 3 : 4, String(i.value).length + 1) + 'ch'; });
-  const rs = $('#role-sel'); if (rs && document.activeElement !== rs) rs.innerHTML = [['kp', 'Kp Kdt'], ...D.zuege.map(z => [z.id, 'Zfhr ' + z.name]), ...(BM ? [['__gr', 'Grfhr']] : [])].map(([v, l]) => `<option value="${esc(v)}"${v === ROLE ? ' selected' : ''}>${esc(l)}</option>`).join('');
+  const rs = $('#role-sel'); if (rs && document.activeElement !== rs) { const o = ([v, l]) => `<option value="${esc(v)}"${v === ROLE ? ' selected' : ''}>${esc(l)}</option>`;
+    rs.innerHTML = (BM ? [['bm', 'BM']] : []).map(o).join('') + [['kp', 'Kp Kdt'], ...D.zuege.map(z => [z.id, 'Zfhr ' + z.name])].map(o).join('')
+      + (BM ? D.zuege.filter(z => z.gruppen.length).map(z => `<optgroup label="Grfhr Zug ${esc(z.name)}">${z.gruppen.map(g => o(['__gr:' + g.id, 'Grfhr ' + g.name])).join('')}</optgroup>`).join('') : ''); }
   $('#hdr-tag').value = D.meta.tag;
 }
 function render() {
@@ -2136,7 +2140,7 @@ function render() {
   if (GR_MODE) return grRender();
   _elCache = null;
   try { syncAutoPend(); } catch (e) {}
-  if (currentTab === 'kader') currentTab = 'pend';
+  if (currentTab === 'kader' && !isBMr()) currentTab = 'pend';
   if (BM) document.body.classList.toggle('lage-fs', currentTab === 'lage');
   renderTabs(); renderHeader();
   const v = $('#view');
@@ -3989,8 +3993,10 @@ function onField(ev) {
     case 'sel-grfhr': ui.grfhrGr = t.value; render(); break;
     case 'file-import': importData(t.files[0]); t.value = ''; break;
     case 'role-sel': {
-      if (t.value === '__gr') { if (confirm('Rolle dieses Geräts auf «Grfhr» ändern?')) setModus('gr'); else t.value = ROLE; break; }
-      const nv = t.value, name = nv === 'kp' ? 'Kp Kdt' : 'Zfhr ' + (zugOf(nv) || {}).name;
+      if (t.value.startsWith('__gr:')) { const gid = t.value.slice(5), r = grOf(gid); if (!r || !confirm('Rolle dieses Geräts auf «Grfhr ' + grLbl(r.z, r.g) + '» ändern?')) { t.value = ROLE; break; }
+        let ok = false; for (const wm of [true, false]) { try { localStorage.setItem(GRPKG_KEY, JSON.stringify(buildGrPkg(gid, wm))); ok = true; break; } catch (e) {} }
+        if (ok) setModus('gr'); else { alert('Gruppenpaket konnte nicht übergeben werden (Speicher voll).'); t.value = ROLE; } break; }
+      const nv = t.value, name = nv === 'bm' ? 'BM' : nv === 'kp' ? 'Kp Kdt' : 'Zfhr ' + (zugOf(nv) || {}).name;
       if (!confirm('Rolle dieses Geräts auf «' + name + '» ändern?')) { t.value = ROLE; break; }
       ROLE = nv; try { localStorage.setItem(ROLE_KEY, ROLE); } catch (e) {}
       ui.calFilter = isKp() ? 'all' : ROLE; ui.persGr = null; ui.editTermin = null; render(); queueSync(); break;
@@ -4190,7 +4196,7 @@ async function idbSet(k, v) { try { const db = await idb(); await new Promise(r 
 async function idbGet(k) { try { const db = await idb(); return await new Promise(r => { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => r(q.result); q.onerror = () => r(null); }); } catch (e) { return null; } }
 
 let syncDir = null, syncBusy = false, syncQueued = null, lastSync = null, syncMsg = '';
-const roleFileBase = () => isKp() ? (BM ? 'BM' : 'Kp') : (UOS ? 'Klasse_' : 'Zug_') + ((roleZug() || {}).name || ROLE).replace(/[^A-Za-z0-9ÄÖÜäöü_-]/g, '_');
+const roleFileBase = () => isKp() ? (isBMr() ? 'BM' : 'Kp') : (UOS ? 'Klasse_' : 'Zug_') + ((roleZug() || {}).name || ROLE).replace(/[^A-Za-z0-9ÄÖÜäöü_-]/g, '_');
 const roleFile = () => 'Fuehrung_' + roleFileBase() + '.json';
 function syncInfo() { if (!syncDir) return 'Kein Ordner verbunden.'; return 'Ordner «' + syncDir.name + '»' + (lastSync ? ', zuletzt abgeglichen ' + pad(lastSync.getHours()) + ':' + pad(lastSync.getMinutes()) : '') + (syncMsg ? ' · ' + syncMsg : ''); }
 function setSync(msg, warn) {
@@ -4762,6 +4768,7 @@ window.addEventListener('input', ev => { if (!GR_MODE || !ev.target.closest || !
 window.addEventListener('keydown', ev => { if (ev.key === 'Escape' && !$('#qr-modal').hidden) qrClose(); });
 
 load();
+if (GR_MODE) try { const pp = localStorage.getItem(GRPKG_KEY); if (pp) { localStorage.removeItem(GRPKG_KEY); applyGrPkg(JSON.parse(pp)); } } catch (e) {}
 if (GR_MODE) ROLE = D.gr ? D.gr.zid : 'gr';
 render();
 </script>

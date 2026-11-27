@@ -15,14 +15,14 @@ g=mb.replace('/*__GR_MODE__*/false','true').replace('<title>Führungssystem</tit
 open('app/Grfhr.html','w',encoding='utf-8').write(g)
 # Web-App (PWA) für iPhone/Android: index.html + manifest + Service Worker + Icons
 import os, hashlib
-head='<link rel="manifest" href="manifest.webmanifest">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-status-bar-style" content="black">\n<meta name="apple-mobile-web-app-title" content="Grfhr">\n<meta name="theme-color" content="#1d1d1d">\n<link rel="apple-touch-icon" href="icon-180.png">\n'
-pw=g.replace('<title>Führungssystem Grfhr</title>','<title>Führungssystem Grfhr</title>\n'+head,1)
+head='<link rel="manifest" href="manifest.webmanifest">\n<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-status-bar-style" content="black">\n<meta name="apple-mobile-web-app-title" content="Führungssystem">\n<meta name="theme-color" content="#1d1d1d">\n<link rel="apple-touch-icon" href="icon-180.png">\n'
+pw=mb.replace('<title>Führungssystem</title>','<title>Führungssystem</title>\n'+head,1)  # Web-App = Gesamtsystem (Rolle frei wählbar)
 reg='<script>if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(function(){});</script>\n</body>'
 pw=pw[:pw.rindex('</body>')]+reg+pw[pw.rindex('</body>')+7:]
 os.makedirs('pwa',exist_ok=True)
 open('pwa/index.html','w',encoding='utf-8').write(pw)
 ver=hashlib.sha1(pw.encode()).hexdigest()[:10]
-open('pwa/manifest.webmanifest','w').write('{"name":"Führungssystem Grfhr","short_name":"Grfhr","start_url":"./","scope":"./","display":"standalone","background_color":"#e5e5e5","theme_color":"#1d1d1d","icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}')
+open('pwa/manifest.webmanifest','w').write('{"name":"Führungssystem","short_name":"Führungssystem","start_url":"./","scope":"./","display":"standalone","background_color":"#e5e5e5","theme_color":"#1d1d1d","icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}')
 open('pwa/sw.js','w').write("""const C='grfhr-%s';const F=['./','index.html','manifest.webmanifest','icon-180.png','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(F)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()));});

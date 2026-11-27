@@ -1,6 +1,6 @@
-# Grfhr
+# Führungssystem
 
-Web-App der Grfhr-Version des Führungssystems. Enthält nur das Programm und Beispieldaten, keine Lagedaten.
-Daten kommen per QR-Code oder Datei vom Zfhr und bleiben auf dem Gerät.
+Web-App des Führungssystems (Rollen BM, Kp Kdt, Zfhr, Grfhr). Enthält nur das Programm und Beispieldaten, keine Lagedaten.
+Daten bleiben auf dem Gerät und werden per Datei, QR-Code oder gemeinsamen Ordner ausgetauscht.
 
 Installation: Adresse in Safari öffnen, Teilen > «Zum Home-Bildschirm». Danach offline nutzbar.
