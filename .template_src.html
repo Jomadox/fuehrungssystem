@@ -1783,7 +1783,7 @@ function mapSVG(items, opt = {}) {
   if (D.geo) s += `<g class="map-bg" opacity="${op}">${geoBackground(W, H, scrG || (V && V.g))}</g>`;
   else if (D.karte) s += `<image class="map-bg" opacity="${op}" href="${D.karte}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none"/>`;
   else s += `<rect x="0" y="0" width="${W}" height="${H}" fill="#fff"/><text x="${W / 2}" y="${H / 2}" text-anchor="middle" font-size="${W / 30}" fill="#999">Keine Karte geladen (Lagekarte › Karte und Raster einstellen)</text>`;
-  let g = ''; const rOn = !BM || !!D.meta.rasterOn;
+  let g = ''; const rSet = !BM || !!D.meta.rasterOn, rOn = rSet && !(BM && SC && SC.db);
   if (rOn) for (let i = 1; i < C; i++) g += `<line x1="${i * cw}" y1="0" x2="${i * cw}" y2="${H}"/>`;
   if (rOn) for (let j = 1; j < R; j++) g += `<line x1="0" y1="${j * ch}" x2="${W}" y2="${j * ch}"/>`;
   if (SC && !BM) s += `<path d="M${vx} ${vy}h${vw}v${vh}h${-vw}Z M${PA.x} ${PA.y}v${PA.h}h${PA.w}v${-PA.h}Z" fill="#fff" fill-opacity=".42" fill-rule="evenodd" pointer-events="none"/>`;
@@ -1797,6 +1797,12 @@ function mapSVG(items, opt = {}) {
   if (rOn) s += `<g font-family="Arial" font-weight="700" font-size="${fs}" fill="#000">${lb}</g>`;
   if (D.geo && SC && BM) s += scaleMini(W, vx, vy, vw, vh);
   else if (D.geo) s += scaleSVG(W, H, SC ? fs * .75 : fs, { x: vx, y: vy, w: vw, h: vh, k, lbl: SC && SC.lbl });
+  if (SC && SC.db && BM && rSet) { const d = SC.db, dc = d.w / C, dr = d.h / R, f2 = Math.min(dc, dr) * .42; let gg = '', gl = '';
+    for (let i = 1; i < C; i++) gg += `<line x1="${d.x + i * dc}" y1="${d.y}" x2="${d.x + i * dc}" y2="${d.y + d.h}"/>`;
+    for (let j = 1; j < R; j++) gg += `<line x1="${d.x}" y1="${d.y + j * dr}" x2="${d.x + d.w}" y2="${d.y + j * dr}"/>`;
+    for (let i = 0; i < C; i++) gl += `<text x="${d.x + (i + .5) * dc}" y="${d.y + f2 * 1.1}" text-anchor="middle">${colLetter(i)}</text>`;
+    for (let j = 0; j < R; j++) gl += `<text x="${d.x + f2 * .3}" y="${d.y + (j + .5) * dr + f2 * .36}">${j + 1}</text>`;
+    s += `<g pointer-events="none"><g stroke="#000" stroke-opacity=".55" stroke-width="${sw}">${gg}</g><g font-family="Arial" font-weight="700" font-size="${f2}" fill="#000" stroke="#fff" stroke-width="${f2 * .18}" paint-order="stroke">${gl}</g></g>`; }
   if (SC && SC.db) { const d = SC.db; s += `<g pointer-events="none"><rect x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="#c00" fill-opacity=".06" stroke="#c00" stroke-width="${sw * 3}" stroke-dasharray="${sw * 12} ${sw * 6}"/><text x="${d.x + fs * .4}" y="${d.y - fs * .4}" font-family="Arial" font-weight="700" font-size="${fs}" fill="#c00" stroke="#fff" stroke-width="${fs * .2}" paint-order="stroke">${esc(d.lbl)}</text></g>`; }
   if (D.geo) s += `<text x="${vx + vw - fs * .3}" y="${vy + vh - fs * .3}" text-anchor="end" font-family="Arial" font-size="${fs * .6}" fill="#000" stroke="#fff" stroke-width="${fs * .15}" paint-order="stroke">© swisstopo</text>`;
   if (opt.lines !== false) { (D.linien || []).filter(opt.linF || (() => true)).map(l => placeLin(l)).filter(Boolean).forEach(l => { s += linieSVG(l, W, H, Math.min(vw, vh) / 20, sw, opt.hlLine === l.id || !!(opt.hlSet && opt.hlSet.includes(l.id))); }); }
