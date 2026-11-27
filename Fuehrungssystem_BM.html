@@ -789,6 +789,12 @@ table.mx th,table.mx td{padding:4px 3px}.mx-dot{display:inline-block;width:14px;
 .cal-addb{width:40px;height:40px;border-radius:50%;border:none;background:#e00;color:#fff;font-size:26px;font-weight:600;line-height:1;padding:0;cursor:pointer;flex:0 0 auto}
 @media (max-width:700px){.cal-ev{touch-action:auto;cursor:pointer}.cal-ev .rz{display:none}}
 @media (max-width:700px){.tp-dt{display:grid!important;grid-template-columns:1fr 1fr;gap:8px}.tp-dt>label:first-child{grid-column:1/-1}.tp-dt input{min-width:0;width:100%}}
+.cal-ev.bmv{background:#f4f5f7!important;border:none;border-left:3px solid #333;border-radius:3px;box-shadow:none;padding:3px 7px;line-height:1.3;color:#1a1a1a}
+.cal-ev.bmv .l1{font-weight:600;font-size:12px;display:flex;align-items:center;gap:5px}
+.cal-ev.bmv .mt{font-size:11px;color:#777}
+.cal-ev.bmv.ep{border-left-color:#000}
+.cal-ev.bmv.sel{outline:2px solid #e00;outline-offset:1px}
+.btr-p{display:inline-block;color:#fff;font-size:10px;font-weight:700;line-height:1;padding:2px 5px;border-radius:8px;letter-spacing:.02em}
 </style>
 </head>
 <body>
@@ -2886,6 +2892,7 @@ function txtPx(str, font) { if (!_twc) _twc = document.createElement('canvas').g
 function calTxtPx(it) { // Platz, den die Beschriftung eines Termins braucht
   const t = it.t, ep = t.kategorie === 'Entscheidpunkt', e = el(t.element), who = e.type === 'gr' ? e.short : '';
   const meta = [kompText(t), who, t.ort, t.kategorie !== 'Ausbildung' && !ep ? t.kategorie : '', t.abhaengig ? '⟵ ' + t.abhaengig : ''].filter(Boolean).join(' · ');
+  if (BM) return Math.ceil(Math.max(txtPx((ep ? '◆ ' : '') + (t.inBearb ? '✎ ' : '') + (t.taetigkeit || '(ohne Titel)'), '600 12px') + (t.betreuung ? txtPx(t.betreuung, '700 10px') + 14 : 0), t.ort ? txtPx(t.ort, '11px') : 0)) + 6;
   const l1 = txtPx((ep ? '◆ ' : '') + fmtMin(it.s) + '–' + fmtMin(it.e) + ' ', '600 11px') + txtPx((t.inBearb ? '✎ ' : '') + (t.taetigkeit || '(ohne Titel)') + (t.betreuung ? ' ' + t.betreuung : ''), '600 12px') + (t.betreuung ? 12 : 0);
   return Math.ceil(Math.max(l1, meta ? txtPx(meta, '11px') : 0)) + 6;
 }
@@ -2928,7 +2935,7 @@ function viewKalender(seg) {
     const dayIt = dayItems(d).filter(x => x.e > s0 && x.s < e0 || (x.t.kategorie === 'Entscheidpunkt' && x.s >= s0 && x.s < e0));
     body += `<div class="calh-day${d === D.meta.tag ? ' on' : ''}" data-setday="${d}" title="Als Tag für die Druckansichten wählen"><div class="calh-lbl">${esc(BM ? fmtDay(d).split(',')[0].slice(0, 2) : fmtDay(d).split(',')[0])} ${fmtDayShort(d)}${BM && isKp() ? `<button class="cal-extadd" data-extadd="${d}" title="Zusätzlicher Verband / Det nur für diesen Tag">+</button>` : ''}</div><div class="calh-ticks" style="width:${TW}px">${ticks}</div></div>`;
     lanes.forEach(ln => { if (ln.ext && !extOn(ln, d)) return;
-      const items = layoutDay(dayIt.filter(x => laneOf(x.t.element) === ln.id), BM ? it => { const w = (it.e - it.s) / 60 * HOUR_W, tw = calTxtPx(it); return (w < 90 ? Math.max(22, w) + 4 + tw : Math.max(w, tw + 14)) / HOUR_W * 60 + 8; } : it => (it.e - it.s) / 60 * HOUR_W < 90 ? 270 : 20); // kurze Termine: Platz für die Beschriftung daneben
+      const items = layoutDay(dayIt.filter(x => laneOf(x.t.element) === ln.id), BM ? it => { const w = (it.e - it.s) / 60 * HOUR_W, tw = calTxtPx(it); return Math.max(w, tw + 14) / HOUR_W * 60 + 6; } : it => (it.e - it.s) / 60 * HOUR_W < 90 ? 270 : 20); // kurze Termine: Platz für die Beschriftung daneben
       const nc = items.reduce((m, x) => Math.max(m, x.ncol), 1);
       let evs = '';
       items.forEach(x => {
@@ -2940,6 +2947,7 @@ function viewKalender(seg) {
         const ro = !canEdit('termine', t), narrow = wid < 90;
         const meta = [kompText(t), who, t.ort, t.kategorie !== 'Ausbildung' && !ep ? t.kategorie : '', t.abhaengig ? '⟵ ' + t.abhaengig : ''].filter(Boolean).join(' · ');
         if (narrow) wid = Math.max(wid, 22);
+        if (BM) { evs += `<div class="cal-ev bmv ${cls}${ro ? ' ro' : ''}${ui.editTermin === t.id ? ' sel' : ''}" data-id="${esc(t.id)}" data-s="${x.s}" data-e="${x.e}" data-carry="${x.carry ? 1 : 0}" style="left:${left}px;width:${wid}px;top:${x.col * LANE_H + 2}px;height:${LANE_H - 4}px" title="${esc(fmtMin(x.s) + (ep ? '' : '–' + fmtMin(x.e)) + ' ' + (t.taetigkeit || '') + (t.ort ? ' | ' + t.ort : '') + (t.betreuung ? ' | ' + t.betreuung : ''))}"><div class="l1">${ep ? '◆ ' : ''}${t.inBearb ? '✎ ' : ''}${esc(t.taetigkeit || '(ohne Titel)')}${t.betreuung ? `<span class="btr-p" style="background:${btrCol(t.betreuung)}">${esc(t.betreuung)}</span>` : ''}</div>${t.ort ? `<div class="mt">${esc(t.ort)}</div>` : ''}${ep || x.carry || ro ? '' : '<div class="rz"></div>'}</div>`; return; }
         evs += `<div class="cal-ev ${cls}${narrow ? ' short' : ''}${ro ? ' ro' : ''}${ui.editTermin === t.id ? ' sel' : ''}" data-id="${esc(t.id)}" data-s="${x.s}" data-e="${x.e}" data-carry="${x.carry ? 1 : 0}" style="left:${left}px;width:${wid}px;top:${x.col * LANE_H + 2}px;height:${LANE_H - 4}px" title="${esc(fmtMin(x.s) + (ep ? '' : '–' + fmtMin(x.e)) + ' ' + (t.taetigkeit || '') + (t.betreuung ? ' | Btr ' + t.betreuung : '') + (meta ? ' | ' + meta : ''))}">
           ${narrow ? btrDot(t.betreuung, 1) : `<div class="l1"><span class="tm">${ep ? '◆ ' + fmtMin(x.s) : (x.carry ? '◂ ' : '') + fmtMin(x.s) + (narrow ? '' : '–' + fmtMin(x.e))}</span> ${btrDot(t.betreuung, 1)}<span class="ti">${t.inBearb ? '<span class="tm-ib" title="in Bearbeitung">✎</span> ' : ''}${esc(t.taetigkeit || '(ohne Titel)')}</span>${t.betreuung && !narrow ? ` <b class="btr" style="color:${btrCol(t.betreuung)}">${esc(t.betreuung)}</b>` : ''}</div>
           ${meta ? `<div class="mt">${esc(meta)}</div>` : ''}`}
@@ -2960,7 +2968,7 @@ function viewKalender(seg) {
       ${BM ? '' : '<button class="small" data-extadd="1" title="Zusätzliche Zeile für einen Verband oder ein Detachement (z.B. Det Log, Nachbarkompanie, Instruktoren)">+ Verband / Det</button>'}<span style="flex:1"></span>${BM ? pgTools('sync', pgIc('exp', 'Termine exportieren (Datei)', 'id="tm-export"') + (isAdm() ? pgIc('imp', 'Termine importieren: ersetzt alle Termine der Synchromatrix', 'id="tm-import"') + '<input type="file" id="file-termine" accept=".json,application/json" hidden>' + pgIc('trash', 'Termine leeren: alle Termine löschen (inkl. Aufträge und Anträge)', 'id="btn-clear-ops"', 'danger') : '')) : `<button class="small" id="tm-export" title="Nur die Termine der Synchromatrix als JSON-Datei speichern">⤓ Termine speichern</button>${isAdm() ? '<button class="small" id="tm-import" title="Gespeicherte Termine laden: ersetzt alle Termine der Synchromatrix">⤒ Termine laden</button><input type="file" id="file-termine" accept=".json,application/json" hidden>' : ''}${isAdm() ? '<button class="small danger" id="btn-clear-ops" title="Alle Termine löschen (inkl. Aufträge und Anträge)">Termine leeren</button>' : ''}`}</div>
     <div id="cal-host"><div class="cal-wrap"><div class="calh" id="cal" style="--hw:${HOUR_W}px;width:${TW + LBL_W}px">
       ${body}</div></div></div>
-    <div class="sm-legend" style="font-size:12px;margin-top:8px"><span><i class="k-auftrag"></i>Ausbildung</span><span><i class="k-log"></i>Logistik</span><span><i class="k-san"></i>Sanität</span><span><i class="k-rap"></i>Rapport</span><span><i class="k-mdg"></i>Meldung</span><span><i class="k-bes"></i>Besonderes</span></div>
+    ${BM ? '' : `<div class="sm-legend" style="font-size:12px;margin-top:8px"><span><i class="k-auftrag"></i>Ausbildung</span><span><i class="k-log"></i>Logistik</span><span><i class="k-san"></i>Sanität</span><span><i class="k-rap"></i>Rapport</span><span><i class="k-mdg"></i>Meldung</span><span><i class="k-bes"></i>Besonderes</span></div>`}
   </div>${panel}`;
 }
 /* Inhalt eines Auftrags: Verweis auf Kompetenz-Nummern der Ausbildungskontrolle, z.B. «45, 46, 49-50» */
