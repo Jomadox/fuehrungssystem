@@ -2106,7 +2106,7 @@ function renderTabs() {
   const dr = DRUCK.filter(([k]) => isKp() && (k === 'p-kp' || k === 'p-woche'));
   $('#druck-menu').innerHTML = '<div class="dm-t">Druckansicht</div>' + dr.map(([k, l]) => `<button data-druckview="${k}" class="${k === currentTab ? 'on' : ''}">${l}</button>`).join('');
   $('#btn-druckmenu').classList.toggle('on', currentTab.startsWith('p-'));
-  $('#tabs').innerHTML = `<button class="tabs-burger" title="Menü" aria-label="Menü">☰</button><button class="tabs-top">↑ Nach oben (Export, Import, Druck)</button>` + TABS.filter(([k]) => k !== 'kader' || isKp()).map(([k, l]) => k === 'sep' ? '<span class="sep"></span>' : `<button data-tab="${k}" class="${k === currentTab ? 'on' : ''} ${k.startsWith('p-') ? 'print-tab' : ''}">${l}${k === 'pend' && pendOpen().length ? ` <span class="tab-badge">${pendOpen().length}</span>` : ''}</button>`).join('');
+  $('#tabs').innerHTML = `<button class="tabs-burger" title="Menü" aria-label="Menü">☰</button><button class="tabs-top">↑ Nach oben (Export, Import, Druck)</button>` + TABS.filter(([k]) => k !== 'kader').map(([k, l]) => k === 'sep' ? '<span class="sep"></span>' : `<button data-tab="${k}" class="${k === currentTab ? 'on' : ''} ${k.startsWith('p-') ? 'print-tab' : ''}">${l}${k === 'pend' && pendOpen().length ? ` <span class="tab-badge">${pendOpen().length}</span>` : ''}</button>`).join('');
   syncTabs();
 }
 function renderHeader() {
@@ -2128,7 +2128,7 @@ function render() {
   if (GR_MODE) return grRender();
   _elCache = null;
   try { syncAutoPend(); } catch (e) {}
-  if (currentTab === 'kader' && !isKp()) currentTab = 'pend';
+  if (currentTab === 'kader') currentTab = 'pend';
   if (BM) document.body.classList.toggle('lage-fs', currentTab === 'lage');
   renderTabs(); renderHeader();
   const v = $('#view');
