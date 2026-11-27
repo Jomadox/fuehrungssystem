@@ -749,6 +749,26 @@ body.grmode.gr-mini.gr-open #gr-head{position:fixed;top:0;left:0;right:0}
 nav#tabs.mini:not(.open){overflow:visible!important;background:transparent!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent}
 body.lage-fs{overflow:hidden}
 body.lage-fs .lage-full .mapbox{position:fixed;left:0;top:0;right:0;bottom:0;width:auto;height:100vh;height:100dvh;border:0;border-radius:0;z-index:30;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);box-sizing:border-box}
+/* BM Statusübersicht als Matrix */
+.mx-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+table.mx{border-collapse:separate;border-spacing:0;font-size:13px;min-width:100%}
+table.mx th,table.mx td{padding:5px 6px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle;white-space:nowrap}
+table.mx .mx-l{text-align:left;font-weight:600;color:var(--muted);position:sticky;left:0;background:#fff;z-index:1;padding-right:12px;min-width:90px}
+table.mx .mx-z{font-size:14px;border-bottom:2px solid #1d1d1d;border-left:3px solid #fff;padding-bottom:6px}table.mx .mx-z .pill{margin-left:4px}
+table.mx .mx-g button{border:0;background:none;font-weight:700;font-size:13px;padding:3px 6px;border-radius:6px;cursor:pointer}table.mx .mx-g button:hover{background:#f0f0f0}
+table.mx .mx-zb{border-left:3px solid #e2e2e2}
+table.mx th.on button{background:#1d1d1d!important;color:#fff!important;opacity:1!important}table.mx td.on{background:#f6f6f6}
+.mx-pers{border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;margin:auto;font-size:13px;padding:2px 4px}.mx-pers small{color:var(--rot);font-size:11px}
+.mx-ok{color:#9a9a9a}.mx-bad{color:#b45309;font-weight:600}
+.mx-sel{font-size:12.5px;padding:3px 4px;border-radius:6px;border:1px solid var(--line);max-width:118px}
+.mx-sel.mx-ok{background:#fff;color:#4a4a4a}.mx-sel.mx-eingeschrnkt{background:#fff3c4;border-color:#e0b100;color:#5a4500}.mx-sel.mx-ausgefallen{background:#fde0e0;border-color:#d33;color:#8a1111;font-weight:600}.mx-sel.mx-na{background:#f2f2f2;color:#999}
+.mx-bem{width:110px;font-size:12.5px;padding:3px 5px}
+.mx-det{margin-top:16px;padding-top:12px;border-top:2px solid #1d1d1d}
+table.mx select.mx-sel{width:auto!important;min-width:0!important;max-width:none;-webkit-appearance:none;appearance:none;background-image:none!important;text-align:center;text-align-last:center;padding:2px 8px!important;height:auto!important;min-height:0!important;border-radius:999px;font-size:12px;cursor:pointer}
+table.mx select.mx-sel.mx-ok{border-color:transparent;color:#9a9a9a;background:transparent}table.mx select.mx-sel.mx-ok:hover{border-color:var(--line)}
+table.mx select.mx-sel.mx-na{border-color:transparent;background:transparent;color:#c4c4c4}
+table.mx input.mx-bem{width:72px!important;min-width:0!important;height:auto!important;min-height:0!important;font-size:12px;padding:2px 5px!important;border-color:transparent;background:transparent}table.mx input.mx-bem:hover,table.mx input.mx-bem:focus,table.mx input.mx-bem:not(:placeholder-shown){border-color:var(--line);background:#fff}
+table.mx th,table.mx td{padding:4px 3px}.mx-dot{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:middle}table.mx select.mx-sel{padding:2px 6px!important}
 </style>
 </head>
 <body>
@@ -2754,8 +2774,35 @@ function viewSystemeMob() {
     <label class="mf-w">Bemerkung<textarea rows="3" ${a('bem')}>${esc(p.bem || '')}</textarea></label></div>`; }
   return h + (d.back ? `<div class="row-actions">${d.back}</div>` : '') + '</div>';
 }
+/* BM PC: Matrix mit Verbänden oben (Zug › Gruppe) und Mitteln links */
+function viewSystemeMx() {
+  const st = D.meta.systemTypen, zs = D.zuege.filter(z => inZug(z.id)), grs = zs.flatMap(z => z.gruppen.map(g => ({ z, g, s: grStatus(g.id) })));
+  const selG = ui.statSel && grs.find(x => x.g.id === ui.statSel) ? ui.statSel : null;
+  const zl = z => z.gruppen.length, zS = z => sumStatus(z.gruppen.map(g => grStatus(g.id)));
+  const ampTxt = a => a === 'na' ? '–' : a;
+  let h = setPanel('status', 'Einstellungen Statusübersicht', `Ampel gelb < ${D.meta.gelb} %, rot < ${D.meta.rot} % · ${st.length} Systemtypen`, metaF('gelb', 'Ampel gelb unter % einsatzfähig', 'number', 'min="0" max="100"') + metaF('rot', 'Ampel rot unter % einsatzfähig', 'number', 'min="0" max="100"') + metaL('systemTypen', 'Systemtypen (mit Komma getrennt)'));
+  h += `<div class="card"><div class="mx-head"><h2 style="margin:0">Statusübersicht</h2><span style="flex:1"></span><span class="hint" style="margin:0">Gruppe anklicken = Soldaten anzeigen</span>${isAdm() ? '<button class="small danger" id="btn-reset-status" title="Alle Personen einsatzfähig, alle Systeme ok">Status zurücksetzen</button>' : ''}</div>
+  <div class="tbl-wrap"><table class="mx"><thead><tr><th class="mx-l" rowspan="2"></th>${zs.map(z => { const t = zS(z); return `<th class="mx-z" colspan="${zl(z)}"><span>${esc(z.name)}</span> <span class="pill amp-${t.amp}">${t.ef}/${t.best}</span></th>`; }).join('')}</tr>
+  <tr>${grs.map((x, i) => `<th class="mx-g${x.g.id === selG ? ' on' : ''}${i && grs[i - 1].z !== x.z ? ' mx-zb' : ''}"><button data-statsel="${x.g.id}" title="Soldaten von ${esc(x.g.name)} anzeigen">${esc(x.g.name)}</button></th>`).join('')}</tr></thead><tbody>`;
+  const row = (lbl, fn, cls = '') => `<tr class="${cls}"><th class="mx-l">${lbl}</th>${grs.map((x, i) => `<td class="${x.g.id === selG ? 'on ' : ''}${i && grs[i - 1].z !== x.z ? 'mx-zb' : ''}">${fn(x)}</td>`).join('')}</tr>`;
+  h += row('Ampel', x => `<span class="mx-dot amp-${x.s.amp}" title="${ampTxt(x.s.amp)}"></span>`, 'mx-amp');
+  h += row('Personal', x => `<button class="mx-pers" data-statsel="${x.g.id}"><b>${x.s.ef}/${x.s.best}</b>${x.s.abw || x.s.verl ? `<small>${[x.s.abw ? x.s.abw + ' abw' : '', x.s.verl ? x.s.verl + ' verl' : ''].filter(Boolean).join(' · ')}</small>` : ''}</button>`);
+  h += row('Material', x => x.s.mat ? `<span class="mx-bad">${x.s.mat} Mangel</span>` : '<span class="mx-ok">ok</span>');
+  h += row('Munition', x => x.s.mun ? `<span class="mx-bad">${x.s.mun} Mangel</span>` : '<span class="mx-ok">ok</span>');
+  st.forEach(t => { h += row(esc(t), x => { const v = (D.systeme[x.g.id] || {})[t] || 'ok', sd = inZug(x.g.id) ? '' : ' disabled'; return sel(v, [['ok', 'ok'], ['eingeschränkt', 'eingeschr.'], ['ausgefallen', 'ausgef.'], ['n/a', 'n/a']], `title="${esc(t)}: ${esc(v)}" class="mx-sel mx-${v.replace(/[^a-z]/g, '')}" data-sys="${x.g.id}" data-t="${esc(t)}"${sd}`); }, 'mx-sys'); });
+  h += row('Bemerkung', x => `<input class="mx-bem" data-sys="${x.g.id}" data-t="bem" value="${esc((D.systeme[x.g.id] || {}).bem || '')}" placeholder="…"${inZug(x.g.id) ? '' : ' disabled'}>`);
+  h += '</tbody></table></div>';
+  if (selG) { const x = grs.find(y => y.g.id === selG), ps = D.personen.filter(p => p.gruppeId === selG), ed = inZug(selG);
+    h += `<div class="mx-det"><div class="mx-head"><h3 style="margin:0">${esc(x.z.name)} › ${esc(x.g.name)}${x.g.fuehrer ? ` <span class="hint" style="margin:0">${esc(x.g.fuehrer)}</span>` : ''}</h3><span style="flex:1"></span><button class="small" data-statsel="${selG}">✕ schliessen</button></div>
+    ${ps.length ? editTable('personen', ps, [
+      { key: 'funktion', label: 'Funktion', w: '120px' }, { key: 'grad', label: 'Grad', w: '70px' }, { key: 'name', label: 'Name' }, { key: 'mittel', label: 'Mittel / Waffe' },
+      { key: 'status', label: 'Status', type: 'select', options: P_STATUS, w: '190px' }, { key: 'mat', label: 'Mat', type: 'select', options: ['ok', 'Mangel'], w: '85px' }, { key: 'mun', label: 'Mun', type: 'select', options: ['ok', 'Mangel'], w: '85px' }, { key: 'bem', label: 'Bemerkung' }
+    ], { rowClass: r => r.status && r.status !== 'einsatzfähig' ? 'pers-warn' : '' }) : '<p class="hint">Noch keine Soldaten in dieser Gruppe.</p>'}${ed ? `<div class="row-actions" style="margin-top:4px"><button class="small" data-addperson="${selG}">+ Soldat</button></div>` : ''}</div>`; }
+  return h + '</div>';
+}
 function viewSysteme() {
   if (isMob()) return viewSystemeMob();
+  if (BM) return viewSystemeMx();
   const st = D.meta.systemTypen, open = ui.statOpen || (ui.statOpen = {});
   const ncol = st.length + 5;
   const allIds = D.zuege.flatMap(z => z.gruppen.map(g => g.id));
@@ -3717,6 +3764,7 @@ document.addEventListener('click', ev => {
     render(); window.scrollTo(0, 0); return; }
   if (b.dataset.pset) { const [pid, k, v] = b.dataset.pset.split('|'), p = D.personen.find(x => x.id === pid); if (!p || !canEdit('personen', p)) return; p[k] = v; stamp(p); touch(); render(); return; }
   if (b.dataset.egtog) { const o = ui.egOpen || (ui.egOpen = {}); o[b.dataset.egtog] = !o[b.dataset.egtog]; render(); return; }
+  if (b.dataset.statsel) { ui.statSel = ui.statSel === b.dataset.statsel ? null : b.dataset.statsel; render(); return; }
   if (b.dataset.statgr) { const o = ui.statOpen || (ui.statOpen = {}); o[b.dataset.statgr] = !(o[b.dataset.statgr] ?? !isKp()); render(); return; }
   if (b.dataset.addperson) { const g = b.dataset.addperson; if (!inZug(g)) return; D.personen.push(NEW({ id: 'p' + uid(), gruppeId: g, funktion: '', grad: '', name: '', mittel: '', status: 'einsatzfähig', mat: 'ok', mun: 'ok', bem: '' })); touch(); render(); setTimeout(() => { const l = [...document.querySelectorAll('.stat-sub input[data-key="funktion"]')].filter(i => (D.personen.find(p => p.id === i.dataset.id) || {}).gruppeId === g).pop(); if (l) l.focus(); }, 0); return; }
   if (b.dataset.addmember) { if (!inZug(b.dataset.addmember)) return; D.personen.push(NEW({ id: 'p' + uid(), gruppeId: b.dataset.addmember, funktion: '', grad: '', name: '', mittel: '', status: 'einsatzfähig', mat: 'ok', mun: 'ok', bem: '' })); touch(); render(); setTimeout(() => { const l = [...document.querySelectorAll(`.gm-r input[data-key="grad"]`)].filter(i => D.personen.find(p => p.id === i.dataset.id && p.gruppeId === b.dataset.addmember)).pop(); if (l) l.focus(); }, 0); return; }
